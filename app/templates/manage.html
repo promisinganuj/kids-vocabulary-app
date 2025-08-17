@@ -202,6 +202,53 @@
             box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
         }
 
+        .btn-search {
+            background-color: #3498db;
+            color: white;
+            margin-left: 10px;
+            min-width: 100px;
+        }
+
+        .btn-search:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-search:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .word-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .word-input-container .form-input {
+            flex: 1;
+        }
+
+        .search-status {
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .search-status.loading {
+            color: #3498db;
+        }
+
+        .search-status.success {
+            color: #27ae60;
+        }
+
+        .search-status.error {
+            color: #e74c3c;
+        }
+
         .btn-danger {
             background-color: #e74c3c;
             color: white;
@@ -372,6 +419,20 @@
                 grid-template-columns: 1fr;
             }
 
+            .word-input-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .word-input-container .form-input {
+                width: 100%;
+            }
+
+            .btn-search {
+                margin-left: 0;
+                width: 100%;
+            }
+
             .word-table {
                 font-size: 14px;
             }
@@ -430,8 +491,14 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label" for="wordInput">Word *</label>
-                            <input type="text" id="wordInput" class="form-input" placeholder="e.g., Scrutinize" required>
+                            <div class="word-input-container">
+                                <input type="text" id="wordInput" class="form-input" placeholder="e.g., Scrutinize" required>
+                                <button type="button" id="searchWordBtn" class="btn btn-search">
+                                    🔍 Search
+                                </button>
+                            </div>
                             <div id="duplicateWarning" class="duplicate-message">⚠️ This word already exists in your vocabulary</div>
+                            <div id="searchStatus" class="search-status"></div>
                         </div>
                         
                         <div class="form-group">
@@ -679,10 +746,67 @@
             }
         }
 
+        function searchWordDefinition() {
+            const wordInput = document.getElementById('wordInput');
+            const searchBtn = document.getElementById('searchWordBtn');
+            const searchStatus = document.getElementById('searchStatus');
+            const typeInput = document.getElementById('typeInput');
+            const definitionInput = document.getElementById('definitionInput');
+            const exampleInput = document.getElementById('exampleInput');
+            
+            const word = wordInput.value.trim();
+            
+            if (!word) {
+                showNotification('Please enter a word to search', 'error');
+                return;
+            }
+            
+            // Update UI to show loading state
+            searchBtn.disabled = true;
+            searchBtn.textContent = '🔄 Searching...';
+            searchStatus.textContent = 'Searching for word definition...';
+            searchStatus.className = 'search-status loading';
+            
+            // Make API call to search for word definition
+            fetch(`/api/search/word/${encodeURIComponent(word)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Populate form fields with search results
+                        typeInput.value = data.data.type || '';
+                        definitionInput.value = data.data.definition || '';
+                        exampleInput.value = data.data.example || '';
+                        
+                        searchStatus.textContent = '✅ Word found! You can edit the details before saving.';
+                        searchStatus.className = 'search-status success';
+                        
+                        showNotification('Word definition found and populated!', 'success');
+                    } else {
+                        searchStatus.textContent = `❌ ${data.error}`;
+                        searchStatus.className = 'search-status error';
+                        
+                        showNotification(data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    searchStatus.textContent = '❌ Error searching for word definition';
+                    searchStatus.className = 'search-status error';
+                    
+                    showNotification('Error searching for word definition. Please try again.', 'error');
+                })
+                .finally(() => {
+                    // Reset button state
+                    searchBtn.disabled = false;
+                    searchBtn.textContent = '🔍 Search';
+                });
+        }
+
         // Initialize event listeners
         document.getElementById('addWordForm').addEventListener('submit', addWord);
         document.getElementById('searchInput').addEventListener('input', searchWords);
         document.getElementById('wordInput').addEventListener('input', checkForDuplicate);
+        document.getElementById('searchWordBtn').addEventListener('click', searchWordDefinition);
         
         // Initialize stats
         updateStats();

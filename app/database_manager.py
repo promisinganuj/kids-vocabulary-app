@@ -566,6 +566,250 @@ class DatabaseManager:
                 'today_stats': {}
             }
 
+    def get_new_words(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get words that haven't been studied yet (mastery_level = 0)."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM tbl_vocab 
+                    WHERE mastery_level = 0 
+                    ORDER BY RANDOM() 
+                    LIMIT ?
+                ''', (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting new words: {e}")
+            return []
+
+    def get_review_words(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get words that have been studied before (mastery_level > 0)."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM tbl_vocab 
+                    WHERE mastery_level > 0 
+                    ORDER BY last_reviewed ASC, RANDOM() 
+                    LIMIT ?
+                ''', (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting review words: {e}")
+            return []
+
+    def get_difficult_words(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get words marked as difficult or with low accuracy."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM tbl_vocab 
+                    WHERE difficulty = 'hard' 
+                       OR (times_reviewed > 0 AND times_correct * 1.0 / times_reviewed < 0.7)
+                    ORDER BY times_correct * 1.0 / NULLIF(times_reviewed, 0) ASC, RANDOM()
+                    LIMIT ?
+                ''', (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting difficult words: {e}")
+            return []
+
+    def get_mixed_words(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get a mix of new, review, and difficult words."""
+        try:
+            new_count = limit // 3
+            review_count = limit // 3
+            difficult_count = limit - new_count - review_count
+            
+            words = []
+            words.extend(self.get_new_words(new_count))
+            words.extend(self.get_review_words(review_count))
+            words.extend(self.get_difficult_words(difficult_count))
+            
+            # Shuffle the combined list
+            import random
+            random.shuffle(words)
+            return words[:limit]
+        except Exception as e:
+            print(f"Error getting mixed words: {e}")
+            return []
+
+    def reset_study_session(self, session_id: int) -> bool:
+        """Reset a study session progress."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE tbl_study_sessions 
+                    SET words_reviewed = 0, words_correct = 0, duration_seconds = 0,
+                        start_time = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (session_id,))
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error resetting study session: {e}")
+            return False
+
+    def get_user_achievements(self) -> List[Dict[str, Any]]:
+        """Get user achievements based on study progress."""
+        achievements = []
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Word Master Achievement
+                cursor.execute('SELECT COUNT(*) FROM tbl_vocab WHERE mastery_level = 2')
+                mastered_count = cursor.fetchone()[0]
+                if mastered_count >= 100:
+                    achievements.append({
+                        'id': 'word_master',
+                        'name': 'Word Master',
+                        'description': 'Mastered 100 words',
+                        'icon': '🏆',
+                        'unlocked': True
+                    })
+                
+                # Streak Champion Achievement
+                streak_days = self.get_study_streak()['current_streak']
+                if streak_days >= 7:
+                    achievements.append({
+                        'id': 'streak_champion',
+                        'name': 'Streak Champion',
+                        'description': '7-day study streak',
+                        'icon': '🔥',
+                        'unlocked': True
+                    })
+                
+                # Perfect Score Achievement
+                cursor.execute('''
+                    SELECT COUNT(*) FROM tbl_study_sessions 
+                    WHERE words_reviewed > 0 AND words_correct = words_reviewed
+                ''')
+                perfect_sessions = cursor.fetchone()[0]
+                if perfect_sessions > 0:
+                    achievements.append({
+                        'id': 'perfect_score',
+                        'name': 'Perfect Score',
+                        'description': '100% accuracy in a session',
+                        'icon': '🎯',
+                        'unlocked': True
+                    })
+                
+        except Exception as e:
+            print(f"Error getting achievements: {e}")
+        
+        return achievements
+
+    def get_daily_study_stats(self) -> Dict[str, Any]:
+        """Get today's study statistics."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        COUNT(*) as sessions,
+                        COALESCE(SUM(words_reviewed), 0) as words_reviewed,
+                        COALESCE(SUM(words_correct), 0) as words_correct,
+                        COALESCE(SUM(duration_seconds), 0) as total_time
+                    FROM tbl_study_sessions 
+                    WHERE date(start_time) = date('now')
+                ''')
+                row = cursor.fetchone()
+                return dict(row) if row else {}
+        except Exception as e:
+            print(f"Error getting daily stats: {e}")
+            return {}
+
+    def get_weekly_progress(self) -> List[Dict[str, Any]]:
+        """Get weekly study progress."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        date(start_time) as study_date,
+                        COUNT(*) as sessions,
+                        SUM(words_reviewed) as words_reviewed,
+                        SUM(words_correct) as words_correct
+                    FROM tbl_study_sessions 
+                    WHERE start_time >= date('now', '-7 days')
+                    GROUP BY date(start_time)
+                    ORDER BY study_date
+                ''')
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting weekly progress: {e}")
+            return []
+
+    def get_mastery_breakdown(self) -> Dict[str, int]:
+        """Get breakdown of words by mastery level."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT 
+                        CASE 
+                            WHEN mastery_level = 0 THEN 'new'
+                            WHEN mastery_level = 1 THEN 'learning'
+                            WHEN mastery_level = 2 THEN 'mastered'
+                        END as mastery,
+                        COUNT(*) as count
+                    FROM tbl_vocab 
+                    GROUP BY mastery_level
+                ''')
+                return {row['mastery']: row['count'] for row in cursor.fetchall()}
+        except Exception as e:
+            print(f"Error getting mastery breakdown: {e}")
+            return {}
+
+    def get_study_streak(self) -> Dict[str, int]:
+        """Get current and longest study streaks."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT DISTINCT date(start_time) as study_date 
+                    FROM tbl_study_sessions 
+                    ORDER BY study_date DESC
+                ''')
+                dates = [row['study_date'] for row in cursor.fetchall()]
+                
+                current_streak = 0
+                if dates:
+                    from datetime import datetime, timedelta
+                    today = datetime.now().date()
+                    for i, date_str in enumerate(dates):
+                        study_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                        expected_date = today - timedelta(days=i)
+                        if study_date == expected_date:
+                            current_streak += 1
+                        else:
+                            break
+                
+                return {
+                    'current_streak': current_streak,
+                    'longest_streak': len(dates)  # Simplified calculation
+                }
+        except Exception as e:
+            print(f"Error getting study streak: {e}")
+            return {'current_streak': 0, 'longest_streak': 0}
+
+    def get_recent_sessions(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get recent study sessions."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM tbl_study_sessions 
+                    ORDER BY start_time DESC 
+                    LIMIT ?
+                ''', (limit,))
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting recent sessions: {e}")
+            return []
+
 
 def initialize_from_text_file(text_file_path: str, db_path: Optional[str] = None) -> DatabaseManager:
     """Initialize database and load data from text file."""

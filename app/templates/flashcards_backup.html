@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Flashcards - Backup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Simple, working study session styles */
+        .study-controls {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .session-active {
+            display: none;
+        }
+
+        .study-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* Word card styles */
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .word-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .word-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .word-card.flipped .word-front {
+            transform: rotateY(-180deg);
+        }
+
+        .word-card.flipped .word-back {
+            transform: rotateY(0deg);
+        }
+
+        .word-front, .word-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            transition: transform 0.6s;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .word-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .word-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .word-type {
+            font-size: 1em;
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .word-definition {
+            font-size: 1.1em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .word-example {
+            font-size: 1em;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .review-buttons {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 10px;
+        }
+
+        .word-card.flipped .review-buttons {
+            display: flex;
+        }
+
+        .btn-sm {
+            padding: 5px 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="bg-primary text-white p-3 mb-4">
+            <h1 class="h3 mb-0">📚 Vocabulary Flashcards</h1>
+        </header>
+
+        <!-- Simple Study Session Controls -->
+        <div class="study-controls" id="studyControls">
+            <div id="sessionConfig">
+                <h4>📖 Study Session</h4>
+                <button class="btn btn-success btn-lg" onclick="startSimpleSession()">Start Study Session</button>
+            </div>
+            
+            <div id="sessionActive" class="session-active">
+                <h4>📖 Study Session Active</h4>
+                <div class="timer" id="timer">00:00</div>
+                <div class="study-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="reviewed">0</span>
+                        <span class="stat-label">Reviewed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="correct">0</span>
+                        <span class="stat-label">Correct</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="accuracy">0%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                </div>
+                <button class="btn btn-danger mt-3" onclick="endSimpleSession()">End Session</button>
+            </div>
+        </div>
+
+        <!-- Word Grid -->
+        <div class="word-grid" id="wordGrid">
+            {% for word in words %}
+            <div class="word-card" data-word-id="{{ word.id }}" onclick="flipCard(this)">
+                <div class="word-front">
+                    <div class="word-title">{{ word.word }}</div>
+                    <div class="word-type">{{ word.word_type }}</div>
+                </div>
+                
+                <div class="word-back">
+                    <div class="word-title">{{ word.word }}</div>
+                    <div class="word-type">{{ word.word_type }}</div>
+                    <div class="word-definition">{{ word.definition }}</div>
+                    <div class="word-example">"{{ word.example }}"</div>
+                    
+                    <div class="review-buttons">
+                        <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); recordReview({{ word.id }}, true)">✓ Got it!</button>
+                        <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); recordReview({{ word.id }}, false)">✗ Need review</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Simple working study session
+        let session = {
+            active: false,
+            startTime: null,
+            reviewed: 0,
+            correct: 0,
+            timer: null
+        };
+
+        function startSimpleSession() {
+            session.active = true;
+            session.startTime = Date.now();
+            session.reviewed = 0;
+            session.correct = 0;
+            
+            document.getElementById('sessionConfig').style.display = 'none';
+            document.getElementById('sessionActive').style.display = 'block';
+            
+            startTimer();
+            console.log('Study session started');
+        }
+
+        function endSimpleSession() {
+            if (!session.active) return;
+            
+            session.active = false;
+            clearInterval(session.timer);
+            
+            const duration = Math.floor((Date.now() - session.startTime) / 1000);
+            const accuracy = session.reviewed > 0 ? Math.round((session.correct / session.reviewed) * 100) : 0;
+            
+            alert(`Session Complete!
+Reviewed: ${session.reviewed} words
+Correct: ${session.correct} words
+Accuracy: ${accuracy}%
+Time: ${formatTime(duration)}`);
+            
+            document.getElementById('sessionConfig').style.display = 'block';
+            document.getElementById('sessionActive').style.display = 'none';
+            
+            console.log('Study session ended');
+        }
+
+        function startTimer() {
+            session.timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+                document.getElementById('timer').textContent = formatTime(elapsed);
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        function recordReview(wordId, correct) {
+            if (session.active) {
+                session.reviewed++;
+                if (correct) session.correct++;
+                
+                // Update display
+                document.getElementById('reviewed').textContent = session.reviewed;
+                document.getElementById('correct').textContent = session.correct;
+                
+                const accuracy = session.reviewed > 0 ? Math.round((session.correct / session.reviewed) * 100) : 0;
+                document.getElementById('accuracy').textContent = accuracy + '%';
+            }
+            
+            // Record to server
+            fetch(`/api/words/${wordId}/review`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ correct: correct })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Review recorded:', correct);
+                } else {
+                    console.error('Failed to record review');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

@@ -181,20 +181,6 @@
             background-color: #7f8c8d;
         }
 
-        .btn-warning {
-            background-color: #f39c12;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background-color: #e67e22;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 14px;
-        }
-
         .main-content {
             padding: 30px;
         }
@@ -356,6 +342,41 @@
             font-size: 0.8em;
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Enhanced Study Session Features */
         .study-controls {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -396,7 +417,6 @@
             color: white;
             border-radius: 8px;
             padding: 8px 12px;
-            width: 100%;
         }
 
         .config-item .form-control option {
@@ -408,7 +428,6 @@
             display: flex;
             gap: 10px;
             justify-content: center;
-            flex-wrap: wrap;
         }
 
         /* Active Session Display */
@@ -452,6 +471,12 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .session-actions .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            border-radius: 6px;
         }
 
         /* Progress Visualization */
@@ -553,7 +578,6 @@
             z-index: 1000;
             animation: slideInRight 0.5s ease;
             max-width: 300px;
-            display: none;
         }
 
         .achievement-content {
@@ -607,6 +631,37 @@
             }
         }
 
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .config-row {
+                flex-direction: column;
+            }
+            
+            .session-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .session-progress {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .achievement-popup {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+
         /* Difficulty Rating */
         .difficulty-controls {
             position: absolute;
@@ -656,37 +711,6 @@
             box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
         }
 
-        /* Mastery Indicators */
-        .mastery-indicator {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
-
-        .mastery-new {
-            background-color: #95a5a6;
-        }
-
-        .mastery-learning {
-            background-color: #f39c12;
-        }
-
-        .mastery-mastered {
-            background-color: #27ae60;
-        }
-
-        /* Study Action Buttons */
-        .study-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
         /* Dark Mode */
         .dark-mode {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -717,6 +741,29 @@
             border-bottom-color: #34495e;
         }
 
+        /* Mastery Indicators */
+        .mastery-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .mastery-new {
+            background-color: #95a5a6;
+        }
+
+        .mastery-learning {
+            background-color: #f39c12;
+        }
+
+        .mastery-mastered {
+            background-color: #27ae60;
+        }
+
         /* Theme Toggle */
         .theme-toggle {
             position: fixed;
@@ -740,73 +787,7 @@
             background: #2980b9;
         }
 
-        /* Search Results */
-        .search-results {
-            margin-top: 15px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        .search-results.show {
-            display: block;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
-            .config-row {
-                flex-direction: column;
-            }
-            
-            .session-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .session-progress {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-            
-            .achievement-popup {
-                position: fixed;
-                top: 20px;
-                left: 20px;
-                right: 20px;
-                max-width: none;
-            }
-
             .header h1 {
                 font-size: 2em;
             }
@@ -837,12 +818,49 @@
                 justify-content: center;
             }
 
+            .study-controls {
+                flex-direction: column;
+                text-align: center;
+            }
+
             .theme-toggle {
                 top: 10px;
                 right: 10px;
                 width: 40px;
                 height: 40px;
                 font-size: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .word-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                justify-content: center;
             }
         }
     </style>
@@ -883,7 +901,6 @@
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="Search words, definitions, or examples...">
                 <div class="controls">
-                    <button class="btn btn-primary" onclick="searchWords()">🔍 Search</button>
                     <button class="btn btn-primary" onclick="showAllWords()">Show Words</button>
                     <button class="btn btn-primary" onclick="showAllDefinitions()">Show Definitions</button>
                     <button class="btn btn-secondary" onclick="shuffleCards()">Shuffle</button>
@@ -897,9 +914,6 @@
                     </select>
                 </div>
             </div>
-            
-            <!-- Search Results -->
-            <div id="searchResults" class="search-results"></div>
         </div>
 
         <!-- Enhanced Study Session Controls -->
@@ -946,7 +960,7 @@
             </div>
 
             <!-- Active Session Display -->
-            <div class="session-active" id="sessionActive">
+            <div class="session-active" id="sessionActive" style="display: none;">
                 <div class="session-header">
                     <div class="session-info">
                         <span class="session-mode" id="currentMode">Mixed Practice</span>
@@ -996,16 +1010,16 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Achievement Notifications -->
-        <div class="achievement-popup" id="achievementPopup">
-            <div class="achievement-content">
-                <div class="achievement-icon">🏆</div>
-                <div class="achievement-text">
-                    <h4 id="achievementTitle">Achievement Unlocked!</h4>
-                    <p id="achievementDesc">You've mastered 10 words today!</p>
+                <!-- Achievement Notifications -->
+                <div class="achievement-popup" id="achievementPopup" style="display: none;">
+                    <div class="achievement-content">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-text">
+                            <h4 id="achievementTitle">Achievement Unlocked!</h4>
+                            <p id="achievementDesc">You've mastered 10 words today!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1055,7 +1069,7 @@
                         <div class="word-example">{{ word.example }}</div>
                         
                         <!-- Study Action Buttons -->
-                        <div class="study-actions">
+                        <div class="study-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
                             <button class="btn btn-success" onclick="event.stopPropagation(); recordReview({{ word.id }}, true)" 
                                     title="I know this word">✓ Know</button>
                             <button class="btn btn-danger" onclick="event.stopPropagation(); recordReview({{ word.id }}, false)" 
@@ -1067,29 +1081,18 @@
                 </div>
                 {% endfor %}
             </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📚</div>
+                <h3>No words found</h3>
+                <p>Try adjusting your search or add some new words!</p>
+            </div>
         </div>
     </div>
 
     <script>
         let allWords = {{ words | tojson }};
         let hiddenCards = new Set();
-
-        // Enhanced Study Session Management
-        let studySession = {
-            active: false,
-            sessionId: null,
-            startTime: null,
-            wordsReviewed: 0,
-            wordsCorrect: 0,
-            timer: null,
-            config: {
-                mode: 'mixed',
-                wordGoal: 10,
-                timeLimit: 0
-            },
-            paused: false,
-            pausedTime: 0
-        };
 
         function flipCard(card) {
             card.classList.toggle('flipped');
@@ -1164,47 +1167,38 @@
         }
 
         function searchWords() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.word-card');
+            let visibleCount = 0;
             
-            const searchResults = document.getElementById('searchResults');
-            searchResults.innerHTML = '<div class="loading">Searching...</div>';
-            searchResults.classList.add('show');
-            
-            fetch('/api/search', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query: query })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.response) {
-                    searchResults.innerHTML = `
-                        <h4>🤖 AI Assistant Response:</h4>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
-                            ${data.response.replace(/\n/g, '<br>')}
-                        </div>
-                    `;
+            cards.forEach(card => {
+                const wordId = card.dataset.wordId;
+                const word = allWords.find(w => w.id == wordId);
+                
+                if (!word) return;
+                
+                const searchText = `${word.word} ${word.word_type} ${word.definition} ${word.example}`.toLowerCase();
+                
+                if (searchText.includes(query)) {
+                    card.style.display = '';
+                    visibleCount++;
                 } else {
-                    searchResults.innerHTML = `
-                        <div style="color: #e74c3c;">
-                            <h5>⚠️ No results found</h5>
-                            <p>Try rephrasing your search or check the spelling.</p>
-                        </div>
-                    `;
+                    card.style.display = 'none';
                 }
-            })
-            .catch(error => {
-                console.error('Search error:', error);
-                searchResults.innerHTML = `
-                    <div style="color: #e74c3c;">
-                        <h5>❌ Search Error</h5>
-                        <p>There was an error processing your search. Please try again.</p>
-                    </div>
-                `;
             });
+            
+            document.getElementById('visibleWords').textContent = visibleCount;
+            
+            const emptyState = document.getElementById('emptyState');
+            const wordGrid = document.getElementById('wordGrid');
+            
+            if (visibleCount === 0) {
+                emptyState.style.display = 'block';
+                wordGrid.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                wordGrid.style.display = 'grid';
+            }
         }
 
         function removeWord(wordId) {
@@ -1231,7 +1225,7 @@
                     allWords = allWords.filter(w => w.id !== wordId);
                     
                     updateStats();
-                    showAchievement('Word Removed', 'Word deleted successfully! 🗑️');
+                    alert('Word removed successfully!');
                 } else {
                     alert('Error removing word: ' + data.error);
                 }
@@ -1251,6 +1245,23 @@
             document.getElementById('visibleWords').textContent = visibleCount;
             document.getElementById('hiddenWords').textContent = hiddenCount;
         }
+
+        // Enhanced Study Session Management
+        let studySession = {
+            active: false,
+            sessionId: null,
+            startTime: null,
+            wordsReviewed: 0,
+            wordsCorrect: 0,
+            timer: null,
+            config: {
+                mode: 'mixed',
+                wordGoal: 10,
+                timeLimit: 0
+            },
+            paused: false,
+            pausedTime: 0
+        };
 
         function quickStartSession() {
             const config = {
@@ -1504,6 +1515,19 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
+        // Legacy function for compatibility
+        function toggleStudySession() {
+            if (studySession.active) {
+                endStudySession();
+            } else {
+                quickStartSession();
+            }
+        }
+
+        function startStudySession() {
+            quickStartSession();
+        }
+
         // Difficulty Management
         function updateDifficulty(wordId, difficulty) {
             fetch(`/api/words/${wordId}/difficulty`, {
@@ -1525,7 +1549,6 @@
                     difficultyBtns.forEach(btn => btn.classList.remove('active'));
                     card.querySelector(`.difficulty-${difficulty}`).classList.add('active');
                     
-                    showQuickFeedback(`Difficulty set to ${difficulty.toUpperCase()}`, 'info');
                     console.log('Difficulty updated:', data.message);
                 } else {
                     alert('Error updating difficulty: ' + data.error);
@@ -1548,9 +1571,9 @@
                 
                 // Show encouraging feedback
                 if (correct) {
-                    showQuickFeedback('✅ Excellent!', 'success');
+                    showQuickFeedback('✅ Correct!', 'success');
                 } else {
-                    showQuickFeedback('💡 Keep studying!', 'info');
+                    showQuickFeedback('💡 Keep trying!', 'info');
                 }
                 
                 // Check for achievements
@@ -1657,23 +1680,30 @@
                 feedback.style.display = 'none';
             }, 1500);
         }
+                    
+                    console.log('Review recorded:', data.message);
+                } else {
+                    alert('Error recording review: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error recording review. Please try again.');
+            });
+        }
 
         // Filter by Difficulty
         function filterByDifficulty() {
             const selectedDifficulty = document.getElementById('difficultyFilter').value;
             const cards = document.querySelectorAll('.word-card');
-            let visibleCount = 0;
             
             cards.forEach(card => {
                 if (selectedDifficulty === '' || card.dataset.difficulty === selectedDifficulty) {
                     card.style.display = '';
-                    visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
-            
-            document.getElementById('visibleWords').textContent = visibleCount;
         }
 
         // Dark Mode Toggle
@@ -1746,13 +1776,6 @@
         // Initialize everything
         document.addEventListener('keydown', handleKeyboard);
         
-        // Allow Enter key to trigger search
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchWords();
-            }
-        });
-        
         // Load saved theme
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
@@ -1761,10 +1784,11 @@
             document.querySelector('.theme-toggle').title = 'Toggle Light Mode';
         }
 
+        // Initialize search functionality
+        document.getElementById('searchInput').addEventListener('input', searchWords);
+        
         // Initialize stats
         updateStats();
-        
-        console.log('VCE Vocabulary Flashcards app initialized with enhanced features');
     </script>
 </body>
 </html>
