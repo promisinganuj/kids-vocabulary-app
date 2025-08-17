@@ -33,6 +33,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -44,6 +45,97 @@
         .header .subtitle {
             font-size: 1.1em;
             opacity: 0.9;
+        }
+
+        .user-profile {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .profile-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-name {
+            font-size: 0.9em;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .profile-email {
+            font-size: 0.75em;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .user-profile {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .profile-info {
+                flex-direction: column;
+                gap: 5px;
+                text-align: center;
+            }
+            
+            .profile-details {
+                align-items: center;
+            }
         }
 
         .stats-bar {
@@ -456,6 +548,19 @@
 <body>
     <div class="container">
         <div class="header">
+            <div class="user-profile">
+                <div class="profile-info">
+                    <div class="profile-avatar" id="userAvatar">?</div>
+                    <div class="profile-details">
+                        <div class="profile-name" id="userName">Loading...</div>
+                        <div class="profile-email" id="userEmail">...</div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">
+                    🚪 Logout
+                </button>
+            </div>
+            
             <h1>🔧 Manage Vocabulary</h1>
             <div class="subtitle">Add, Edit, and Remove Words</div>
         </div>
@@ -475,6 +580,9 @@
             <div class="nav-links">
                 <a href="/" class="nav-link">Flashcards</a>
                 <a href="/manage" class="nav-link active">Manage Words</a>
+                {% if is_admin %}
+                <a href="/admin" class="nav-link">🔧 Admin</a>
+                {% endif %}
             </div>
         </div>
 
@@ -802,6 +910,52 @@
                 });
         }
 
+        // User Profile and Logout Functions
+        function loadUserProfile() {
+            fetch('/api/user/profile')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success !== false) {
+                    document.getElementById('userName').textContent = data.username;
+                    document.getElementById('userEmail').textContent = data.email;
+                    
+                    // Set avatar to first letter of username
+                    const avatar = document.getElementById('userAvatar');
+                    avatar.textContent = data.username.charAt(0).toUpperCase();
+                } else {
+                    console.error('Failed to load user profile:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user profile:', error);
+            });
+        }
+        
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Logged out successfully!');
+                        window.location.href = '/login';
+                    } else {
+                        alert('Error logging out: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during logout:', error);
+                    // Even if there's an error, redirect to login
+                    window.location.href = '/login';
+                });
+            }
+        }
+
         // Initialize event listeners
         document.getElementById('addWordForm').addEventListener('submit', addWord);
         document.getElementById('searchInput').addEventListener('input', searchWords);
@@ -810,6 +964,9 @@
         
         // Initialize stats
         updateStats();
+        
+        // Load user profile
+        loadUserProfile();
     </script>
 </body>
 </html>
