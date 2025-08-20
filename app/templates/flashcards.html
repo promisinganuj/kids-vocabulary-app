@@ -889,6 +889,64 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Search Results Word Cards */
+        .search-word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .search-word-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-word-card:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-word-card .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .search-word-card .word-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .search-word-card .word-type {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .search-word-card .word-definition {
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .search-word-card .word-example {
+            color: #777;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .config-row {
@@ -1203,6 +1261,33 @@
         let allWords = {{ words | tojson }};
         let hiddenCards = new Set();
 
+        // Function to load words (with optional search query)
+        function loadWords(searchQuery = '') {
+            const url = searchQuery ? `/api/words?search=${encodeURIComponent(searchQuery)}` : '/api/words';
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.words) {
+                    allWords = data.words;
+                    currentWordIndex = 0;
+                    shuffleArray(allWords);
+                    updateWordDisplay();
+                    updateStats();
+                    console.log(`Loaded ${allWords.length} words` + (searchQuery ? ` for search: "${searchQuery}"` : ''));
+                }
+            })
+            .catch(error => {
+                console.error('Error loading words:', error);
+                showAlert('Error loading words. Please try again.', 'error');
+            });
+        }
+
         // Enhanced Study Session Management
         let studySession = {
             active: false,
@@ -1320,33 +1405,54 @@
 
         function searchWords() {
             const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
+            if (!query) {
+                // If empty query, reload all words
+                loadWords();
+                const searchResults = document.getElementById('searchResults');
+                searchResults.classList.remove('show');
+                return;
+            }
             
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = '<div class="loading">Searching...</div>';
             searchResults.classList.add('show');
             
-            fetch('/api/search', {
-                method: 'POST',
+            // Use the existing /api/words endpoint with search parameter
+            fetch(`/api/words?search=${encodeURIComponent(query)}`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query: query })
+                }
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.response) {
+                if (data.words && data.words.length > 0) {
+                    // Display search results
                     searchResults.innerHTML = `
-                        <h4>🤖 AI Assistant Response:</h4>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
-                            ${data.response.replace(/\n/g, '<br>')}
+                        <h4>🔍 Search Results (${data.words.length} found):</h4>
+                        <div class="search-word-grid">
+                            ${data.words.map(word => `
+                                <div class="search-word-card" onclick="showWordDetails(${word.id})">
+                                    <div class="word-header">
+                                        <span class="word-text">${word.word}</span>
+                                        <span class="word-type">${word.word_type}</span>
+                                    </div>
+                                    <div class="word-definition">${word.definition}</div>
+                                    <div class="word-example"><em>"${word.example}"</em></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="clearSearch()">Clear Search</button>
+                            <button class="btn btn-primary" onclick="showSearchResults()">Show in Flashcards</button>
                         </div>
                     `;
                 } else {
                     searchResults.innerHTML = `
                         <div style="color: #e74c3c;">
                             <h5>⚠️ No results found</h5>
-                            <p>Try rephrasing your search or check the spelling.</p>
+                            <p>No words found matching "${query}". Try rephrasing your search or check the spelling.</p>
+                            <button class="btn btn-secondary" onclick="clearSearch()" style="margin-top: 10px;">Clear Search</button>
                         </div>
                     `;
                 }
@@ -1357,9 +1463,55 @@
                     <div style="color: #e74c3c;">
                         <h5>❌ Search Error</h5>
                         <p>There was an error processing your search. Please try again.</p>
+                        <button class="btn btn-secondary" onclick="clearSearch()" style="margin-top: 10px;">Clear Search</button>
                     </div>
                 `;
             });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            const searchResults = document.getElementById('searchResults');
+            searchResults.classList.remove('show');
+            searchResults.innerHTML = '';
+            loadWords(); // Reload all words
+        }
+
+        function showSearchResults() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            
+            // Update the main flashcard view with search results
+            currentWordIndex = 0;
+            loadWords(query);
+            
+            // Hide search results panel
+            const searchResults = document.getElementById('searchResults');
+            searchResults.classList.remove('show');
+        }
+
+        function showWordDetails(wordId) {
+            // Find and show the specific word in the flashcard view
+            fetch(`/api/words?search=${wordId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.words && data.words.length > 0) {
+                        // Find the word by ID
+                        const word = data.words.find(w => w.id == wordId);
+                        if (word) {
+                            // Update flashcard display to show this specific word
+                            document.getElementById('currentWord').textContent = word.word;
+                            document.getElementById('currentType').textContent = word.word_type;
+                            document.getElementById('currentDefinition').textContent = word.definition;
+                            document.getElementById('currentExample').textContent = word.example;
+                            
+                            // Hide search results
+                            const searchResults = document.getElementById('searchResults');
+                            searchResults.classList.remove('show');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error loading word details:', error));
         }
 
         function removeWord(wordId) {
@@ -2032,6 +2184,11 @@
 
         // Keyboard Navigation
         function handleKeyboard(event) {
+            // Ignore keyboard shortcuts when user is typing in input fields
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {
+                return;
+            }
+            
             const cards = document.querySelectorAll('.word-card:not([style*="display: none"])');
             let currentIndex = -1;
             
@@ -2073,6 +2230,7 @@
                     }
                     break;
                 case 'h':
+                case 'H':
                     event.preventDefault();
                     if (currentIndex >= 0) {
                         toggleHideCard(cards[currentIndex]);
@@ -2083,13 +2241,6 @@
 
         // Initialize everything
         document.addEventListener('keydown', handleKeyboard);
-        
-        // Allow Enter key to trigger search
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchWords();
-            }
-        });
         
         // User Profile and Logout Functions
         function loadUserProfile() {
@@ -2157,6 +2308,13 @@
         
         // Load user profile
         loadUserProfile();
+        
+        // Add search input event listener for Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWords();
+            }
+        });
         
         console.log('VCE Vocabulary Flashcards app initialized with enhanced features');
     </script>
