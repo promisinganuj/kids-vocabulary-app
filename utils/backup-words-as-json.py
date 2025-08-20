@@ -31,8 +31,8 @@ from typing import List, Dict, Any, Optional
 def get_database_path() -> str:
     """Get the path to the database file."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    app_dir = os.path.dirname(script_dir)
-    db_path = os.path.join(app_dir, 'data', 'vocabulary_multiuser.db')
+    project_root = os.path.dirname(script_dir)
+    db_path = os.path.join(project_root, 'app', 'data', 'vocabulary_multiuser.db')
     
     if not os.path.exists(db_path):
         raise FileNotFoundError(f"Database not found at: {db_path}")
@@ -46,7 +46,7 @@ def get_output_path(custom_path: Optional[str] = None) -> str:
         return custom_path
     
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(os.path.dirname(script_dir))
+    project_root = os.path.dirname(script_dir)
     seed_data_dir = os.path.join(project_root, 'seed-data')
     
     # Create seed-data directory if it doesn't exist
