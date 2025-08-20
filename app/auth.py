@@ -15,13 +15,13 @@ from datetime import datetime, timedelta
 from functools import wraps
 from typing import Optional, Dict, Any, Tuple
 from flask import session, request, jsonify, redirect, url_for, g
-from multi_user_database_manager import MultiUserDatabaseManager, User
+from database_manager import DatabaseManager, User
 
 
 class AuthenticationManager:
     """Manages user authentication and sessions."""
     
-    def __init__(self, db_manager: MultiUserDatabaseManager):
+    def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
         self.session_timeout_hours = 24  # Sessions expire after 24 hours
     
@@ -186,7 +186,7 @@ class AuthDecorator:
 class UserPreferences:
     """Manages user preferences."""
     
-    def __init__(self, db_manager: MultiUserDatabaseManager):
+    def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
     
     def get_preference(self, user_id: int, key: str, default: Optional[str] = None) -> Optional[str]:
@@ -242,7 +242,7 @@ class UserPreferences:
             return False
 
 
-def init_authentication(app, db_manager: MultiUserDatabaseManager):
+def init_authentication(app, db_manager: DatabaseManager):
     """Initialize authentication for Flask app."""
     app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
     
@@ -310,9 +310,9 @@ def get_user_preference(key: str, default: Optional[str] = None) -> Optional[str
 
 if __name__ == '__main__':
     # Test authentication
-    from multi_user_database_manager import MultiUserDatabaseManager
+    from app.database_manager import DatabaseManager
     
-    db_manager = MultiUserDatabaseManager('data/vocabulary_multiuser.db')
+    db_manager = DatabaseManager('data/vocabulary.db')
     auth_manager = AuthenticationManager(db_manager)
     
     # Test authentication
