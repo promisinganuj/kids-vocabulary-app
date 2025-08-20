@@ -282,6 +282,22 @@
             background-color: #e67e22;
         }
 
+        .btn-heart {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+        }
+
+        .btn-heart:hover {
+            background-color: #c2185b;
+            transform: scale(1.05);
+        }
+
+        .btn-heart.active {
+            background-color: #ad1457;
+            box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+        }
+
         .btn-sm {
             padding: 6px 12px;
             font-size: 14px;
@@ -1054,6 +1070,10 @@
                     <span class="stat-number" id="hiddenWords">0</span>
                     <span class="stat-label">Hidden</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="likedWords">0</span>
+                    <span class="stat-label">💝 Liked</span>
+                </div>
             </div>
             
             <div class="nav-links">
@@ -1072,6 +1092,7 @@
                     <button class="btn btn-primary" onclick="searchWords()">🔍 Search</button>
                     <button class="btn btn-primary" onclick="showAllWords()">Show Words</button>
                     <button class="btn btn-primary" onclick="showAllDefinitions()">Show Definitions</button>
+                    <button class="btn btn-heart" onclick="showLikedWords()" id="likedWordsBtn">💝 Show Liked</button>
                     <button class="btn btn-secondary" onclick="shuffleCards()">Shuffle</button>
                     <button class="btn btn-success" onclick="showAllCards()">Show All</button>
                     <button class="btn btn-danger" onclick="hideAllCards()">Hide All</button>
@@ -1259,6 +1280,7 @@
 
     <script>
         let allWords = {{ words | tojson }};
+        let originalWords = {{ words | tojson }}; // Store original words for filtering
         let hiddenCards = new Set();
 
         // Function to load words (with optional search query)
@@ -1275,10 +1297,20 @@
             .then(data => {
                 if (data.words) {
                     allWords = data.words;
+                    originalWords = data.words; // Update original words too
                     currentWordIndex = 0;
                     shuffleArray(allWords);
                     updateWordDisplay();
                     updateStats();
+                    
+                    // Reset the liked words button if it was active
+                    const likedBtn = document.getElementById('likedWordsBtn');
+                    if (likedBtn) {
+                        likedBtn.classList.remove('active');
+                        likedBtn.textContent = '💝 Show Liked';
+                        likedBtn.title = 'Show only liked words';
+                    }
+                    
                     console.log(`Loaded ${allWords.length} words` + (searchQuery ? ` for search: "${searchQuery}"` : ''));
                 }
             })
@@ -1401,6 +1433,70 @@
                 hiddenCards.add(wordId);
             });
             updateStats();
+        }
+
+        function showLikedWords() {
+            const likedBtn = document.getElementById('likedWordsBtn');
+            const isActive = likedBtn.classList.contains('active');
+            
+            if (isActive) {
+                // Currently showing liked words, show all words instead
+                likedBtn.classList.remove('active');
+                likedBtn.textContent = '💝 Show Liked';
+                likedBtn.title = 'Show only liked words';
+                
+                // Show all cards that aren't manually hidden
+                document.querySelectorAll('.word-card').forEach(card => {
+                    const wordId = parseInt(card.dataset.wordId);
+                    // Only show cards that aren't in the hiddenCards set
+                    if (!hiddenCards.has(String(wordId))) {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Reset any search
+                document.getElementById('searchInput').value = '';
+                const searchResults = document.getElementById('searchResults');
+                searchResults.classList.remove('show');
+                
+                updateStats();
+            } else {
+                // Show only liked words
+                likedBtn.classList.add('active');
+                likedBtn.textContent = '❤️ Showing Liked';
+                likedBtn.title = 'Show all words';
+                
+                // Check if there are any liked words
+                if (userLikedWords.size === 0) {
+                    showQuickFeedback('You haven\'t liked any words yet! Click the ♡ button on words you like.', 'warning');
+                    likedBtn.classList.remove('active');
+                    likedBtn.textContent = '💝 Show Liked';
+                    likedBtn.title = 'Show only liked words';
+                    return;
+                }
+                
+                // Hide all cards first, then show only liked ones
+                let likedCount = 0;
+                document.querySelectorAll('.word-card').forEach(card => {
+                    const wordId = parseInt(card.dataset.wordId);
+                    
+                    if (userLikedWords.has(wordId)) {
+                        // Show liked word (unless it's manually hidden)
+                        if (!hiddenCards.has(String(wordId))) {
+                            card.style.display = '';
+                            likedCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    } else {
+                        // Hide non-liked words
+                        card.style.display = 'none';
+                    }
+                });
+                
+                updateStats();
+                showQuickFeedback(`Showing ${likedCount} liked words!`, 'success');
+            }
         }
 
         function searchWords() {
@@ -1578,6 +1674,7 @@
                         buttonElement.title = 'Unlike word';
                         showAchievement('Word Liked', 'Added to favorites! ❤️');
                     }
+                    updateStats(); // Update the stats to reflect liked words count
                 } else {
                     alert('Error: ' + data.error);
                 }
@@ -1603,6 +1700,8 @@
                         button.title = 'Unlike word';
                     }
                 });
+                
+                updateStats(); // Update stats to show liked words count
             })
             .catch(error => {
                 console.error('Error loading liked words:', error);
@@ -1610,13 +1709,34 @@
         }
 
         function updateStats() {
-            const totalCards = document.querySelectorAll('.word-card').length;
-            const hiddenCount = hiddenCards.size;
-            const visibleCount = totalCards - hiddenCount;
+            const allCards = document.querySelectorAll('.word-card');
+            const totalCards = allCards.length;
+            
+            // Count cards that are actually visible (not hidden by display:none or .hidden class)
+            let visibleCount = 0;
+            let hiddenByUserCount = 0; // Hidden by user (hide button)
+            
+            allCards.forEach(card => {
+                const wordId = card.dataset.wordId;
+                const isHiddenByUser = hiddenCards.has(wordId);
+                const isDisplayHidden = card.style.display === 'none';
+                const hasHiddenClass = card.classList.contains('hidden');
+                
+                if (isHiddenByUser || hasHiddenClass) {
+                    hiddenByUserCount++;
+                }
+                
+                if (!isDisplayHidden && !isHiddenByUser && !hasHiddenClass) {
+                    visibleCount++;
+                }
+            });
+            
+            const likedCount = userLikedWords.size;
             
             document.getElementById('totalWords').textContent = totalCards;
             document.getElementById('visibleWords').textContent = visibleCount;
-            document.getElementById('hiddenWords').textContent = hiddenCount;
+            document.getElementById('hiddenWords').textContent = hiddenByUserCount;
+            document.getElementById('likedWords').textContent = likedCount;
         }
 
         function quickStartSession() {
