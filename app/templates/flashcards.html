@@ -1145,14 +1145,14 @@
             
             <div id="wordGrid" class="word-grid">
                 {% for word in words %}
-                <div class="word-card" data-word-id="{{ word.id }}" data-difficulty="{{ word.difficulty or 'medium' }}" onclick="flipCard(this)">
+                <div class="word-card {{ 'hidden' if (word.hidden or word.is_hidden) else '' }}" data-word-id="{{ word.id }}" data-difficulty="{{ word.difficulty or 'medium' }}" onclick="flipCard(this)">
                     <!-- Mastery Indicator -->
                     <div class="mastery-indicator mastery-{{ 'mastered' if word.mastery_level == 2 else 'learning' if word.mastery_level == 1 else 'new' }}" 
                          title="Mastery: {{ 'Mastered' if word.mastery_level == 2 else 'Learning' if word.mastery_level == 1 else 'New' }}"></div>
                     
                     <div class="card-controls">
                         <button class="card-btn like-btn" onclick="event.stopPropagation(); toggleLikeWord({{ word.id }}, this)" title="Like word">♡</button>
-                        <button class="card-btn hide-btn" onclick="event.stopPropagation(); toggleHideCard(this.closest('.word-card'))" title="Hide/Show card">×</button>
+                        <button class="card-btn hide-btn" onclick="event.stopPropagation(); toggleHideCard(this.closest('.word-card'))" title="{{ 'Show card' if (word.hidden or word.is_hidden) else 'Hide/Show card' }}">{{ '↺' if (word.hidden or word.is_hidden) else '×' }}</button>
                         <button class="card-btn remove-btn" onclick="event.stopPropagation(); removeWord({{ word.id }})" title="Remove word">🗑</button>
                     </div>
                     
@@ -1171,10 +1171,16 @@
                     
                     <div class="word-front">
                         <div class="word-title">{{ word.word }}</div>
-                        <div class="word-type">{{ word.word_type }}</div>
-                        {% if word.times_reviewed %}
-                        <div class="word-stats">📊 {{ word.times_reviewed }} reviews</div>
-                        {% endif %}
+            <!-- Front-side quick actions -->
+            <div class="study-actions" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+                <button class="btn btn-success btn-sm" 
+                    onclick="event.stopPropagation(); markKnown({{ word.id }})" 
+                    title="I know this">I know this</button>
+                <button class="btn btn-warning btn-sm" 
+                    onclick="event.stopPropagation(); flipCard(this.closest('.word-card'))" 
+                    title="Show meaning">Review</button>
+                <div class="review-msg" aria-live="polite" role="status" style="font-size:0.85em;color:#555;"></div>
+            </div>
                     </div>
                     
                     <div class="word-back">
@@ -1183,16 +1189,10 @@
                         <div class="word-definition">{{ word.definition }}</div>
                         <div class="word-example">{{ word.example }}</div>
                         
-                        <!-- Study Action Buttons -->
-                        <div class="study-actions">
-                            <button class="btn btn-success" onclick="event.stopPropagation(); recordReview({{ word.id }}, true)" 
-                                    title="I know this word">✓ Know</button>
-                            <button class="btn btn-danger" onclick="event.stopPropagation(); recordReview({{ word.id }}, false)" 
-                                    title="Need more practice">✗ Review</button>
-                        </div>
+                        <!-- No study actions on the back after flip -->
                     </div>
                     
-                    <div class="flip-indicator">Click to flip</div>
+                    
                 </div>
                 {% endfor %}
             </div>
@@ -1229,18 +1229,44 @@
             const hideBtn = card.querySelector('.hide-btn');
             
             if (card.classList.contains('hidden')) {
-                card.classList.remove('hidden');
-                hideBtn.textContent = '×';
-                hideBtn.title = 'Hide card';
-                hiddenCards.delete(wordId);
+                // Unhide on server first
+                fetch(`/api/words/${wordId}/unhide`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        card.classList.remove('hidden');
+                        hideBtn.textContent = '×';
+                        hideBtn.title = 'Hide card';
+                        hiddenCards.delete(wordId);
+                        updateStats();
+                    } else {
+                        showQuickFeedback(data.error || 'Failed to unhide', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Unhide error:', err);
+                    showQuickFeedback('Network error', 'error');
+                });
             } else {
-                card.classList.add('hidden');
-                hideBtn.textContent = '↺';
-                hideBtn.title = 'Show card';
-                hiddenCards.add(wordId);
+                // Hide on server first
+                fetch(`/api/words/${wordId}/hide`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        card.classList.add('hidden');
+                        hideBtn.textContent = '↺';
+                        hideBtn.title = 'Show card';
+                        hiddenCards.add(wordId);
+                        updateStats();
+                    } else {
+                        showQuickFeedback(data.error || 'Failed to hide', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Hide error:', err);
+                    showQuickFeedback('Network error', 'error');
+                });
             }
-            
-            updateStats();
         }
 
         function showAllWords() {
@@ -1739,6 +1765,67 @@
             });
         }
 
+        // Inline status message on a specific card
+        function setCardMessage(card, text, type = 'info') {
+            if (!card) return;
+            const el = card.querySelector('.review-msg');
+            if (!el) return;
+            el.textContent = text;
+            // Simple coloring by type
+            if (type === 'success') el.style.color = '#2e7d32';
+            else if (type === 'error') el.style.color = '#b00020';
+            else el.style.color = '#555';
+            el.style.opacity = '1';
+            // Auto-fade after a short delay
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.6s ease';
+                el.style.opacity = '0.0';
+                setTimeout(() => { el.textContent = ''; el.style.opacity = '1'; el.style.transition = ''; }, 700);
+            }, 1600);
+        }
+
+        // Mark Known: set easy + hide via backend
+        function markKnown(wordId) {
+            fetch(`/api/words/${wordId}/know`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                if (data.success) {
+                    setCardMessage(card, 'Marked as known — hidden from deck', 'success');
+                    // Update difficulty UI to easy
+                    if (card) {
+                        card.dataset.difficulty = 'easy';
+                        const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                        difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                        const easyBtn = card.querySelector('.difficulty-easy');
+                        if (easyBtn) easyBtn.classList.add('active');
+
+                        // Hide the card visually
+                        if (!card.classList.contains('hidden')) {
+                            const hideBtn = card.querySelector('.hide-btn');
+                            card.classList.add('hidden');
+                            if (hideBtn) { hideBtn.textContent = '↺'; hideBtn.title = 'Show card'; }
+                            hiddenCards.add(String(wordId));
+                            updateStats();
+                        }
+                    }
+                    showQuickFeedback('Marked as known ✔', 'success');
+                } else {
+                    setCardMessage(card, data.error || 'Failed to mark as known', 'error');
+                    showQuickFeedback(data.error || 'Failed to mark as known', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Know error:', err);
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                setCardMessage(card, 'Network error', 'error');
+                showQuickFeedback('Network error', 'error');
+            });
+        }
+
         // Record Review (Study Progress)
         function recordReview(wordId, correct) {
             if (studySession.active) {
@@ -1805,14 +1892,63 @@
                         card.style.backgroundColor = '';
                         card.style.transform = '';
                     }, 1000);
+
+                    // Inline message based on result/actions
+                    if (Array.isArray(data.actions) && data.actions.includes('hidden') && data.correct) {
+                        setCardMessage(card, 'Great job! Card hidden from deck', 'success');
+                    } else if (data.correct === false) {
+                        setCardMessage(card, 'We’ll show this again soon', 'info');
+                    } else {
+                        setCardMessage(card, data.message || 'Review recorded', 'info');
+                    }
+
+                    // React to server-side actions (hide/unhide, difficulty changes)
+                    if (data.actions && Array.isArray(data.actions)) {
+                        if (data.actions.includes('hidden')) {
+                            if (!card.classList.contains('hidden')) {
+                                const hideBtn = card.querySelector('.hide-btn');
+                                card.classList.add('hidden');
+                                if (hideBtn) { hideBtn.textContent = '↺'; hideBtn.title = 'Show card'; }
+                                hiddenCards.add(String(wordId));
+                                updateStats();
+                            }
+                        }
+                        if (data.actions.includes('unhidden')) {
+                            if (card.classList.contains('hidden')) {
+                                const hideBtn = card.querySelector('.hide-btn');
+                                card.classList.remove('hidden');
+                                if (hideBtn) { hideBtn.textContent = '×'; hideBtn.title = 'Hide card'; }
+                                hiddenCards.delete(String(wordId));
+                                updateStats();
+                            }
+                        }
+                        if (data.actions.includes('set_easy')) {
+                            card.dataset.difficulty = 'easy';
+                            const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                            difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                            const easyBtn = card.querySelector('.difficulty-easy');
+                            if (easyBtn) easyBtn.classList.add('active');
+                        }
+                        if (data.actions.includes('set_hard')) {
+                            card.dataset.difficulty = 'hard';
+                            const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                            difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                            const hardBtn = card.querySelector('.difficulty-hard');
+                            if (hardBtn) hardBtn.classList.add('active');
+                        }
+                    }
                     
                     console.log(`Review recorded: ${correct ? 'correct' : 'incorrect'}`);
                 } else {
+                    const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                    setCardMessage(card, data.error || 'Failed to record review', 'error');
                     console.error('Failed to record review:', data.error);
                 }
             })
             .catch(error => {
                 console.error('Error recording review:', error);
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                setCardMessage(card, '❌ Error recording review', 'error');
                 showQuickFeedback('❌ Error recording review', 'error');
             });
         }
@@ -2012,8 +2148,9 @@
             document.querySelector('.theme-toggle').title = 'Toggle Light Mode';
         }
 
-        // Initialize stats
-        updateStats();
+    // Initialize hiddenCards from DOM state, then stats
+    document.querySelectorAll('.word-card.hidden').forEach(card => hiddenCards.add(card.dataset.wordId));
+    updateStats();
         
         // Load user liked words
         loadUserLikedWords();

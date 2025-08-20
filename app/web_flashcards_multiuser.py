@@ -376,12 +376,23 @@ def get_words():
     """API endpoint to get all words for current user."""
     user_id = require_user_id()
     search_query = request.args.get('search', '')
+    include_hidden = request.args.get('include_hidden', 'false').lower() == 'true'
     
     if search_query:
         words = db_manager.search_user_words(user_id, search_query)
     else:
         words = db_manager.get_user_words(user_id)
-    
+
+    # Exclude hidden words from the default list unless explicitly requested
+    if not include_hidden:
+        # Support either 'hidden' or 'is_hidden' flags depending on DB implementation
+        def is_hidden_word(w):
+            try:
+                return bool(w.get('hidden') or w.get('is_hidden'))
+            except Exception:
+                return False
+        words = [w for w in words if not is_hidden_word(w)]
+
     return jsonify({'words': words, 'total': len(words)})
 
 @app.route('/api/words', methods=['POST'])
@@ -592,6 +603,163 @@ def unhide_word(word_id):
     user_id = require_user_id()
     
     success, message = db_manager.unhide_word_for_user(user_id, word_id)
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/words/<int:word_id>/review', methods=['POST'])
+@auth.login_required
+def review_word(word_id):
+    """Record a word review (correct/incorrect) for the user."""
+    user_id = require_user_id()
+    
+    data = request.get_json()
+    if not data or 'correct' not in data:
+        return jsonify({'success': False, 'error': 'Missing "correct" parameter'}), 400
+    
+    correct = bool(data['correct'])
+    auto = bool(data.get('auto', True))
+
+    success, message = db_manager.record_word_review(user_id, word_id, correct)
+
+    actions = []
+    if success and auto:
+        try:
+            if correct:
+                # Correct answer: ease the difficulty and hide from active queue
+                db_manager.update_word_difficulty(user_id, word_id, 'easy')
+                db_manager.hide_word_for_user(user_id, word_id)
+                actions.extend(['set_easy', 'hidden'])
+            else:
+                # Incorrect answer: raise difficulty and keep visible
+                db_manager.update_word_difficulty(user_id, word_id, 'hard')
+                db_manager.unhide_word_for_user(user_id, word_id)
+                actions.extend(['set_hard', 'unhidden'])
+        except Exception:
+            # Don't fail the review if adjustments encounter issues
+            pass
+    
+    if success:
+        return jsonify({'success': True, 'message': message, 'actions': actions, 'correct': correct})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/words/<int:word_id>/know', methods=['POST'])
+@auth.login_required
+def mark_word_known(word_id):
+    """Mark a word as known: set difficulty to easy and hide it."""
+    user_id = require_user_id()
+
+    ok_diff, msg_diff = db_manager.update_word_difficulty(user_id, word_id, 'easy')
+    ok_hide, msg_hide = db_manager.hide_word_for_user(user_id, word_id)
+
+    if ok_diff and ok_hide:
+        return jsonify({'success': True, 'message': 'Marked as known (easy) and hidden'})
+
+    errors = []
+    if not ok_diff and msg_diff:
+        errors.append(msg_diff)
+    if not ok_hide and msg_hide:
+        errors.append(msg_hide)
+    return jsonify({'success': False, 'error': '; '.join(errors) or 'Failed to mark as known'}), 400
+
+@app.route('/api/words/<int:word_id>/difficulty', methods=['PUT'])
+@auth.login_required
+def update_word_difficulty(word_id):
+    """Update the difficulty level of a word for the user."""
+    user_id = require_user_id()
+    
+    data = request.get_json()
+    if not data or 'difficulty' not in data:
+        return jsonify({'success': False, 'error': 'Missing "difficulty" parameter'}), 400
+    
+    difficulty = data['difficulty']
+    if difficulty not in ['easy', 'medium', 'hard']:
+        return jsonify({'success': False, 'error': 'Invalid difficulty level'}), 400
+    
+    success, message = db_manager.update_word_difficulty(user_id, word_id, difficulty)
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+# Study Session Management Routes
+@app.route('/api/study/session/custom', methods=['POST'])
+@auth.login_required
+def create_custom_study_session():
+    """Create a custom study session for the user."""
+    user_id = require_user_id()
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Missing session configuration'}), 400
+    
+    session_type = data.get('session_type', 'review')
+    word_goal = data.get('word_goal', 10)
+    time_limit = data.get('time_limit', 0)  # 0 means no time limit
+    difficulty = data.get('difficulty', 'all')
+    
+    success, message, session_id = db_manager.create_study_session(
+        user_id, session_type, word_goal, time_limit, difficulty
+    )
+    
+    if success:
+        return jsonify({
+            'success': True, 
+            'message': message,
+            'session_id': session_id
+        })
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/study/session/<session_id>', methods=['PUT'])
+@auth.login_required
+def update_study_session(session_id):
+    """Update a study session (typically to end it)."""
+    user_id = require_user_id()
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Missing session data'}), 400
+    
+    success, message = db_manager.update_study_session(
+        user_id, session_id, data
+    )
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/study/session/<session_id>/progress', methods=['POST'])
+@auth.login_required
+def update_session_progress(session_id):
+    """Update study session progress."""
+    user_id = require_user_id()
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Missing progress data'}), 400
+    
+    success, message = db_manager.update_session_progress(
+        user_id, session_id, data
+    )
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/study/session/<session_id>/reset', methods=['POST'])
+@auth.login_required
+def reset_study_session(session_id):
+    """Reset a study session."""
+    user_id = require_user_id()
+    
+    success, message = db_manager.reset_study_session(user_id, session_id)
     
     if success:
         return jsonify({'success': True, 'message': message})

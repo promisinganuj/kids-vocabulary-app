@@ -1091,6 +1091,234 @@ class MultiUserDatabaseManager:
         except Exception as e:
             return False, f"Error removing word: {str(e)}"
     
+    def record_word_review(self, user_id: int, word_id: int, correct: bool) -> Tuple[bool, str]:
+        """Record a word review (correct/incorrect) for a specific user."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # First, check if the word belongs to the user
+                cursor.execute('''
+                    SELECT times_reviewed, times_correct FROM vocabulary 
+                    WHERE id = ? AND user_id = ?
+                ''', (word_id, user_id))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return False, "Word not found or not owned by user"
+                
+                current_times_reviewed = result['times_reviewed']
+                current_times_correct = result['times_correct']
+                
+                # Update the review statistics
+                new_times_reviewed = current_times_reviewed + 1
+                new_times_correct = current_times_correct + (1 if correct else 0)
+                
+                # Calculate new mastery level based on accuracy
+                accuracy = (new_times_correct / new_times_reviewed) * 100 if new_times_reviewed > 0 else 0
+                
+                # Simple mastery level calculation:
+                # 0-30%: mastery_level = 0 (needs practice)
+                # 31-60%: mastery_level = 1 (learning)
+                # 61-80%: mastery_level = 2 (good)
+                # 81-100%: mastery_level = 3 (mastered)
+                if accuracy <= 30:
+                    mastery_level = 0
+                elif accuracy <= 60:
+                    mastery_level = 1
+                elif accuracy <= 80:
+                    mastery_level = 2
+                else:
+                    mastery_level = 3
+                
+                # Update the word statistics
+                cursor.execute('''
+                    UPDATE vocabulary 
+                    SET times_reviewed = ?, 
+                        times_correct = ?, 
+                        mastery_level = ?,
+                        last_reviewed = CURRENT_TIMESTAMP
+                    WHERE id = ? AND user_id = ?
+                ''', (new_times_reviewed, new_times_correct, mastery_level, word_id, user_id))
+                
+                conn.commit()
+                
+                result_message = f"Review recorded: {'correct' if correct else 'incorrect'} " \
+                               f"(Accuracy: {accuracy:.1f}%, Mastery: {mastery_level})"
+                
+                return True, result_message
+                
+        except Exception as e:
+            return False, f"Error recording review: {str(e)}"
+    
+    def update_word_difficulty(self, user_id: int, word_id: int, difficulty: str) -> Tuple[bool, str]:
+        """Update the difficulty level of a word for a specific user."""
+        try:
+            if difficulty not in ['easy', 'medium', 'hard']:
+                return False, "Invalid difficulty level. Must be 'easy', 'medium', or 'hard'"
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check if word exists and belongs to user
+                cursor.execute('''
+                    SELECT id FROM vocabulary 
+                    WHERE id = ? AND user_id = ?
+                ''', (word_id, user_id))
+                
+                if not cursor.fetchone():
+                    return False, "Word not found or not owned by user"
+                
+                # Update the difficulty
+                cursor.execute('''
+                    UPDATE vocabulary 
+                    SET difficulty = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND user_id = ?
+                ''', (difficulty, word_id, user_id))
+                
+                conn.commit()
+                return True, f"Word difficulty updated to {difficulty}"
+                
+        except Exception as e:
+            return False, f"Error updating word difficulty: {str(e)}"
+    
+    # Study Session Management Methods
+    def create_study_session(self, user_id: int, session_type: str = 'review', 
+                           word_goal: int = 10, time_limit: int = 0, 
+                           difficulty: str = 'all') -> Tuple[bool, str, Optional[int]]:
+        """Create a new study session for a user."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    INSERT INTO study_sessions 
+                    (user_id, session_type, session_goal, words_reviewed, words_correct, is_completed)
+                    VALUES (?, ?, ?, 0, 0, 0)
+                ''', (user_id, session_type, word_goal))
+                
+                session_id = cursor.lastrowid
+                conn.commit()
+                
+                return True, f"Study session created with ID {session_id}", session_id
+                
+        except Exception as e:
+            return False, f"Error creating study session: {str(e)}", None
+    
+    def update_study_session(self, user_id: int, session_id: int, data: Dict[str, Any]) -> Tuple[bool, str]:
+        """Update a study session with final results."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check if session exists and belongs to user
+                cursor.execute('''
+                    SELECT id FROM study_sessions 
+                    WHERE id = ? AND user_id = ?
+                ''', (session_id, user_id))
+                
+                if not cursor.fetchone():
+                    return False, "Study session not found or not owned by user"
+                
+                # Update session with final data
+                words_reviewed = data.get('words_reviewed', 0)
+                words_correct = data.get('words_correct', 0)
+                duration_seconds = data.get('duration_seconds', 0)
+                accuracy = (words_correct / words_reviewed * 100) if words_reviewed > 0 else 0
+                
+                cursor.execute('''
+                    UPDATE study_sessions 
+                    SET end_time = CURRENT_TIMESTAMP,
+                        words_reviewed = ?,
+                        words_correct = ?,
+                        duration_seconds = ?,
+                        accuracy_percentage = ?,
+                        is_completed = 1
+                    WHERE id = ? AND user_id = ?
+                ''', (words_reviewed, words_correct, duration_seconds, accuracy, session_id, user_id))
+                
+                conn.commit()
+                return True, "Study session updated successfully"
+                
+        except Exception as e:
+            return False, f"Error updating study session: {str(e)}"
+    
+    def update_session_progress(self, user_id: int, session_id: int, data: Dict[str, Any]) -> Tuple[bool, str]:
+        """Update study session progress (called during session)."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check if session exists and belongs to user
+                cursor.execute('''
+                    SELECT id FROM study_sessions 
+                    WHERE id = ? AND user_id = ?
+                ''', (session_id, user_id))
+                
+                if not cursor.fetchone():
+                    return False, "Study session not found or not owned by user"
+                
+                # Update progress
+                words_reviewed = data.get('words_reviewed', 0)
+                words_correct = data.get('words_correct', 0)
+                accuracy = data.get('accuracy', 0)
+                time_elapsed = data.get('time_elapsed', 0)
+                
+                cursor.execute('''
+                    UPDATE study_sessions 
+                    SET words_reviewed = ?,
+                        words_correct = ?,
+                        accuracy_percentage = ?,
+                        duration_seconds = ?
+                    WHERE id = ? AND user_id = ?
+                ''', (words_reviewed, words_correct, accuracy, time_elapsed, session_id, user_id))
+                
+                conn.commit()
+                return True, "Session progress updated"
+                
+        except Exception as e:
+            return False, f"Error updating session progress: {str(e)}"
+    
+    def reset_study_session(self, user_id: int, session_id: int) -> Tuple[bool, str]:
+        """Reset a study session to start over."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check if session exists and belongs to user
+                cursor.execute('''
+                    SELECT id FROM study_sessions 
+                    WHERE id = ? AND user_id = ?
+                ''', (session_id, user_id))
+                
+                if not cursor.fetchone():
+                    return False, "Study session not found or not owned by user"
+                
+                # Reset session statistics
+                cursor.execute('''
+                    UPDATE study_sessions 
+                    SET words_reviewed = 0,
+                        words_correct = 0,
+                        accuracy_percentage = 0,
+                        duration_seconds = 0,
+                        start_time = CURRENT_TIMESTAMP,
+                        end_time = NULL,
+                        is_completed = 0
+                    WHERE id = ? AND user_id = ?
+                ''', (session_id, user_id))
+                
+                # Also delete any existing session words for this session
+                cursor.execute('''
+                    DELETE FROM study_session_words 
+                    WHERE session_id = ?
+                ''', (session_id,))
+                
+                conn.commit()
+                return True, "Study session reset successfully"
+                
+        except Exception as e:
+            return False, f"Error resetting study session: {str(e)}"
+    
     def search_user_words(self, user_id: int, search_query: str) -> List[Dict[str, Any]]:
         """Search vocabulary words for a specific user."""
         if not search_query.strip():
