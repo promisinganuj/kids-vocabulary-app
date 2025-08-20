@@ -226,6 +226,12 @@ db_manager = MultiUserDatabaseManager(os.path.join(script_dir, 'data', 'vocabula
 # Initialize authentication
 auth_manager, auth, user_preferences = init_authentication(app, db_manager)
 
+# Favicon route to prevent 404 errors
+@app.route('/favicon.ico')
+def favicon():
+    """Return empty response for favicon to prevent 404 errors."""
+    return '', 204
+
 # Authentication Routes
 @app.route('/login')
 def login_page():
