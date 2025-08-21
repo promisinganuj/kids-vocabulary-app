@@ -494,65 +494,7 @@
             font-size: 0.8em;
         }
 
-        /* Enhanced Study Session Features */
-        .study-controls {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
 
-        /* Session Configuration */
-        .session-config {
-            display: block;
-        }
-
-        .config-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .config-item {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .config-item label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .config-item .form-control {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-        }
-
-        .config-item .form-control option {
-            background: #333;
-            color: white;
-        }
-
-        .config-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        /* Active Session Display */
-        .session-active {
-            display: none;
-        }
 
         .session-header {
             display: flex;
@@ -1117,104 +1059,7 @@
             
             <!-- Search Results -->
             <div id="searchResults" class="search-results"></div>
-        </div>
 
-        <!-- Enhanced Study Session Controls -->
-        <div class="study-controls" id="studyControls">
-            <!-- Session Configuration -->
-            <div class="session-config" id="sessionConfig">
-                <div class="config-row">
-                    <div class="config-item">
-                        <label>Study Mode:</label>
-                        <select id="studyMode" class="form-control">
-                            <option value="mixed">Mixed Practice</option>
-                            <option value="new">New Words Only</option>
-                            <option value="review">Review Words</option>
-                            <option value="difficult">Difficult Words</option>
-                        </select>
-                    </div>
-                    <div class="config-item">
-                        <label>Word Goal:</label>
-                        <select id="wordGoal" class="form-control">
-                            <option value="5">5 words</option>
-                            <option value="10" selected>10 words</option>
-                            <option value="15">15 words</option>
-                            <option value="20">20 words</option>
-                            <option value="25">25 words</option>
-                            <option value="30">30 words</option>
-                        </select>
-                    </div>
-                    <div class="config-item">
-                        <label>Time Limit:</label>
-                        <select id="timeLimit" class="form-control">
-                            <option value="0">No limit</option>
-                            <option value="300">5 minutes</option>
-                            <option value="600">10 minutes</option>
-                            <option value="900">15 minutes</option>
-                            <option value="1200">20 minutes</option>
-                            <option value="1800">30 minutes</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="config-actions">
-                    <button class="btn btn-primary" id="startCustomSession" onclick="startCustomSession()">🚀 Start Custom Session</button>
-                    <button class="btn btn-success" id="quickStartBtn" onclick="quickStartSession()">⚡ Quick Start</button>
-                </div>
-            </div>
-
-            <!-- Active Session Display -->
-            <div class="session-active" id="sessionActive">
-                <div class="session-header">
-                    <div class="session-info">
-                        <span class="session-mode" id="currentMode">Mixed Practice</span>
-                        <div class="session-timer">
-                            <span id="timerDisplay">00:00</span>
-                            <span id="timeRemaining" style="display: none;"> / 10:00</span>
-                        </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-warning btn-sm" onclick="pauseSession()" id="pauseBtn">⏸️ Pause</button>
-                        <button class="btn btn-secondary btn-sm" onclick="resetSession()" id="resetBtn">🔄 Reset</button>
-                        <button class="btn btn-danger btn-sm" onclick="endStudySession()">🏁 End Session</button>
-                    </div>
-                </div>
-
-                <!-- Progress Display -->
-                <div class="session-progress">
-                    <div class="progress-visual">
-                        <div class="progress-circle">
-                            <svg class="progress-ring" width="120" height="120">
-                                <circle class="progress-ring-bg" cx="60" cy="60" r="50" />
-                                <circle class="progress-ring-fill" cx="60" cy="60" r="50" id="progressCircle" />
-                            </svg>
-                            <div class="progress-text">
-                                <span class="progress-current" id="progressCurrent">0</span>
-                                <span class="progress-total">/ <span id="progressTotal">10</span></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="stat-number" id="wordsReviewed">0</span>
-                            <span class="stat-label">Reviewed</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="wordsCorrect">0</span>
-                            <span class="stat-label">Correct</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="currentAccuracy">0%</span>
-                            <span class="stat-label">Accuracy</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="dailyProgress">0</span>
-                            <span class="stat-label">Today</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Achievement Notifications -->
         <div class="achievement-popup" id="achievementPopup">
@@ -1330,7 +1175,7 @@
             });
         }
 
-        // Enhanced Study Session Management
+        // Enhanced Study Session Management (simplified)
         let studySession = {
             active: false,
             sessionId: null,
@@ -1338,11 +1183,6 @@
             wordsReviewed: 0,
             wordsCorrect: 0,
             timer: null,
-            config: {
-                mode: 'mixed',
-                wordGoal: 10,
-                timeLimit: 0
-            },
             paused: false,
             pausedTime: 0
         };
@@ -1749,129 +1589,11 @@
             document.getElementById('likedWords').textContent = likedCount;
         }
 
-        function quickStartSession() {
-            const config = {
-                session_type: 'mixed',
-                word_goal: 10,
-                time_limit: 0,
-                difficulty: 'all'
-            };
-            startCustomSessionWithConfig(config);
-        }
 
-        function startCustomSession() {
-            const mode = document.getElementById('studyMode').value;
-            const wordGoal = parseInt(document.getElementById('wordGoal').value);
-            const timeLimit = parseInt(document.getElementById('timeLimit').value);
-            
-            const config = {
-                session_type: mode,
-                word_goal: wordGoal,
-                time_limit: timeLimit,
-                difficulty: 'all'
-            };
-            
-            startCustomSessionWithConfig(config);
-        }
 
-        function startCustomSessionWithConfig(config) {
-            fetch('/api/study/session/custom', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(config)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    studySession.active = true;
-                    studySession.sessionId = data.session_id;
-                    studySession.startTime = Date.now();
-                    studySession.wordsReviewed = 0;
-                    studySession.wordsCorrect = 0;
-                    studySession.config = data.config;
-                    studySession.paused = false;
-                    studySession.pausedTime = 0;
-                    
-                    // Update UI
-                    document.getElementById('sessionConfig').style.display = 'none';
-                    document.getElementById('sessionActive').style.display = 'block';
-                    
-                    // Set session info
-                    document.getElementById('currentMode').textContent = getModeDisplayName(config.session_type);
-                    document.getElementById('progressTotal').textContent = config.word_goal;
-                    
-                    if (config.time_limit > 0) {
-                        document.getElementById('timeRemaining').style.display = 'inline';
-                        document.getElementById('timeRemaining').textContent = ` / ${formatTime(config.time_limit)}`;
-                    }
-                    
-                    startTimer();
-                    updateProgress();
-                    console.log('Enhanced study session started:', data.session_id);
-                    
-                    // Show motivational message
-                    showAchievement('Session Started!', `Let's learn ${config.word_goal} words! 🚀`);
-                }
-            })
-            .catch(error => {
-                console.error('Error starting session:', error);
-                alert('Failed to start study session. Please try again.');
-            });
-        }
 
-        function pauseSession() {
-            if (studySession.paused) {
-                // Resume
-                studySession.paused = false;
-                studySession.startTime = Date.now() - studySession.pausedTime;
-                document.getElementById('pauseBtn').innerHTML = '⏸️ Pause';
-                startTimer();
-            } else {
-                // Pause
-                studySession.paused = true;
-                studySession.pausedTime = Date.now() - studySession.startTime;
-                document.getElementById('pauseBtn').innerHTML = '▶️ Resume';
-                clearInterval(studySession.timer);
-            }
-        }
 
-        function resetSession() {
-            // Check if session is active and has a valid session ID
-            if (!studySession.active || !studySession.sessionId) {
-                showQuickFeedback('No active session to reset', 'error');
-                return;
-            }
-            
-            if (confirm('Are you sure you want to reset this session? All progress will be lost.')) {
-                fetch(`/api/study/session/${studySession.sessionId}/reset`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        studySession.wordsReviewed = 0;
-                        studySession.wordsCorrect = 0;
-                        studySession.startTime = Date.now();
-                        studySession.pausedTime = 0;
-                        updateProgress();
-                        showAchievement('Session Reset', 'Starting fresh! 🔄');
-                        console.log('Session reset successfully');
-                    } else {
-                        showQuickFeedback('Failed to reset session: ' + (data.error || 'Unknown error'), 'error');
-                        console.error('Reset failed:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error resetting session:', error);
-                    showQuickFeedback('Network error while resetting session', 'error');
-                });
-            }
-        }
+
 
         function endStudySession() {
             if (!studySession.active) return;
@@ -1916,7 +1638,6 @@
             studySession.sessionId = null;
             studySession.paused = false;
             
-            document.getElementById('sessionConfig').style.display = 'block';
             document.getElementById('sessionActive').style.display = 'none';
             
             clearInterval(studySession.timer);
@@ -1924,7 +1645,7 @@
 
         function updateProgress() {
             const progress = studySession.wordsReviewed;
-            const goal = studySession.config.wordGoal || 10;
+            const goal = parseInt(document.getElementById('progressTotal').textContent) || 10;
             const accuracy = studySession.wordsReviewed > 0 ? 
                 Math.round((studySession.wordsCorrect / studySession.wordsReviewed) * 100) : 0;
             
@@ -1958,11 +1679,7 @@
                     const elapsed = Math.floor((Date.now() - studySession.startTime) / 1000);
                     document.getElementById('timerDisplay').textContent = formatTime(elapsed);
                     
-                    // Check time limit
-                    if (studySession.config.timeLimit > 0 && elapsed >= studySession.config.timeLimit) {
-                        showAchievement('Time\'s Up!', 'Session completed by time limit ⏰');
-                        setTimeout(() => endStudySession(), 2000);
-                    }
+                    // Time limit check can be added here if needed in the future
                 }
             }, 1000);
         }
@@ -1998,15 +1715,7 @@
             alert(message);
         }
 
-        function getModeDisplayName(mode) {
-            const modes = {
-                'mixed': 'Mixed Practice',
-                'new': 'New Words',
-                'review': 'Review Mode',
-                'difficult': 'Challenge Mode'
-            };
-            return modes[mode] || mode;
-        }
+
 
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);

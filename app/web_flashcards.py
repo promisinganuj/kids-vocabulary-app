@@ -756,34 +756,7 @@ def update_word_difficulty(word_id):
     else:
         return jsonify({'success': False, 'error': message}), 400
 
-# Study Session Management Routes
-@app.route('/api/study/session/custom', methods=['POST'])
-@auth.login_required
-def create_custom_study_session():
-    """Create a custom study session for the user."""
-    user_id = require_user_id()
-    
-    data = request.get_json()
-    if not data:
-        return jsonify({'success': False, 'error': 'Missing session configuration'}), 400
-    
-    session_type = data.get('session_type', 'review')
-    word_goal = data.get('word_goal', 10)
-    time_limit = data.get('time_limit', 0)  # 0 means no time limit
-    difficulty = data.get('difficulty', 'all')
-    
-    success, message, session_id = db_manager.create_study_session(
-        user_id, session_type, word_goal, time_limit, difficulty
-    )
-    
-    if success:
-        return jsonify({
-            'success': True, 
-            'message': message,
-            'session_id': session_id
-        })
-    else:
-        return jsonify({'success': False, 'error': message}), 400
+
 
 @app.route('/api/study/session/<session_id>', methods=['PUT'])
 @auth.login_required
