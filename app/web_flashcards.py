@@ -25,7 +25,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 import shutil
-from database_manager import DatabaseManager, initialize_multiuser_from_text_file
+from database_manager import DatabaseManager, initialize_multiuser_from_text_file, migrate_date_of_birth_to_year_of_birth
 from auth import init_authentication, get_current_user, require_user_id, is_authenticated
 
 # Admin helper functions
@@ -222,6 +222,9 @@ text_file = os.path.join(parent_dir, 'seed-data', 'words-list.txt')
 
 # Initialize database
 db_manager = DatabaseManager(os.path.join(script_dir, 'data', 'vocabulary.db'))
+
+# Run migration to update date_of_birth to year_of_birth if needed
+migrate_date_of_birth_to_year_of_birth(os.path.join(script_dir, 'data', 'vocabulary.db'))
 
 # Initialize authentication
 auth_manager, auth, user_preferences = init_authentication(app, db_manager)
@@ -514,11 +517,78 @@ def user_preferences_api():
 @auth.login_required
 def get_user_profile():
     """API endpoint to get current user profile."""
+    user_id = require_user_id()
+    print(f"📖 Getting profile for user {user_id}")
+    
     user = get_current_user()
     if not user:
-        return jsonify({'error': 'User not found'}), 404
+        print(f"❌ User {user_id} not found in session")
+        return jsonify({'success': False, 'error': 'User not found'}), 404
     
-    return jsonify(user.to_dict())
+    # Get fresh data from database
+    fresh_user = db_manager.get_user_by_id(user_id)
+    if fresh_user:
+        print(f"✅ Fresh user data retrieved: {fresh_user.to_dict()}")
+        return jsonify({'success': True, 'user': fresh_user.to_dict()})
+    else:
+        print(f"❌ Fresh user data not found for user {user_id}")
+        return jsonify({'success': True, 'user': user.to_dict()})
+
+@app.route('/api/user/profile', methods=['PUT'])
+@auth.login_required
+def update_user_profile():
+    """API endpoint to update current user profile."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    print(f"🔄 Profile update request for user {user_id}")
+    print(f"📦 Received data: {data}")
+    
+    if not data:
+        print("❌ No data received")
+        return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+    
+    # Validate profile_type
+    if 'profile_type' in data and data['profile_type'] not in ['Student', 'Parent']:
+        print(f"❌ Invalid profile type: {data['profile_type']}")
+        return jsonify({'success': False, 'error': 'Profile type must be Student or Parent'}), 400
+    
+    # Validate class_year
+    if 'class_year' in data and data['class_year'] is not None:
+        try:
+            class_year = int(data['class_year'])
+            if class_year < 1 or class_year > 12:
+                print(f"❌ Invalid class year: {class_year}")
+                return jsonify({'success': False, 'error': 'Class year must be between 1 and 12'}), 400
+            data['class_year'] = class_year
+        except (ValueError, TypeError):
+            print(f"❌ Invalid class year format: {data['class_year']}")
+            return jsonify({'success': False, 'error': 'Invalid class year'}), 400
+    
+    # Validate mobile number format (basic validation)
+    if 'mobile_number' in data and data['mobile_number']:
+        mobile = data['mobile_number'].strip()
+        if mobile and not re.match(r'^[\+]?[1-9][\d\s\-\(\)]{6,20}$', mobile):
+            print(f"❌ Invalid mobile number: {mobile}")
+            return jsonify({'success': False, 'error': 'Invalid mobile number format'}), 400
+        data['mobile_number'] = mobile
+    
+    # Validate preferred_study_time
+    if 'preferred_study_time' in data and data['preferred_study_time']:
+        valid_times = ['Morning', 'Afternoon', 'Evening', 'Night']
+        if data['preferred_study_time'] not in valid_times:
+            print(f"❌ Invalid study time: {data['preferred_study_time']}")
+            return jsonify({'success': False, 'error': 'Invalid preferred study time'}), 400
+    
+    print(f"✅ Validation passed, calling database update...")
+    success, message = db_manager.update_user_profile(user_id, data)
+    
+    if success:
+        print(f"✅ Profile update successful: {message}")
+        return jsonify({'success': True, 'message': message})
+    else:
+        print(f"❌ Profile update failed: {message}")
+        return jsonify({'success': False, 'error': message}), 400
 
 # Health check and info routes
 @app.route('/health')

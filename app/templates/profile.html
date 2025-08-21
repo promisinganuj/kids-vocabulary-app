@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Vocabulary Flashcards</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .profile-content {
+            padding: 40px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-form {
+            display: grid;
+            gap: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group input:disabled {
+            background-color: #f0f0f0;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.15);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin: 0;
+            display: none;
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c8e6c9);
+            color: #155724;
+            border: 2px solid #4caf50;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da, #ffcdd2);
+            color: #721c24;
+            border: 2px solid #f44336;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .profile-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="navigation">
+                <a href="/" class="nav-btn">← Back to Flashcards</a>
+            </div>
+            <h1>My Profile</h1>
+            <div class="subtitle">Manage your account settings and preferences</div>
+        </div>
+
+        <div class="profile-content">
+            <div id="alertContainer"></div>
+
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <h2 id="profileName">Loading...</h2>
+                <p id="profileInfo">Please wait while we load your profile</p>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="stats-grid" id="statsSection" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalWords">-</div>
+                    <div class="stat-label">Total Words</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="studyStreak">-</div>
+                    <div class="stat-label">Study Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="accuracy">-</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+
+            <form class="profile-form" id="profileForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Enter your first name">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Enter your last name">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" disabled>
+                        <div class="form-help">Email cannot be changed. Contact support if needed.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">Username <span class="required">*</span></label>
+                        <input type="text" id="username" name="username" disabled>
+                        <div class="form-help">Username cannot be changed.</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profileType">Profile Type <span class="required">*</span></label>
+                        <select id="profileType" name="profileType" onchange="toggleClassYear()">
+                            <option value="Student">Student</option>
+                            <option value="Parent">Parent</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="classYearGroup">
+                        <label for="classYear">Class Year</label>
+                        <select id="classYear" name="classYear">
+                            <option value="">Select class year</option>
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                            <option value="4">Year 4</option>
+                            <option value="5">Year 5</option>
+                            <option value="6">Year 6</option>
+                            <option value="7">Year 7</option>
+                            <option value="8">Year 8</option>
+                            <option value="9">Year 9</option>
+                            <option value="10">Year 10</option>
+                            <option value="11">Year 11</option>
+                            <option value="12">Year 12</option>
+                        </select>
+                        <div class="form-help">Select your current class year (required for students)</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile Number</label>
+                        <input type="tel" id="mobileNumber" name="mobileNumber" placeholder="+61 400 000 000">
+                        <div class="form-help">Optional. Include country code for international numbers.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="yearOfBirth">Year of Birth</label>
+                        <select id="yearOfBirth" name="yearOfBirth">
+                            <option value="">Select Year</option>
+                        </select>
+                        <div class="form-help">Optional. Helps us provide age-appropriate content.</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="schoolName">School Name</label>
+                        <input type="text" id="schoolName" name="schoolName" placeholder="Enter your school name">
+                        <div class="form-help">Optional. Helps us provide relevant content.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="preferredStudyTime">Preferred Study Time</label>
+                        <select id="preferredStudyTime" name="preferredStudyTime">
+                            <option value="">Select preferred time</option>
+                            <option value="Morning">Morning (6AM - 12PM)</option>
+                            <option value="Afternoon">Afternoon (12PM - 6PM)</option>
+                            <option value="Evening">Evening (6PM - 10PM)</option>
+                            <option value="Night">Night (10PM - 6AM)</option>
+                        </select>
+                        <div class="form-help">When do you prefer to study? Helps us send timely reminders.</div>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="learningGoals">Learning Goals</label>
+                    <textarea id="learningGoals" name="learningGoals" placeholder="What are your vocabulary learning goals? (e.g., improve reading comprehension, prepare for exams, etc.)"></textarea>
+                    <div class="form-help">Optional. Tell us about your learning objectives to help us personalize your experience.</div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Avatar Color</label>
+                    <div class="color-picker">
+                        <div class="color-option" style="background-color: #3498db;" data-color="#3498db" onclick="selectColor('#3498db')"></div>
+                        <div class="color-option" style="background-color: #e74c3c;" data-color="#e74c3c" onclick="selectColor('#e74c3c')"></div>
+                        <div class="color-option" style="background-color: #2ecc71;" data-color="#2ecc71" onclick="selectColor('#2ecc71')"></div>
+                        <div class="color-option" style="background-color: #f39c12;" data-color="#f39c12" onclick="selectColor('#f39c12')"></div>
+                        <div class="color-option" style="background-color: #9b59b6;" data-color="#9b59b6" onclick="selectColor('#9b59b6')"></div>
+                        <div class="color-option" style="background-color: #1abc9c;" data-color="#1abc9c" onclick="selectColor('#1abc9c')"></div>
+                        <div class="color-option" style="background-color: #34495e;" data-color="#34495e" onclick="selectColor('#34495e')"></div>
+                        <div class="color-option" style="background-color: #e67e22;" data-color="#e67e22" onclick="selectColor('#e67e22')"></div>
+                    </div>
+                    <div class="form-help">Choose a color for your profile avatar.</div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        Save Profile
+                    </button>
+                    <a href="/" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let selectedColor = '#3498db';
+
+        // Load user profile on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateYearDropdown();
+            loadUserProfile();
+            loadUserStats();
+        });
+
+        function populateYearDropdown() {
+            const yearSelect = document.getElementById('yearOfBirth');
+            const currentYear = new Date().getFullYear();
+            const startYear = currentYear - 80; // 80 years back
+            const endYear = currentYear - 5; // Minimum age of 5
+            
+            // Clear existing options except the first one
+            yearSelect.innerHTML = '<option value="">Select Year</option>';
+            
+            // Populate years from most recent to oldest
+            for (let year = endYear; year >= startYear; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        function loadUserProfile() {
+            fetch('/api/user/profile')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                    populateProfileForm(data.user);
+                } else {
+                    showAlert('Failed to load profile: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading profile:', error);
+                showAlert('Failed to load profile. Please try again.', 'error');
+            });
+        }
+
+        function loadUserStats() {
+            // Load user statistics
+            fetch('/api/words')
+            .then(response => response.json())
+            .then(data => {
+                if (data.words) {
+                    document.getElementById('totalWords').textContent = data.total || data.words.length;
+                    // For now, show placeholder values for streak and accuracy
+                    document.getElementById('studyStreak').textContent = '7 days';
+                    document.getElementById('accuracy').textContent = '85%';
+                    document.getElementById('statsSection').style.display = 'grid';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading stats:', error);
+            });
+        }
+
+        function populateProfileForm(user) {
+            // Update header
+            const displayName = [user.first_name, user.last_name].filter(n => n).join(' ') || user.username;
+            document.getElementById('profileName').textContent = displayName;
+            document.getElementById('profileInfo').textContent = `${user.profile_type || 'Student'} • Member since ${new Date(user.created_at).getFullYear()}`;
+            
+            // Update avatar
+            const avatar = document.getElementById('profileAvatar');
+            const firstLetter = (user.first_name || user.username).charAt(0).toUpperCase();
+            avatar.textContent = firstLetter;
+            avatar.style.backgroundColor = user.avatar_color || '#3498db';
+            
+            // Populate form fields
+            document.getElementById('firstName').value = user.first_name || '';
+            document.getElementById('lastName').value = user.last_name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('username').value = user.username || '';
+            document.getElementById('profileType').value = user.profile_type || 'Student';
+            document.getElementById('classYear').value = user.class_year || '';
+            document.getElementById('mobileNumber').value = user.mobile_number || '';
+            document.getElementById('yearOfBirth').value = user.year_of_birth || '';
+            document.getElementById('schoolName').value = user.school_name || '';
+            document.getElementById('preferredStudyTime').value = user.preferred_study_time || '';
+            document.getElementById('learningGoals').value = user.learning_goals || '';
+            
+            // Set selected color
+            selectedColor = user.avatar_color || '#3498db';
+            selectColor(selectedColor);
+            
+            // Toggle class year visibility
+            toggleClassYear();
+        }
+
+        function toggleClassYear() {
+            const profileType = document.getElementById('profileType').value;
+            const classYearGroup = document.getElementById('classYearGroup');
+            
+            if (profileType === 'Student') {
+                classYearGroup.style.display = 'flex';
+                document.getElementById('classYear').required = true;
+            } else {
+                classYearGroup.style.display = 'none';
+                document.getElementById('classYear').required = false;
+                document.getElementById('classYear').value = '';
+            }
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            
+            // Update UI
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+            
+            // Update avatar
+            document.getElementById('profileAvatar').style.backgroundColor = color;
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            // Show the alert with animation
+            setTimeout(() => {
+                alert.style.display = 'block';
+            }, 10);
+            
+            // Auto-hide after 3 seconds with fade out
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+
+        // Handle form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<span class="loading"></span>Saving...';
+            saveBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            const profileData = {};
+            
+            // Convert FormData to object
+            formData.forEach((value, key) => {
+                if (value.trim() !== '') {
+                    profileData[key] = value;
+                }
+            });
+            
+            // Add selected color
+            profileData.avatar_color = selectedColor;
+            
+            // Convert class_year to integer if present
+            if (profileData.classYear) {
+                profileData.class_year = parseInt(profileData.classYear);
+                delete profileData.classYear;
+            }
+            
+            // Convert year_of_birth to integer if present
+            if (profileData.yearOfBirth) {
+                profileData.year_of_birth = parseInt(profileData.yearOfBirth);
+                delete profileData.yearOfBirth;
+            }
+            
+            // Map form field names to database field names
+            const fieldMapping = {
+                firstName: 'first_name',
+                lastName: 'last_name',
+                profileType: 'profile_type',
+                mobileNumber: 'mobile_number',
+                yearOfBirth: 'year_of_birth',
+                schoolName: 'school_name',
+                preferredStudyTime: 'preferred_study_time',
+                learningGoals: 'learning_goals'
+            };
+            
+            const mappedData = {};
+            Object.keys(profileData).forEach(key => {
+                const mappedKey = fieldMapping[key] || key;
+                mappedData[mappedKey] = profileData[key];
+            });
+            
+            fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(mappedData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Profile updated successfully!', 'success');
+                    // Reload profile to get updated data
+                    setTimeout(() => {
+                        loadUserProfile();
+                    }, 1000);
+                } else {
+                    showAlert('Error updating profile: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating profile:', error);
+                showAlert('Failed to update profile. Please try again.', 'error');
+            })
+            .finally(() => {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

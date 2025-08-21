@@ -65,6 +65,16 @@
             border-radius: 25px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .profile-info:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .profile-avatar {
@@ -549,13 +559,13 @@
     <div class="container">
         <div class="header">
             <div class="user-profile">
-                <div class="profile-info">
+                <a href="/profile" class="profile-info">
                     <div class="profile-avatar" id="userAvatar">?</div>
                     <div class="profile-details">
                         <div class="profile-name" id="userName">Loading...</div>
                         <div class="profile-email" id="userEmail">...</div>
                     </div>
-                </div>
+                </a>
                 <button class="logout-btn" onclick="handleLogout()">
                     🚪 Logout
                 </button>
@@ -915,19 +925,37 @@
             fetch('/api/user/profile')
             .then(response => response.json())
             .then(data => {
-                if (data.success !== false) {
-                    document.getElementById('userName').textContent = data.username;
-                    document.getElementById('userEmail').textContent = data.email;
+                if (data.success && data.user) {
+                    const user = data.user;
                     
-                    // Set avatar to first letter of username
+                    // Display full name if available, otherwise username
+                    const displayName = [user.first_name, user.last_name].filter(n => n).join(' ') || user.username;
+                    document.getElementById('userName').textContent = displayName;
+                    document.getElementById('userEmail').textContent = user.email;
+                    
+                    // Set avatar to first letter of name or username with custom color
                     const avatar = document.getElementById('userAvatar');
-                    avatar.textContent = data.username.charAt(0).toUpperCase();
+                    const firstLetter = (user.first_name || user.username).charAt(0).toUpperCase();
+                    avatar.textContent = firstLetter;
+                    console.log('Setting avatar color to:', user.avatar_color);
+                    if (user.avatar_color) {
+                        avatar.style.backgroundColor = user.avatar_color;
+                        console.log('Avatar background color set to:', avatar.style.backgroundColor);
+                    } else {
+                        console.log('No avatar color provided, using default');
+                    }
                 } else {
                     console.error('Failed to load user profile:', data.error);
+                    // Fallback display
+                    document.getElementById('userName').textContent = 'User';
+                    document.getElementById('userEmail').textContent = 'Loading...';
                 }
             })
             .catch(error => {
                 console.error('Error loading user profile:', error);
+                // Fallback display
+                document.getElementById('userName').textContent = 'User';
+                document.getElementById('userEmail').textContent = 'Error loading profile';
             });
         }
         
@@ -967,6 +995,18 @@
         
         // Load user profile
         loadUserProfile();
+        
+        // Refresh user profile when window gains focus (user returns from another page)
+        window.addEventListener('focus', function() {
+            loadUserProfile();
+        });
+        
+        // Also refresh on page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadUserProfile();
+            }
+        });
     </script>
 </body>
 </html>

@@ -31,13 +31,28 @@ class User:
     """Class to represent a user."""
     
     def __init__(self, user_id: int, email: str, username: str, created_at: str, 
-                 last_login: Optional[str] = None, is_active: bool = True):
+                 last_login: Optional[str] = None, is_active: bool = True,
+                 first_name: Optional[str] = None, last_name: Optional[str] = None,
+                 mobile_number: Optional[str] = None, profile_type: str = 'Student',
+                 class_year: Optional[int] = None, year_of_birth: Optional[int] = None,
+                 school_name: Optional[str] = None, preferred_study_time: Optional[str] = None,
+                 learning_goals: Optional[str] = None, avatar_color: Optional[str] = None):
         self.user_id = user_id
         self.email = email
         self.username = username
         self.created_at = created_at
         self.last_login = last_login
         self.is_active = is_active
+        self.first_name = first_name
+        self.last_name = last_name
+        self.mobile_number = mobile_number
+        self.profile_type = profile_type
+        self.class_year = class_year
+        self.year_of_birth = year_of_birth
+        self.school_name = school_name
+        self.preferred_study_time = preferred_study_time
+        self.learning_goals = learning_goals
+        self.avatar_color = avatar_color
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert user to dictionary for JSON serialization."""
@@ -47,7 +62,17 @@ class User:
             'username': self.username,
             'created_at': self.created_at,
             'last_login': self.last_login,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'mobile_number': self.mobile_number,
+            'profile_type': self.profile_type,
+            'class_year': self.class_year,
+            'year_of_birth': self.year_of_birth,
+            'school_name': self.school_name,
+            'preferred_study_time': self.preferred_study_time,
+            'learning_goals': self.learning_goals,
+            'avatar_color': self.avatar_color
         }
 
 
@@ -137,6 +162,16 @@ class DatabaseManager:
                     verification_token TEXT,
                     reset_token TEXT,
                     reset_token_expires TIMESTAMP,
+                    first_name TEXT,
+                    last_name TEXT,
+                    mobile_number TEXT,
+                    profile_type TEXT DEFAULT 'Student',
+                    class_year INTEGER,
+                    year_of_birth INTEGER,
+                    school_name TEXT,
+                    preferred_study_time TEXT,
+                    learning_goals TEXT,
+                    avatar_color TEXT DEFAULT '#3498db',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP,
@@ -434,6 +469,28 @@ class DatabaseManager:
                     cursor.execute('ALTER TABLE vocabulary ADD COLUMN source TEXT DEFAULT "user"')
                     print("✅ Added source column to vocabulary table")
                 
+                # Check users table for new profile columns
+                cursor.execute("PRAGMA table_info(users)")
+                user_columns = [row[1] for row in cursor.fetchall()]
+                
+                profile_columns = [
+                    ('first_name', 'TEXT'),
+                    ('last_name', 'TEXT'),
+                    ('mobile_number', 'TEXT'),
+                    ('profile_type', 'TEXT DEFAULT "Student"'),
+                    ('class_year', 'INTEGER'),
+                    ('year_of_birth', 'INTEGER'),
+                    ('school_name', 'TEXT'),
+                    ('preferred_study_time', 'TEXT'),
+                    ('learning_goals', 'TEXT'),
+                    ('avatar_color', 'TEXT DEFAULT "#3498db"')
+                ]
+                
+                for col_name, col_def in profile_columns:
+                    if col_name not in user_columns:
+                        cursor.execute(f'ALTER TABLE users ADD COLUMN {col_name} {col_def}')
+                        print(f"✅ Added {col_name} column to users table")
+                
                 # Try to create new indexes that might not exist
                 try:
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_base_word ON vocabulary(base_word_id)')
@@ -504,7 +561,9 @@ class DatabaseManager:
                 
                 # Find user by email or username
                 cursor.execute('''
-                    SELECT id, email, username, password_hash, salt, is_active, created_at, last_login
+                    SELECT id, email, username, password_hash, salt, is_active, created_at, last_login,
+                           first_name, last_name, mobile_number, profile_type, class_year, 
+                           year_of_birth, school_name, preferred_study_time, learning_goals, avatar_color
                     FROM users 
                     WHERE (email = ? OR username = ?) AND is_active = 1
                 ''', (email_or_username.lower().strip(), email_or_username.strip()))
@@ -539,13 +598,108 @@ class DatabaseManager:
                     username=user_row['username'],
                     created_at=user_row['created_at'],
                     last_login=user_row['last_login'],
-                    is_active=bool(user_row['is_active'])
+                    is_active=bool(user_row['is_active']),
+                    first_name=user_row['first_name'],
+                    last_name=user_row['last_name'],
+                    mobile_number=user_row['mobile_number'],
+                    profile_type=user_row['profile_type'] or 'Student',
+                    class_year=user_row['class_year'],
+                    year_of_birth=user_row['year_of_birth'],
+                    school_name=user_row['school_name'],
+                    preferred_study_time=user_row['preferred_study_time'],
+                    learning_goals=user_row['learning_goals'],
+                    avatar_color=user_row['avatar_color'] or '#3498db'
                 )
                 
                 return True, "Authentication successful", user
                 
         except Exception as e:
             return False, f"Authentication error: {str(e)}", None
+    
+    def update_user_profile(self, user_id: int, profile_data: Dict[str, Any]) -> Tuple[bool, str]:
+        """Update user profile information."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Build dynamic update query
+                valid_fields = [
+                    'first_name', 'last_name', 'mobile_number', 'profile_type',
+                    'class_year', 'year_of_birth', 'school_name', 'preferred_study_time',
+                    'learning_goals', 'avatar_color'
+                ]
+                
+                update_fields = []
+                values = []
+                
+                for field, value in profile_data.items():
+                    if field in valid_fields:
+                        update_fields.append(f"{field} = ?")
+                        values.append(value)
+                
+                if not update_fields:
+                    return False, "No valid fields to update"
+                
+                values.append(user_id)
+                
+                query = f'''
+                    UPDATE users 
+                    SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                '''
+                
+                cursor.execute(query, values)
+                
+                if cursor.rowcount == 0:
+                    return False, "User not found"
+                
+                conn.commit()
+                return True, "Profile updated successfully"
+                
+        except Exception as e:
+            return False, f"Error updating profile: {str(e)}"
+    
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """Get user by ID with all profile information."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT id, email, username, created_at, last_login, is_active,
+                           first_name, last_name, mobile_number, profile_type, class_year, 
+                           year_of_birth, school_name, preferred_study_time, learning_goals, avatar_color
+                    FROM users 
+                    WHERE id = ? AND is_active = 1
+                ''', (user_id,))
+                
+                user_row = cursor.fetchone()
+                
+                if not user_row:
+                    return None
+                
+                return User(
+                    user_id=user_row['id'],
+                    email=user_row['email'],
+                    username=user_row['username'],
+                    created_at=user_row['created_at'],
+                    last_login=user_row['last_login'],
+                    is_active=bool(user_row['is_active']),
+                    first_name=user_row['first_name'],
+                    last_name=user_row['last_name'],
+                    mobile_number=user_row['mobile_number'],
+                    profile_type=user_row['profile_type'] or 'Student',
+                    class_year=user_row['class_year'],
+                    year_of_birth=user_row['year_of_birth'],
+                    school_name=user_row['school_name'],
+                    preferred_study_time=user_row['preferred_study_time'],
+                    learning_goals=user_row['learning_goals'],
+                    avatar_color=user_row['avatar_color'] or '#3498db'
+                )
+                
+        except Exception as e:
+            print(f"Error getting user by ID: {str(e)}")
+            return None
     
     def _create_default_user_preferences(self, user_id: int) -> None:
         """Create default preferences for a new user."""
@@ -1572,6 +1726,87 @@ class DatabaseManager:
                 'words': {'total': 0, 'base_vocabulary': 0},
                 'activity': {'total_likes': 0, 'active_sessions': 0}
             }
+
+
+# Migration function to update date_of_birth to year_of_birth
+def migrate_date_of_birth_to_year_of_birth(db_path: str) -> bool:
+    """Migrate date_of_birth column to year_of_birth in users table."""
+    conn = None
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Check if date_of_birth column exists
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'date_of_birth' in columns and 'year_of_birth' not in columns:
+            print("🔄 Migrating date_of_birth to year_of_birth...")
+            
+            # Add year_of_birth column
+            cursor.execute('ALTER TABLE users ADD COLUMN year_of_birth INTEGER')
+            
+            # Extract year from date_of_birth and populate year_of_birth
+            cursor.execute('''
+                UPDATE users 
+                SET year_of_birth = CASE 
+                    WHEN date_of_birth IS NOT NULL AND date_of_birth != '' 
+                    THEN CAST(substr(date_of_birth, 1, 4) AS INTEGER)
+                    ELSE NULL 
+                END
+            ''')
+            
+            # Create a new table without date_of_birth
+            cursor.execute('''
+                CREATE TABLE users_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP,
+                    is_active BOOLEAN DEFAULT 1,
+                    first_name TEXT,
+                    last_name TEXT,
+                    mobile_number TEXT,
+                    profile_type TEXT DEFAULT 'Student',
+                    class_year INTEGER,
+                    year_of_birth INTEGER,
+                    school_name TEXT,
+                    preferred_study_time TEXT,
+                    learning_goals TEXT,
+                    avatar_color TEXT DEFAULT '#3498db'
+                )
+            ''')
+            
+            # Copy data to new table (excluding date_of_birth)
+            cursor.execute('''
+                INSERT INTO users_new 
+                SELECT id, email, username, password_hash, salt, created_at, last_login, 
+                       is_active, first_name, last_name, mobile_number, profile_type, 
+                       class_year, year_of_birth, school_name, preferred_study_time, 
+                       learning_goals, avatar_color
+                FROM users
+            ''')
+            
+            # Drop old table and rename new table
+            cursor.execute('DROP TABLE users')
+            cursor.execute('ALTER TABLE users_new RENAME TO users')
+            
+            conn.commit()
+            print("✅ Successfully migrated date_of_birth to year_of_birth")
+            return True
+        else:
+            print("✅ Migration not needed - year_of_birth column already exists or date_of_birth doesn't exist")
+            return True
+            
+    except Exception as e:
+        print(f"❌ Migration failed: {str(e)}")
+        return False
+    finally:
+        if conn:
+            conn.close()
 
 
 # Migration function to move existing data to multi-user schema
