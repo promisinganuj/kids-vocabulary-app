@@ -1727,6 +1727,152 @@ class DatabaseManager:
                 'activity': {'total_likes': 0, 'active_sessions': 0}
             }
 
+    def analyze_user_learning_patterns(self, user_id: int) -> Dict[str, Any]:
+        """
+        Analyze user's learning patterns to provide insights for AI suggestions.
+        
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            Dict containing analysis results
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Get user's words with review statistics
+            cursor.execute('''
+                SELECT word, word_type, difficulty, times_reviewed, 
+                       times_correct, mastery_level, last_reviewed
+                FROM vocabulary
+                WHERE user_id = ? AND (is_hidden = 0 OR is_hidden IS NULL)
+                ORDER BY last_reviewed DESC
+            ''', (user_id,))
+            
+            user_words = cursor.fetchall()
+            
+            if not user_words:
+                return {
+                    "total_words": 0,
+                    "average_accuracy": 0,
+                    "difficult_words": [],
+                    "easy_words": [],
+                    "common_word_types": [],
+                    "suggested_level": "Beginner",
+                    "last_session_date": None
+                }
+            
+            # Calculate statistics
+            total_words = len(user_words)
+            total_reviews = sum(row['times_reviewed'] for row in user_words if row['times_reviewed'])
+            total_correct = sum(row['times_correct'] for row in user_words if row['times_correct'])
+            
+            # Calculate average accuracy
+            average_accuracy = (total_correct / total_reviews * 100) if total_reviews > 0 else 50
+            
+            # Categorize words by difficulty
+            easy_words = [row['word'] for row in user_words if row['difficulty'] == 'easy']
+            difficult_words = [row['word'] for row in user_words if row['difficulty'] == 'hard']
+            
+            # Find common word types
+            word_type_counts = {}
+            for row in user_words:
+                word_type = row['word_type']
+                word_type_counts[word_type] = word_type_counts.get(word_type, 0) + 1
+            
+            common_word_types = sorted(word_type_counts.keys(), 
+                                     key=lambda x: word_type_counts[x], 
+                                     reverse=True)[:3]
+            
+            # Determine suggested level based on accuracy and word count
+            if average_accuracy >= 80 and total_words >= 50:
+                suggested_level = "Advanced"
+            elif average_accuracy >= 60 and total_words >= 20:
+                suggested_level = "Intermediate"
+            else:
+                suggested_level = "Beginner"
+            
+            # Get last session date
+            last_session_date = None
+            if user_words:
+                last_reviewed = max((row['last_reviewed'] for row in user_words if row['last_reviewed']), default=None)
+                if last_reviewed:
+                    last_session_date = last_reviewed
+            
+            return {
+                "total_words": total_words,
+                "average_accuracy": round(average_accuracy, 1),
+                "difficult_words": difficult_words[:5],  # Top 5 difficult words
+                "easy_words": easy_words[:5],  # Top 5 easy words
+                "common_word_types": common_word_types,
+                "suggested_level": suggested_level,
+                "last_session_date": last_session_date,
+                "total_reviews": total_reviews,
+                "total_correct": total_correct
+            }
+            
+        except sqlite3.Error as e:
+            print(f"Database error in analyze_user_learning_patterns: {e}")
+            return {
+                "total_words": 0,
+                "average_accuracy": 0,
+                "difficult_words": [],
+                "easy_words": [],
+                "common_word_types": [],
+                "suggested_level": "Beginner",
+                "last_session_date": None
+            }
+        finally:
+            if 'conn' in locals():
+                conn.close()
+    
+    def record_ai_suggestion_feedback(self, user_id: int, word: str, difficulty: str, added_to_vocab: bool) -> bool:
+        """
+        Record user feedback on AI word suggestions for future improvements.
+        
+        Args:
+            user_id: The user's ID
+            word: The suggested word
+            difficulty: User's difficulty rating (easy/medium/hard)
+            added_to_vocab: Whether user added the word to their vocabulary
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Create table if it doesn't exist
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS ai_suggestion_feedback (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    suggested_word TEXT NOT NULL,
+                    difficulty_rating TEXT NOT NULL,
+                    added_to_vocabulary BOOLEAN NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+            
+            cursor.execute('''
+                INSERT INTO ai_suggestion_feedback 
+                (user_id, suggested_word, difficulty_rating, added_to_vocabulary)
+                VALUES (?, ?, ?, ?)
+            ''', (user_id, word, difficulty, added_to_vocab))
+            
+            conn.commit()
+            return True
+            
+        except sqlite3.Error as e:
+            print(f"Database error in record_ai_suggestion_feedback: {e}")
+            return False
+        finally:
+            if 'conn' in locals():
+                conn.close()
+
 
 # Migration function to update date_of_birth to year_of_birth
 def migrate_date_of_birth_to_year_of_birth(db_path: str) -> bool:
@@ -1921,7 +2067,7 @@ def migrate_single_user_to_multiuser(old_db_path: str, new_db_path: str, default
         return False
 
 
-def initialize_multiuser_from_text_file(text_file: str, user_id: int, db_manager: DatabaseManager) -> int:
+def initialize_multiuser_from_text_file(text_file: str, user_id: int, db_manager: 'DatabaseManager') -> int:
     """Initialize database from text file for a specific user."""
     return db_manager.load_vocabulary_from_text_file(text_file, user_id)
 

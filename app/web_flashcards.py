@@ -53,6 +53,209 @@ load_dotenv()
 
 app = Flask(__name__)
 
+def get_ai_word_suggestion_based_on_patterns(user_id: int) -> dict:
+    """
+    Generate AI word suggestions based on user's learning patterns and current vocabulary level.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        dict: Response in the format {word, type, definition, example, error, reasoning}
+    """
+    try:
+        # Get Azure OpenAI configuration and validate
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+        
+        if not all([api_key, endpoint, deployment]):
+            return {
+                "word": None,
+                "type": None,
+                "definition": None,
+                "example": None,
+                "error": "Azure OpenAI not properly configured",
+                "reasoning": None
+            }
+        
+        # Analyze user's learning patterns
+        analysis = db_manager.analyze_user_learning_patterns(user_id)
+        user_words = db_manager.get_user_words(user_id)
+        
+        # Get user profile for context
+        user = db_manager.get_user_by_id(user_id)
+        
+        # Build context for AI
+        user_context = {
+            "total_words": len(user_words),
+            "average_accuracy": analysis.get("average_accuracy", 50),
+            "difficult_words": analysis.get("difficult_words", []),
+            "easy_words": analysis.get("easy_words", []),
+            "common_word_types": analysis.get("common_word_types", []),
+            "class_year": user.class_year if user else None,
+            "learning_goals": user.learning_goals if user else None,
+            "recent_words": [w.get("word", "") for w in user_words[-5:]] if user_words else []
+        }
+        
+        # Create the prompt for AI word suggestion
+        prompt = f"""You are an AI tutor helping a student learn vocabulary. Based on their learning patterns, suggest ONE new vocabulary word that would be perfect for their next learning session.
+
+Student Profile:
+- Total vocabulary words learned: {user_context['total_words']}
+- Average accuracy: {user_context['average_accuracy']}%
+- Class year: {user_context['class_year'] or 'Not specified'}
+- Learning goals: {user_context['learning_goals'] or 'General vocabulary improvement'}
+- Recent words they've studied: {', '.join(user_context['recent_words'][:3]) if user_context['recent_words'] else 'None yet'}
+
+Learning Pattern Analysis:
+- Words they find easy: {', '.join(user_context['easy_words'][:3]) if user_context['easy_words'] else 'Building baseline'}
+- Words they find challenging: {', '.join(user_context['difficult_words'][:3]) if user_context['difficult_words'] else 'None identified yet'}
+- Common word types they study: {', '.join(user_context['common_word_types'][:3]) if user_context['common_word_types'] else 'Various'}
+
+Instructions:
+1. Suggest a word that is appropriately challenging (not too easy, not too hard)
+2. Choose a word that complements their existing vocabulary
+3. Avoid words they already know
+4. Consider their class level and learning goals
+5. Provide a clear, student-friendly definition
+6. Give a practical example sentence
+7. Explain why this word is a good fit for them
+
+Respond ONLY with valid JSON in this exact format:
+{{
+    "word": "Word in proper case",
+    "type": "Part of speech (Noun, Verb, Adjective, etc.)",
+    "definition": "Clear, concise definition appropriate for their level",
+    "example": "A practical example sentence using the word",
+    "reasoning": "Brief explanation of why this word is perfect for this student",
+    "error": null
+}}
+
+If you cannot suggest a word, respond with:
+{{
+    "word": null,
+    "type": null,
+    "definition": null,
+    "example": null,
+    "reasoning": null,
+    "error": "Reason why no suggestion could be made"
+}}"""
+
+        # Ensure endpoint ends with a slash
+        if not endpoint.endswith('/'):
+            endpoint += '/'
+        
+        # Prepare Azure OpenAI HTTP request
+        url = f"{endpoint}openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "messages": [
+                {"role": "system", "content": "You are an expert vocabulary tutor who provides personalized word suggestions based on learning patterns. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 400,
+            "temperature": 0.7
+        }
+        
+        # Ensure endpoint ends with a slash
+        if endpoint and not endpoint.endswith('/'):
+            endpoint += '/'
+        
+        # Prepare Azure OpenAI HTTP request
+        
+        # Make the HTTP request
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            content = response_data["choices"][0]["message"]["content"].strip()
+            
+            # Parse the JSON response
+            try:
+                result = json.loads(content)
+                
+                # Validate the response format
+                required_keys = ["word", "type", "definition", "example", "reasoning", "error"]
+                if not all(key in result for key in required_keys):
+                    return {
+                        "word": None,
+                        "type": None,
+                        "definition": None,
+                        "example": None,
+                        "reasoning": None,
+                        "error": "Invalid AI response format",
+                        "is_new": True
+                    }
+                
+                # Check if the suggested word already exists in user's vocabulary
+                suggested_word = result.get("word", "").lower()
+                is_new_word = True
+                
+                if suggested_word:
+                    # Check if word exists in user's vocabulary
+                    existing_words = [w.get("word", "").lower() for w in user_words]
+                    is_new_word = suggested_word not in existing_words
+                
+                # Add is_new flag to the result
+                result["is_new"] = is_new_word
+                
+                return result
+                
+            except json.JSONDecodeError:
+                return {
+                    "word": None,
+                    "type": None,
+                    "definition": None,
+                    "example": None,
+                    "reasoning": None,
+                    "error": "Failed to parse AI response",
+                    "is_new": True
+                }
+        else:
+            return {
+                "word": None,
+                "type": None,
+                "definition": None,
+                "example": None,
+                "reasoning": None,
+                "error": f"Azure OpenAI API error: {response.status_code}",
+                "is_new": True
+            }
+            
+    except requests.exceptions.Timeout:
+        return {
+            "word": None,
+            "type": None,
+            "definition": None,
+            "example": None,
+            "reasoning": None,
+            "error": "AI request timed out. Please try again."
+        }
+    except requests.exceptions.ConnectionError:
+        return {
+            "word": None,
+            "type": None,
+            "definition": None,
+            "example": None,
+            "reasoning": None,
+            "error": "Unable to connect to AI service. Please check your connection."
+        }
+    except Exception as e:
+        return {
+            "word": None,
+            "type": None,
+            "definition": None,
+            "example": None,
+            "reasoning": None,
+            "error": f"AI service error: {str(e)}"
+        }
+
 def search_word_with_openai(word: str) -> dict:
     """
     Search for word definition using Azure OpenAI LLM via HTTP requests.
@@ -417,6 +620,28 @@ def add_word():
     )
     
     if success:
+        # If this word was added from AI suggestion, set difficulty and record feedback
+        if 'difficulty' in data and 'source' in data and data['source'] == 'ai_suggestion':
+            try:
+                # Get the word ID for the newly added word
+                user_words = db_manager.get_user_words(user_id)
+                new_word = next((w for w in user_words if w.get('word', '').lower() == data['word'].lower()), None)
+                
+                if new_word and 'id' in new_word:
+                    # Set the difficulty level
+                    db_manager.update_word_difficulty(user_id, new_word['id'], data['difficulty'])
+                    
+                    # Record AI feedback
+                    db_manager.record_ai_suggestion_feedback(
+                        user_id, 
+                        data['word'], 
+                        data['difficulty'], 
+                        True  # added_to_vocabulary = True
+                    )
+            except Exception as e:
+                print(f"Error setting AI word properties: {e}")
+                # Don't fail the word addition if difficulty setting fails
+        
         return jsonify({'success': True, 'message': message})
     else:
         return jsonify({'success': False, 'error': message}), 400
@@ -472,6 +697,77 @@ def search_word_definition(word):
             'success': False, 
             'error': 'An unexpected error occurred while searching'
         }), 500
+
+@app.route('/ai-learning')
+@auth.login_required
+def ai_learning():
+    """AI Assisted Learning page."""
+    user_id = require_user_id()
+    user = get_current_user()
+    analysis = db_manager.analyze_user_learning_patterns(user_id)
+    is_user_admin = is_admin()
+    return render_template('ai_learning.html', user=user, analysis=analysis, is_admin=is_user_admin)
+
+@app.route('/api/ai/suggest-word')
+@auth.login_required
+def ai_suggest_word():
+    """API endpoint to get AI word suggestion based on user patterns."""
+    user_id = require_user_id()
+    
+    try:
+        result = get_ai_word_suggestion_based_on_patterns(user_id)
+        
+        if result.get("error"):
+            return jsonify({
+                'success': False, 
+                'error': result["error"]
+            }), 400
+        
+        if result.get("word"):
+            return jsonify({
+                'success': True, 
+                'word': {
+                    'word': result["word"],
+                    'type': result["type"] or 'unknown',
+                    'definition': result["definition"] or 'No definition available',
+                    'example': result["example"] or f"The word '{result['word']}' can be used in a sentence.",
+                    'reasoning': result.get("reasoning", "AI selected this word for you"),
+                    'is_new': result.get("is_new", True)
+                }
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Could not generate word suggestion'
+            }), 404
+            
+    except Exception as e:
+        print(f"Error in AI word suggestion: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'error': 'An unexpected error occurred while generating suggestion'
+        }), 500
+
+@app.route('/api/ai/feedback', methods=['POST'])
+@auth.login_required
+def ai_feedback():
+    """API endpoint to record AI suggestion feedback."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    if not data or 'word' not in data or 'difficulty' not in data:
+        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+    
+    word = data['word']
+    difficulty = data['difficulty']
+    added_to_vocab = data.get('added_to_vocabulary', False)
+    
+    success = db_manager.record_ai_suggestion_feedback(user_id, word, difficulty, added_to_vocab)
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Feedback recorded'})
+    else:
+        return jsonify({'success': False, 'error': 'Failed to record feedback'}), 500
 
 @app.route('/manage')
 @auth.login_required
@@ -1029,5 +1325,6 @@ if __name__ == '__main__':
     print("🌐 Access the application at: http://localhost:5001")
     print("🔐 Login required - register a new account or use admin credentials")
     print("🔧 Management interface at: http://localhost:5001/manage")
+    print("🤖 AI Learning feature at: http://localhost:5001/ai-learning")
     
     app.run(debug=True, host='0.0.0.0', port=5001)
