@@ -1,15 +1,124 @@
 [
   {
+    "word": "Abate",
+    "type": "Verb",
+    "definition": "Make or become less intense or widespread",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Aberrant",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Abruptly",
+    "type": "Adverb",
+    "definition": "Suddenly and unexpectedly",
+    "example": "The meeting ended abruptly when the fire alarm sounded."
+  },
+  {
+    "word": "Abscond",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Acerbic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Acumen",
+    "type": "Noun",
+    "definition": "The ability to make good judgments quickly",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Adamant",
+    "type": "Adjective",
+    "definition": "Refusing to be persuaded",
+    "example": "She was adamant about finishing her degree despite financial difficulties."
+  },
+  {
+    "word": "Admonish",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Advocate",
     "type": "Verb",
     "definition": "To publicly support or recommend",
     "example": "The lawyer advocated for stricter environmental regulations."
   },
   {
+    "word": "Aesthetic",
+    "type": "Adjective",
+    "definition": "Concerned with beauty or artistic taste",
+    "example": "To be added"
+  },
+  {
+    "word": "Affinity",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Affluent",
     "type": "Adjective",
     "definition": "Having a great deal of money; wealthy",
     "example": "The affluent neighborhood featured mansions and luxury cars."
+  },
+  {
+    "word": "Aggregate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Allegory",
+    "type": "Noun",
+    "definition": "A story with hidden meaning",
+    "example": "To be added"
+  },
+  {
+    "word": "Alleviate",
+    "type": "Verb",
+    "definition": "Make suffering, deficiency, or problem less severe",
+    "example": "To be added"
+  },
+  {
+    "word": "Allocate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Allude",
+    "type": "Verb",
+    "definition": "To hint at or refer to something indirectly",
+    "example": "The author alluded to his troubled childhood without explicitly describing the traumatic events."
+  },
+  {
+    "word": "Allusion",
+    "type": "Noun",
+    "definition": "An indirect reference to another work",
+    "example": "To be added"
+  },
+  {
+    "word": "Altruistic",
+    "type": "Adjective",
+    "definition": "Showing concern for the welfare of others",
+    "example": "To be added"
   },
   {
     "word": "Amalgamate",
@@ -24,6 +133,116 @@
     "example": "The politician's ambiguous statement confused voters."
   },
   {
+    "word": "Ambivalent",
+    "type": "Adjective",
+    "definition": "Having mixed feelings or contradictory attitudes toward something",
+    "example": "She felt ambivalent about the job offer, excited by the opportunity but worried about relocating.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ameliorate",
+    "type": "Verb",
+    "definition": "Make something bad or unsatisfactory better",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Anachronism",
+    "type": "Noun",
+    "definition": "Something belonging to a different time period",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Analogous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Analogy",
+    "type": "Noun",
+    "definition": "A comparison between two things",
+    "example": "To be added"
+  },
+  {
+    "word": "Analysis",
+    "type": "Noun",
+    "definition": "The detailed examination of elements or structure",
+    "example": "To be added"
+  },
+  {
+    "word": "Analyze",
+    "type": "Verb",
+    "definition": "Examine methodically and in detail",
+    "example": "To be added"
+  },
+  {
+    "word": "Anarchy",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Animosity",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Antagonist",
+    "type": "Noun",
+    "definition": "A person who actively opposes someone",
+    "example": "To be added"
+  },
+  {
+    "word": "Anticipate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Apathetic",
+    "type": "Adjective",
+    "definition": "Showing little or no interest, enthusiasm, or concern",
+    "example": "The apathetic student showed no interest in participating in class discussions."
+  },
+  {
+    "word": "Apathy",
+    "type": "Noun",
+    "definition": "Lack of interest, enthusiasm, or concern",
+    "example": "To be added"
+  },
+  {
+    "word": "Apprehensive",
+    "type": "Adjective",
+    "definition": "Anxious or fearful about something",
+    "example": "To be added"
+  },
+  {
+    "word": "Approach",
+    "type": "Noun",
+    "definition": "A way of dealing with something",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Arbitrary",
+    "type": "Adjective",
+    "definition": "Based on random choice rather than reason",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Archaic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Arduous",
     "type": "Adjective",
     "definition": "Involving great effort; difficult",
@@ -36,22 +255,187 @@
     "example": "She articulated her concerns about the policy changes eloquently."
   },
   {
+    "word": "Ascetic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ashen",
+    "type": "Adjective",
+    "definition": "Very pale, as from shock, fear, or illness",
+    "example": "His face turned ashen when he received the devastating news about the accident."
+  },
+  {
+    "word": "Assert",
+    "type": "Verb",
+    "definition": "To state or declare confidently and forcefully",
+    "example": "The scientist asserted that climate change was the primary cause of the unusual weather patterns."
+  },
+  {
+    "word": "Assess",
+    "type": "Verb",
+    "definition": "Evaluate or estimate the nature, ability, or quality",
+    "example": "To be added"
+  },
+  {
+    "word": "Astute",
+    "type": "Adjective",
+    "definition": "Having or showing shrewd judgment",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Astutely",
     "type": "Adverb",
     "definition": "In a clever and perceptive way",
     "example": "The investor astutely predicted the market crash."
   },
   {
+    "word": "Attribute",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Audacious",
+    "type": "Adjective",
+    "definition": "Showing willingness to take bold risks",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Austere",
     "type": "Adjective",
     "definition": "Severe or strict in manner; having no comforts",
-    "example": "The monk lived an austere life in the mountain monastery."
+    "example": "The monk lived an austere life in the mountain monastery.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Autonomous",
+    "type": "Adjective",
+    "definition": "Having the freedom to act independently",
+    "example": "To be added"
+  },
+  {
+    "word": "Avarice",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Banal",
+    "type": "Adjective",
+    "definition": "So lacking in originality as to be obvious",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Bask",
     "type": "Verb",
     "definition": "To lie in warmth and light",
     "example": "The lizard basked on the warm rock in the morning sun."
+  },
+  {
+    "word": "Begrudgingly",
+    "type": "Adverb",
+    "definition": "Reluctantly; with resentment",
+    "example": "He begrudgingly admitted that his rival's plan was better than his own."
+  },
+  {
+    "word": "Belligerent",
+    "type": "Adjective",
+    "definition": "Aggressive and hostile; eager to fight",
+    "example": "The belligerent customer shouted at the cashier over a minor billing error."
+  },
+  {
+    "word": "Bemoan",
+    "type": "Verb",
+    "definition": "To express sorrow, regret, or disappointment about something",
+    "example": "The elderly woman bemoaned the loss of traditional values in modern society."
+  },
+  {
+    "word": "Benevolent",
+    "type": "Adjective",
+    "definition": "Kind, generous, and charitable",
+    "example": "The benevolent millionaire donated millions to build schools in underprivileged communities."
+  },
+  {
+    "word": "Blatant",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Blatantly",
+    "type": "Adverb",
+    "definition": "In an open and obvious manner; shamelessly",
+    "example": "The politician blatantly ignored the reporter's question about the scandal."
+  },
+  {
+    "word": "Boastful",
+    "type": "Adjective",
+    "definition": "Excessively proud and bragging about one's achievements",
+    "example": "His boastful attitude about his promotion annoyed his colleagues at the dinner party."
+  },
+  {
+    "word": "Bolster",
+    "type": "Verb",
+    "definition": "Support or strengthen",
+    "example": "To be added"
+  },
+  {
+    "word": "Bombastic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Bourgeois",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Brazen",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Brevity",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Brisk",
+    "type": "Adjective",
+    "definition": "Quick and energetic; pleasantly cold and invigorating",
+    "example": "They took a brisk walk through the park to enjoy the crisp autumn air."
+  },
+  {
+    "word": "Brood",
+    "type": "Verb",
+    "definition": "To think deeply about something in a troubled or unhappy way",
+    "example": "He would brood for hours about his failed relationship, unable to move forward."
+  },
+  {
+    "word": "Cacophony",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Callous",
+    "type": "Adjective",
+    "definition": "Showing no concern for others' feelings; insensitive",
+    "example": "The manager's callous response to employee concerns created a hostile work environment."
   },
   {
     "word": "Candid",
@@ -66,10 +450,110 @@
     "example": "The CEO candidly admitted the company's mistakes to shareholders."
   },
   {
+    "word": "Candor",
+    "type": "Noun",
+    "definition": "The quality of being open and honest",
+    "example": "To be added"
+  },
+  {
+    "word": "Capricious",
+    "type": "Adjective",
+    "definition": "Given to sudden changes of mood or behavior",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Cascade",
     "type": "Verb",
     "definition": "To fall like a waterfall",
     "example": "Her long hair cascaded over her shoulders."
+  },
+  {
+    "word": "Catalyst",
+    "type": "Noun",
+    "definition": "A person or thing that precipitates change",
+    "example": "To be added"
+  },
+  {
+    "word": "Caustic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Cautiously",
+    "type": "Adverb",
+    "definition": "Carefully; being alert to potential danger",
+    "example": "She cautiously approached the stray dog, unsure of its temperament."
+  },
+  {
+    "word": "Censure",
+    "type": "Verb",
+    "definition": "Express severe disapproval of someone",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Cerebral",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Chagrin",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Charlatan",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Chilly",
+    "type": "Adjective",
+    "definition": "Noticeably cold; unfriendly in manner",
+    "example": "The chilly morning required an extra layer of clothing before leaving the house."
+  },
+  {
+    "word": "Circumspect",
+    "type": "Adjective",
+    "definition": "Wary and unwilling to take risks",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Clandestine",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Clutch",
+    "type": "Verb",
+    "definition": "To hold tightly; to grasp desperately",
+    "example": "The frightened child clutched her mother's hand as they walked through the dark forest."
+  },
+  {
+    "word": "Coerce",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Cogent",
+    "type": "Adjective",
+    "definition": "Clear, logical, and convincing",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Coherent",
@@ -78,16 +562,256 @@
     "example": "Despite his injury, his account remained coherent and detailed."
   },
   {
+    "word": "Coincide",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Commence",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Compelling",
+    "type": "Adjective",
+    "definition": "Evoking interest or attention powerfully",
+    "example": "To be added"
+  },
+  {
+    "word": "Compile",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Complacent",
+    "type": "Adjective",
+    "definition": "Showing smug satisfaction with oneself",
+    "example": "To be added"
+  },
+  {
+    "word": "Complement",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Comprise",
+    "type": "Verb",
+    "definition": "Consist of; be made up of",
+    "example": "To be added"
+  },
+  {
+    "word": "Concede",
+    "type": "Verb",
+    "definition": "To admit or acknowledge something, often reluctantly",
+    "example": "After hours of debate, the politician finally conceded that his opponent had made valid points."
+  },
+  {
+    "word": "Conceive",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Concept",
+    "type": "Noun",
+    "definition": "An abstract idea or general notion",
+    "example": "To be added"
+  },
+  {
+    "word": "Conciliatory",
+    "type": "Adjective",
+    "definition": "Intended to placate or pacify",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Concurrent",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Condemn",
+    "type": "Verb",
+    "definition": "To express strong disapproval of something; to criticize severely",
+    "example": "Human rights organizations condemned the government's treatment of peaceful protesters."
+  },
+  {
+    "word": "Condescending",
+    "type": "Adjective",
+    "definition": "Having a superior attitude toward others",
+    "example": "To be added"
+  },
+  {
+    "word": "Confer",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Connoisseur",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Consecutive",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Constitute",
+    "type": "Verb",
+    "definition": "Be (a part) of a whole; form or compose",
+    "example": "To be added"
+  },
+  {
     "word": "Contemplate",
     "type": "Verb",
     "definition": "To think deeply about something",
     "example": "She contemplated the job offer while walking in the park."
   },
   {
+    "word": "Contemporary",
+    "type": "Adjective",
+    "definition": "Belonging to the present time",
+    "example": "To be added"
+  },
+  {
+    "word": "Contemptuous",
+    "type": "Adjective",
+    "definition": "Showing the feeling that something is worthless",
+    "example": "To be added"
+  },
+  {
+    "word": "Contend",
+    "type": "Verb",
+    "definition": "To argue or assert; to struggle against difficulties",
+    "example": "The lawyer contended that her client was innocent despite the overwhelming evidence."
+  },
+  {
+    "word": "Contentious",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Context",
+    "type": "Noun",
+    "definition": "The circumstances that form the setting",
+    "example": "To be added"
+  },
+  {
+    "word": "Contradict",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Contrary",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Contrition",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Contrived",
+    "type": "Adjective",
+    "definition": "Artificially created; lacking naturalness or spontaneity",
+    "example": "The movie's contrived plot twists made it difficult for audiences to connect with the story."
+  },
+  {
+    "word": "Convert",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Convoluted",
+    "type": "Adjective",
+    "definition": "Extremely complex and difficult to follow",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Correspond",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Corroborate",
     "type": "Verb",
     "definition": "To confirm or give support to",
-    "example": "Multiple witnesses corroborated the defendant's alibi."
+    "example": "Multiple witnesses corroborated the defendant's alibi.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Cosmopolitan",
+    "type": "Adjective",
+    "definition": "Familiar with many different countries",
+    "example": "To be added"
+  },
+  {
+    "word": "Create",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Credible",
+    "type": "Adjective",
+    "definition": "Able to be believed; convincing",
+    "example": "To be added"
+  },
+  {
+    "word": "Credulous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Criteria",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Critique",
+    "type": "Verb",
+    "definition": "Evaluate in a detailed and analytical way",
+    "example": "To be added"
+  },
+  {
+    "word": "Crucial",
+    "type": "Adjective",
+    "definition": "Extremely important; critical",
+    "example": "To be added"
+  },
+  {
+    "word": "Cryptic",
+    "type": "Adjective",
+    "definition": "Having a hidden meaning; mysterious",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Cultivate",
@@ -96,10 +820,177 @@
     "example": "The mentor helped cultivate the young artist's natural talent."
   },
   {
+    "word": "Curtail",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Cynical",
+    "type": "Adjective",
+    "definition": "Believing people are motivated by self-interest",
+    "example": "To be added"
+  },
+  {
+    "word": "Debilitate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Debunk",
+    "type": "Verb",
+    "definition": "Expose the falseness of a myth or idea",
+    "example": "To be added"
+  },
+  {
+    "word": "Decade",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Decline",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Decorous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Decry",
+    "type": "Verb",
+    "definition": "To publicly denounce or condemn",
+    "example": "Environmental activists decried the company's decision to clear-cut the ancient forest."
+  },
+  {
+    "word": "Deduce",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Defiance",
+    "type": "Noun",
+    "definition": "Open resistance; bold disobedience",
+    "example": "To be added"
+  },
+  {
+    "word": "Deliberately",
+    "type": "Adverb",
+    "definition": "Intentionally; on purpose",
+    "example": "He deliberately arrived late to avoid the awkward small talk before the meeting."
+  },
+  {
+    "word": "Delineate",
+    "type": "Verb",
+    "definition": "Describe or portray something precisely",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Demagogue",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Demonstrate",
+    "type": "Verb",
+    "definition": "Give a practical exhibition and explanation",
+    "example": "To be added"
+  },
+  {
+    "word": "Denote",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Deprecate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Deride",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Derive",
+    "type": "Verb",
+    "definition": "Obtain something from a specified source",
+    "example": "To be added"
+  },
+  {
+    "word": "Desolate",
+    "type": "Adjective",
+    "definition": "Barren and lifeless; feeling abandoned and lonely",
+    "example": "The desolate landscape stretched for miles without a single tree or building in sight."
+  },
+  {
+    "word": "Despite",
+    "type": "Preposition",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Detached",
+    "type": "Adjective",
+    "definition": "Emotionally distant; not involved or interested",
+    "example": "The therapist maintained a detached professional demeanor during the session."
+  },
+  {
     "word": "Deteriorate",
     "type": "Verb",
     "definition": "To become progressively worse",
     "example": "The patient's condition began to deteriorate despite treatment."
+  },
+  {
+    "word": "Dexterous",
+    "type": "Adjective",
+    "definition": "Showing or having skill",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Didactic",
+    "type": "Adjective",
+    "definition": "Intended to teach; instructive",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Diffident",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Diligent",
+    "type": "Adjective",
+    "definition": "Having or showing careful work",
+    "example": "To be added"
+  },
+  {
+    "word": "Dimension",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Discern",
@@ -108,10 +999,167 @@
     "example": "He could discern the subtle differences in the wine's flavor."
   },
   {
+    "word": "Discordant",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Discriminate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Disdain",
+    "type": "Noun",
+    "definition": "The feeling that someone is unworthy of respect",
+    "example": "To be added"
+  },
+  {
+    "word": "Disgruntled",
+    "type": "Adjective",
+    "definition": "Angry or dissatisfied; discontented",
+    "example": "The disgruntled employees organized a strike to protest their working conditions."
+  },
+  {
+    "word": "Dismiss",
+    "type": "Verb",
+    "definition": "To reject or disregard as unworthy of consideration",
+    "example": "The judge dismissed the case due to lack of sufficient evidence."
+  },
+  {
+    "word": "Disparage",
+    "type": "Verb",
+    "definition": "Regard or represent as being of little worth",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Dispel",
+    "type": "Verb",
+    "definition": "Make a doubt, feeling, or belief disappear",
+    "example": "To be added"
+  },
+  {
+    "word": "Display",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Disseminate",
+    "type": "Verb",
+    "definition": "Spread information widely",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Dissonance",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Distinct",
+    "type": "Adjective",
+    "definition": "Physically separate; different in nature",
+    "example": "To be added"
+  },
+  {
+    "word": "Dogmatic",
+    "type": "Adjective",
+    "definition": "Inclined to lay down principles as truths",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Domestic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Dominate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Dormant",
+    "type": "Adjective",
+    "definition": "Temporarily inactive",
+    "example": "To be added"
+  },
+  {
+    "word": "Dreary",
+    "type": "Adjective",
+    "definition": "Dull, bleak, and lifeless; depressingly drab",
+    "example": "The dreary office cubicle made her long for a job with more creative freedom."
+  },
+  {
+    "word": "Dubious",
+    "type": "Adjective",
+    "definition": "Hesitating or doubting",
+    "example": "To be added"
+  },
+  {
+    "word": "Duplicity",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Dwell",
+    "type": "Verb",
+    "definition": "To think or speak persistently about something",
+    "example": "Rather than dwelling on past mistakes, she decided to focus on future opportunities."
+  },
+  {
+    "word": "Earnestly",
+    "type": "Adverb",
+    "definition": "With sincere and intense conviction",
+    "example": "The student earnestly pleaded for an extension on her assignment deadline."
+  },
+  {
+    "word": "Ebullient",
+    "type": "Adjective",
+    "definition": "Cheerful and full of energy",
+    "example": "Her ebullient personality made her popular at parties.",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Eclectic",
     "type": "Adjective",
     "definition": "Selecting from various sources",
-    "example": "The restaurant's eclectic menu featured dishes from around the world."
+    "example": "The restaurant's eclectic menu featured dishes from around the world.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Efficacious",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Egregious",
+    "type": "Adjective",
+    "definition": "Outstandingly bad; shocking",
+    "example": "The company made an egregious error in its financial statements.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Elicit",
+    "type": "Verb",
+    "definition": "Evoke or draw out a response",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Eloquent",
@@ -126,10 +1174,106 @@
     "example": "She eloquently defended her controversial research findings."
   },
   {
+    "word": "Elucidate",
+    "type": "Verb",
+    "definition": "To make clear or explain in detail",
+    "example": "The professor elucidated the complex mathematical theorem with simple diagrams and examples.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Embellish",
+    "type": "Verb",
+    "definition": "To make more attractive by adding decorative details; to exaggerate",
+    "example": "The storyteller embellished his tale with dramatic gestures and colorful descriptions."
+  },
+  {
+    "word": "Emerge",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Emphasis",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Empirical",
+    "type": "Adjective",
+    "definition": "Based on observation or experience",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Emulate",
+    "type": "Verb",
+    "definition": "Match or surpass by imitation",
+    "example": "To be added"
+  },
+  {
+    "word": "Enable",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Encounter",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Endemic",
+    "type": "Adjective",
+    "definition": "Native and restricted to a certain place",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Endorse",
+    "type": "Verb",
+    "definition": "Declare one's public approval or support",
+    "example": "To be added"
+  },
+  {
+    "word": "Enigmatic",
+    "type": "Adjective",
+    "definition": "Difficult to interpret or understand",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Enormous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Ensure",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Entity",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Envelop",
+    "type": "Verb",
+    "definition": "To wrap up, cover, or surround completely",
+    "example": "The thick fog began to envelop the entire village by nightfall."
+  },
+  {
     "word": "Ephemeral",
     "type": "Adjective",
     "definition": "Lasting for a very short time",
-    "example": "The ephemeral beauty of cherry blossoms attracts thousands of visitors."
+    "example": "The ephemeral beauty of cherry blossoms attracts thousands of visitors.",
+    "difficulty": "Hard"
   },
   {
     "word": "Epitomize",
@@ -138,10 +1282,170 @@
     "example": "The ancient building epitomizes classical architecture."
   },
   {
+    "word": "Equivalent",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Equivocal",
+    "type": "Adjective",
+    "definition": "Open to more than one interpretation",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Erode",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Erudite",
+    "type": "Adjective",
+    "definition": "Having or showing great knowledge",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Esoteric",
+    "type": "Adjective",
+    "definition": "Intended for a small number of people",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Establish",
+    "type": "Verb",
+    "definition": "Set up on a firm or permanent basis",
+    "example": "To be added"
+  },
+  {
+    "word": "Ethnic",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Euphemism",
+    "type": "Noun",
+    "definition": "A mild term for something unpleasant",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Evaluate",
+    "type": "Verb",
+    "definition": "Form an idea of the amount, number, or value",
+    "example": "To be added"
+  },
+  {
+    "word": "Evanescent",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Eventual",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Evidence",
+    "type": "Noun",
+    "definition": "The available body of facts indicating truth",
+    "example": "To be added"
+  },
+  {
+    "word": "Evoke",
+    "type": "Verb",
+    "definition": "To bring forth or recall a feeling, memory, or image",
+    "example": "The old photograph evoked memories of her grandmother's warm kitchen and homemade cookies."
+  },
+  {
     "word": "Exacerbate",
     "type": "Verb",
     "definition": "To make a problem worse",
-    "example": "The heavy rainfall exacerbated the flooding in the valley."
+    "example": "The heavy rainfall exacerbated the flooding in the valley.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Exaggerate",
+    "type": "Verb",
+    "definition": "To represent something as larger, better, or worse than it actually is",
+    "example": "He tends to exaggerate his accomplishments when telling stories to his friends."
+  },
+  {
+    "word": "Excessively",
+    "type": "Adverb",
+    "definition": "To a degree that is more than normal or desirable",
+    "example": "The critic was excessively harsh in her review of the young actor's performance."
+  },
+  {
+    "word": "Exclude",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Exhibit",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Exonerate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Expedient",
+    "type": "Adjective",
+    "definition": "Convenient and practical despite being improper",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Explicit",
+    "type": "Adjective",
+    "definition": "Stated clearly and in detail",
+    "example": "To be added"
+  },
+  {
+    "word": "Exploit",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "External",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Extol",
+    "type": "Verb",
+    "definition": "Praise enthusiastically",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Extraneous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Exuberant",
+    "type": "Adjective",
+    "definition": "Full of energy, excitement, and cheerfulness",
+    "example": "The exuberant children ran around the playground, laughing and playing games."
   },
   {
     "word": "Fabricate",
@@ -150,10 +1454,63 @@
     "example": "The witness was caught fabricating details about the accident."
   },
   {
+    "word": "Facilitate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Factor",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Faint",
+    "type": "Adjective",
+    "definition": "Barely perceptible; weak or dim",
+    "example": "There was a faint smell of roses in the air as they walked through the garden."
+  },
+  {
+    "word": "Faintly",
+    "type": "Adverb",
+    "definition": "Barely; weakly or slightly",
+    "example": "She could faintly hear music coming from the apartment next door."
+  },
+  {
+    "word": "Fallacious",
+    "type": "Adjective",
+    "definition": "Based on a mistaken belief",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Falter",
+    "type": "Verb",
+    "definition": "To hesitate or waver; to lose strength or momentum",
+    "example": "Her voice began to falter as she delivered the emotional eulogy."
+  },
+  {
     "word": "Fastidious",
     "type": "Adjective",
     "definition": "Very attentive to accuracy and detail",
-    "example": "The fastidious editor caught every grammatical error in the manuscript."
+    "example": "The fastidious editor caught every grammatical error in the manuscript.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Fatuous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Federal",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Fervent",
@@ -162,10 +1519,88 @@
     "example": "Her fervent belief in justice drove her legal career."
   },
   {
+    "word": "Fickle",
+    "type": "Adjective",
+    "definition": "Changing frequently in loyalties or affections",
+    "example": "To be added"
+  },
+  {
+    "word": "Florid",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Flourish",
     "type": "Verb",
     "definition": "To grow or develop successfully",
     "example": "The arts program flourished under the new director's leadership."
+  },
+  {
+    "word": "Fluctuate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Fortitude",
+    "type": "Noun",
+    "definition": "Courage in facing difficulties",
+    "example": "She showed great fortitude during her long recovery from illness."
+  },
+  {
+    "word": "Fortuitous",
+    "type": "Adjective",
+    "definition": "Happening by chance, especially fortunately",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Fractious",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Frankly",
+    "type": "Adverb",
+    "definition": "Honestly and directly",
+    "example": "Frankly, I don't think this project will succeed without additional funding."
+  },
+  {
+    "word": "Frivolous",
+    "type": "Adjective",
+    "definition": "Lacking seriousness or importance; trivial",
+    "example": "The judge dismissed the frivolous lawsuit that had no basis in fact."
+  },
+  {
+    "word": "Frugal",
+    "type": "Adjective",
+    "definition": "Sparing or economical regarding resources",
+    "example": "To be added"
+  },
+  {
+    "word": "Function",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Fundamental",
+    "type": "Adjective",
+    "definition": "Forming a necessary base or core",
+    "example": "To be added"
+  },
+  {
+    "word": "Garrulous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Gaze",
@@ -174,10 +1609,22 @@
     "example": "She gazed at the sunset, lost in its beauty."
   },
   {
+    "word": "Generate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Glide",
     "type": "Verb",
     "definition": "To move smoothly and effortlessly",
     "example": "The swan glided gracefully across the lake's surface."
+  },
+  {
+    "word": "Glimmer",
+    "type": "Verb",
+    "definition": "To shine faintly with a wavering light",
+    "example": "Stars glimmered in the clear night sky above the mountain peak."
   },
   {
     "word": "Gregarious",
@@ -186,10 +1633,136 @@
     "example": "The gregarious host made everyone feel welcome at the party."
   },
   {
+    "word": "Grimly",
+    "type": "Adverb",
+    "definition": "In a forbidding or serious manner",
+    "example": "The doctor grimly delivered the news about the patient's deteriorating condition."
+  },
+  {
+    "word": "Grumble",
+    "type": "Verb",
+    "definition": "To complain in a low, continuous voice",
+    "example": "The students began to grumble about the difficult assignment as they left class."
+  },
+  {
+    "word": "Guarantee",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Guileless",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Hackneyed",
+    "type": "Adjective",
+    "definition": "Lacking originality or freshness",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Haughty",
+    "type": "Adjective",
+    "definition": "Arrogantly superior and disdainful",
+    "example": "The haughty aristocrat looked down on anyone she considered beneath her social status."
+  },
+  {
+    "word": "Hegemony",
+    "type": "Noun",
+    "definition": "Leadership or dominance by one group",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Hence",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Heterogeneous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Hierarchy",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Homogeneous",
+    "type": "Adjective",
+    "definition": "Of the same kind; alike",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Hover",
     "type": "Verb",
     "definition": "To remain in one place in the air",
     "example": "The helicopter hovered above the accident scene."
+  },
+  {
+    "word": "Hyperbole",
+    "type": "Noun",
+    "definition": "Deliberate and obvious exaggeration",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Hypothesis",
+    "type": "Noun",
+    "definition": "A supposition made as a starting point for investigation",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Iconoclast",
+    "type": "Noun",
+    "definition": "A person who attacks established beliefs",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Identical",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Identify",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Ideology",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Idiosyncratic",
+    "type": "Adjective",
+    "definition": "Relating to characteristics peculiar to an individual",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ignominious",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Illuminate",
@@ -198,10 +1771,80 @@
     "example": "The professor's explanation illuminated the complex theory."
   },
   {
+    "word": "Illustrate",
+    "type": "Verb",
+    "definition": "To explain or make clear by using examples or comparisons",
+    "example": "The teacher illustrated the concept of gravity by dropping various objects from different heights."
+  },
+  {
     "word": "Immaculate",
     "type": "Adjective",
     "definition": "Perfectly clean; without fault",
     "example": "The surgeon's immaculate technique saved countless lives."
+  },
+  {
+    "word": "Immutable",
+    "type": "Adjective",
+    "definition": "Unchanging over time; unchangeable",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Impartial",
+    "type": "Adjective",
+    "definition": "Treating all rivals or disputants equally",
+    "example": "To be added"
+  },
+  {
+    "word": "Imperative",
+    "type": "Adjective",
+    "definition": "Of vital importance; crucial",
+    "example": "To be added"
+  },
+  {
+    "word": "Impetuous",
+    "type": "Adjective",
+    "definition": "Acting quickly without thought or care",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Implacable",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Implicit",
+    "type": "Adjective",
+    "definition": "Suggested though not directly expressed",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Imply",
+    "type": "Verb",
+    "definition": "To suggest something without explicitly stating it",
+    "example": "Her raised eyebrow implied that she disagreed with the proposal."
+  },
+  {
+    "word": "Impose",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Impulsively",
+    "type": "Adverb",
+    "definition": "Without thinking; acting on sudden urges",
+    "example": "She impulsively bought the expensive dress, regretting it immediately afterward."
+  },
+  {
+    "word": "Inadvertent",
+    "type": "Adjective",
+    "definition": "Done without conscious intention",
+    "example": "To be added"
   },
   {
     "word": "Inadvertently",
@@ -210,10 +1853,126 @@
     "example": "She inadvertently revealed the surprise party plans."
   },
   {
+    "word": "Incentive",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "incessant",
+    "type": "Adjective",
+    "definition": "Continuing without pause or interruption",
+    "example": "The incessant buzzing of the mosquito kept her awake all night."
+  },
+  {
+    "word": "Incidence",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Incisive",
+    "type": "Adjective",
+    "definition": "Intelligently analytical and clear-thinking",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Incongruous",
+    "type": "Adjective",
+    "definition": "Not in harmony or keeping with surroundings",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Incorporate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Incredulous",
+    "type": "Adjective",
+    "definition": "Unwilling or unable to believe something",
+    "example": "She gave him an incredulous look when he claimed to have climbed Mount Everest."
+  },
+  {
+    "word": "Indelible",
+    "type": "Adjective",
+    "definition": "Making marks that cannot be removed",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Indicate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Indifferently",
+    "type": "Adverb",
+    "definition": "Without interest or concern; showing no preference",
+    "example": "The teenager indifferently shrugged when asked about his future career plans."
+  },
+  {
     "word": "Indigenous",
     "type": "Adjective",
     "definition": "Originating naturally in a particular place",
     "example": "The indigenous plants were better adapted to the local climate."
+  },
+  {
+    "word": "Indignant",
+    "type": "Adjective",
+    "definition": "Feeling or showing anger at perceived injustice",
+    "example": "To be added"
+  },
+  {
+    "word": "Indolent",
+    "type": "Adjective",
+    "definition": "Wanting to avoid activity or exertion; lazy",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ineffable",
+    "type": "Adjective",
+    "definition": "Too great or extreme to be expressed in words",
+    "example": "The beauty of the sunset was ineffable."
+  },
+  {
+    "word": "Inept",
+    "type": "Adjective",
+    "definition": "Having or showing no skill; clumsy",
+    "example": "To be added"
+  },
+  {
+    "word": "Inexorable",
+    "type": "Adjective",
+    "definition": "Impossible to stop or prevent",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ingenious",
+    "type": "Adjective",
+    "definition": "Clever, original, and inventive",
+    "example": "To be added"
+  },
+  {
+    "word": "Ingenuous",
+    "type": "Adjective",
+    "definition": "Innocent and unsuspecting",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Inherent",
+    "type": "Adjective",
+    "definition": "Existing as a natural or basic part",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Inherently",
@@ -222,10 +1981,94 @@
     "example": "The plan was inherently flawed from the beginning."
   },
   {
+    "word": "Inhibit",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Initial",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Insidious",
+    "type": "Adjective",
+    "definition": "Proceeding in a gradual, subtle way with harmful effects",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Insidiously",
     "type": "Adverb",
     "definition": "In a gradually harmful way",
     "example": "The disease insidiously weakened his immune system over years."
+  },
+  {
+    "word": "Insipid",
+    "type": "Adjective",
+    "definition": "Lacking flavor; lacking vigor or interest",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Instance",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Institute",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Integral",
+    "type": "Adjective",
+    "definition": "Necessary to make a complete whole",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Intermediate",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Internal",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Interpret",
+    "type": "Verb",
+    "definition": "Explain the meaning of information or actions",
+    "example": "To be added"
+  },
+  {
+    "word": "Intractable",
+    "type": "Adjective",
+    "definition": "Hard to control or deal with",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Intransigent",
+    "type": "Adjective",
+    "definition": "Unwilling to change one's views or agree",
+    "example": "The intransigent negotiators refused to compromise."
+  },
+  {
+    "word": "Intrepid",
+    "type": "Adjective",
+    "definition": "Fearless; adventurous",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Intricate",
@@ -240,10 +2083,154 @@
     "example": "She intuitively knew something was wrong with her friend."
   },
   {
+    "word": "Inundate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Invoke",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Irascible",
+    "type": "Adjective",
+    "definition": "Having or showing a tendency to be angry",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Irreverent",
+    "type": "Adjective",
+    "definition": "Showing a lack of respect for things generally taken seriously",
+    "example": "The comedian's irreverent jokes about politics offended some audience members.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Isolate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Jocular",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Justify",
+    "type": "Verb",
+    "definition": "Show or prove to be right or reasonable",
+    "example": "To be added"
+  },
+  {
+    "word": "Juxtapose",
+    "type": "Verb",
+    "definition": "To place two things side by side to highlight their differences or similarities",
+    "example": "The documentary juxtaposed scenes of poverty with images of extreme wealth to highlight social inequality."
+  },
+  {
+    "word": "Label",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Laconic",
+    "type": "Adjective",
+    "definition": "Using few words; concise",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Lament",
+    "type": "Verb",
+    "definition": "To express grief, sorrow, or regret",
+    "example": "The community gathered to lament the loss of their beloved library to budget cuts."
+  },
+  {
     "word": "Languid",
     "type": "Adjective",
     "definition": "Lacking energy or vitality",
     "example": "The hot weather made everyone feel languid and unmotivated."
+  },
+  {
+    "word": "Layer",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Lecture",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Lethargic",
+    "type": "Adjective",
+    "definition": "Affected by lethargy; sluggish",
+    "example": "To be added"
+  },
+  {
+    "word": "Levy",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Liberal",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "License",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Likewise",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Link",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Locate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Logic",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Loom",
+    "type": "Verb",
+    "definition": "To appear impressively large or threatening; to seem imminent",
+    "example": "The final exams loomed ahead, causing anxiety among the graduating students."
   },
   {
     "word": "Lucid",
@@ -252,10 +2239,126 @@
     "example": "Despite his age, the professor's explanation was remarkably lucid."
   },
   {
+    "word": "Lugubrious",
+    "type": "Adjective",
+    "definition": "Looking or sounding sad and dismal",
+    "example": "His lugubrious expression worried his friends.",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Lurk",
     "type": "Verb",
     "definition": "To wait in hiding to attack",
     "example": "Danger seemed to lurk around every corner in the abandoned building."
+  },
+  {
+    "word": "Lush",
+    "type": "Adjective",
+    "definition": "Rich and abundant in growth; luxurious",
+    "example": "The lush tropical rainforest was filled with exotic plants and vibrant wildlife."
+  },
+  {
+    "word": "Magnanimous",
+    "type": "Adjective",
+    "definition": "Very generous or forgiving",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Magnify",
+    "type": "Verb",
+    "definition": "To make something appear larger or more important than it is",
+    "example": "The media tends to magnify minor political scandals into major controversies."
+  },
+  {
+    "word": "Maintain",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Major",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Malevolent",
+    "type": "Adjective",
+    "definition": "Having or showing a wish to do evil",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Malleable",
+    "type": "Adjective",
+    "definition": "Able to be changed; easily influenced",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Margin",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Mature",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Maverick",
+    "type": "Noun",
+    "definition": "An unorthodox or independent-minded person",
+    "example": "To be added"
+  },
+  {
+    "word": "Maximum",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Meander",
+    "type": "Verb",
+    "definition": "To wander aimlessly; to follow a winding course",
+    "example": "The river meandered through the peaceful countryside for miles."
+  },
+  {
+    "word": "Mechanism",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Medium",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Melodramatic",
+    "type": "Adjective",
+    "definition": "Excessively emotional or theatrical",
+    "example": "Her melodramatic reaction to losing her phone seemed disproportionate to the situation."
+  },
+  {
+    "word": "Metaphor",
+    "type": "Noun",
+    "definition": "A figure of speech comparing two unlike things",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Method",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
   },
   {
     "word": "Methodically",
@@ -276,10 +2379,131 @@
     "example": "The architect meticulously planned every detail of the building."
   },
   {
+    "word": "Migrate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Minimal",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Minimum",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Minor",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Misanthrope",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Misconstrue",
+    "type": "Verb",
+    "definition": "To interpret something wrongly or incorrectly",
+    "example": "She misconstrued his friendly gesture as romantic interest, leading to an awkward misunderstanding."
+  },
+  {
+    "word": "Mitigate",
+    "type": "Verb",
+    "definition": "Make less severe, serious, or painful",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Mockingly",
+    "type": "Adverb",
+    "definition": "In a teasing or scornful manner",
+    "example": "The bullies mockingly imitated the new student's accent during lunch."
+  },
+  {
+    "word": "Modify",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Mollify",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Monitor",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Morose",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Motive",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Mumble",
+    "type": "Verb",
+    "definition": "To speak in a low, unclear voice",
+    "example": "The embarrassed teenager mumbled an apology after breaking the vase."
+  },
+  {
     "word": "Mundane",
     "type": "Adjective",
     "definition": "Ordinary and uninteresting",
     "example": "She longed to escape her mundane office routine."
+  },
+  {
+    "word": "Munificent",
+    "type": "Adjective",
+    "definition": "More generous than is usual or necessary",
+    "example": "The munificent donation helped build a new library."
+  },
+  {
+    "word": "Narrative",
+    "type": "Noun",
+    "definition": "A spoken or written account of events",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Navigate",
+    "type": "Verb",
+    "definition": "To find one's way through a difficult or complex situation",
+    "example": "New students often struggle to navigate the complex social dynamics of high school."
+  },
+  {
+    "word": "Nefarious",
+    "type": "Adjective",
+    "definition": "Extremely wicked",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Negligible",
+    "type": "Adjective",
+    "definition": "So small or unimportant as to be not worth considering",
+    "example": "To be added"
   },
   {
     "word": "Nestle",
@@ -288,16 +2512,143 @@
     "example": "The kittens nestled against their mother for warmth."
   },
   {
+    "word": "Network",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Neutral",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Nevertheless",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Nonchalant",
     "type": "Adjective",
     "definition": "Casually calm and relaxed",
     "example": "He maintained a nonchalant attitude despite the crisis around him."
   },
   {
+    "word": "Nostalgic",
+    "type": "Adjective",
+    "definition": "Feeling sentimental longing for the past",
+    "example": "The nostalgic grandmother shared stories of her childhood during the war years."
+  },
+  {
+    "word": "Notably",
+    "type": "Adverb",
+    "definition": "In a way that is worthy of attention; particularly",
+    "example": "The team's performance was notably improved after the new coach arrived."
+  },
+  {
+    "word": "Notion",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Notorious",
+    "type": "Adjective",
+    "definition": "Famous or well known for some bad quality",
+    "example": "To be added"
+  },
+  {
+    "word": "Obdurate",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Obfuscate",
+    "type": "Verb",
+    "definition": "To make something unclear or confusing",
+    "example": "The company tried to obfuscate the details of the agreement."
+  },
+  {
+    "word": "Objective",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Obsequious",
+    "type": "Adjective",
+    "definition": "Obedient or attentive to an excessive degree",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Obstinate",
+    "type": "Adjective",
+    "definition": "Stubbornly refusing to change opinion",
+    "example": "To be added"
+  },
+  {
+    "word": "Obtain",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Obtuse",
+    "type": "Adjective",
+    "definition": "Annoyingly insensitive or slow to understand",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Obvious",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Occupy",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Occur",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Ominous",
+    "type": "Adjective",
+    "definition": "Giving the impression that something bad will happen; threatening",
+    "example": "The ominous dark clouds gathering on the horizon warned of an approaching storm."
+  },
+  {
+    "word": "Omnipotent",
+    "type": "Adjective",
+    "definition": "Having unlimited power",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Option",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
     "word": "Opulent",
     "type": "Adjective",
     "definition": "Extremely rich and luxurious",
-    "example": "The opulent mansion displayed the family's immense wealth."
+    "example": "The opulent mansion displayed the family's immense wealth.",
+    "difficulty": "Hard"
   },
   {
     "word": "Ostensibly",
@@ -306,10 +2657,67 @@
     "example": "The meeting was ostensibly about budget cuts, but hidden agendas emerged."
   },
   {
+    "word": "Ostentatious",
+    "type": "Adjective",
+    "definition": "Characterized by vulgar display of wealth",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Ostracize",
     "type": "Verb",
     "definition": "To exclude from a society or group",
     "example": "The community ostracized him after the scandal broke."
+  },
+  {
+    "word": "Outcome",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Output",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Overall",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Overlap",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Overseas",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Palpable",
+    "type": "Adjective",
+    "definition": "Able to be touched or felt; clear to the mind",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Panel",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Paradigm",
+    "type": "Noun",
+    "definition": "A typical example or pattern of something",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Paradoxically",
@@ -318,16 +2726,140 @@
     "example": "Paradoxically, the medicine made her feel worse before she improved."
   },
   {
+    "word": "Paragon",
+    "type": "Noun",
+    "definition": "A person or thing regarded as a perfect example",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Paragraph",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Parallel",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Parameter",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Participate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Partisan",
+    "type": "Adjective",
+    "definition": "Prejudiced in favor of a particular cause",
+    "example": "To be added"
+  },
+  {
+    "word": "Partner",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Passionately",
+    "type": "Adverb",
+    "definition": "With intense emotion or strong feeling",
+    "example": "The activist passionately argued for environmental protection at the town hall meeting."
+  },
+  {
+    "word": "Passive",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Paucity",
+    "type": "Noun",
+    "definition": "The presence of something only in small quantities",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Pedantic",
+    "type": "Adjective",
+    "definition": "Excessively concerned with minor details",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Peer",
+    "type": "Verb",
+    "definition": "To look intently or with difficulty",
+    "example": "She peered through the window to see who was knocking at her door so late."
+  },
+  {
+    "word": "Penchant",
+    "type": "Noun",
+    "definition": "A strong or habitual liking for something",
+    "example": "To be added"
+  },
+  {
     "word": "Pensive",
     "type": "Adjective",
     "definition": "Engaged in deep thought",
     "example": "She sat by the window with a pensive expression, contemplating her future."
   },
   {
+    "word": "Perceive",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Percent",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
     "word": "Perch",
     "type": "Verb",
     "definition": "To sit or rest on something",
     "example": "The bird perched on the telephone wire, surveying the yard below."
+  },
+  {
+    "word": "Perfunctory",
+    "type": "Adjective",
+    "definition": "Carried out with minimum effort or reflection",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Period",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Permeate",
+    "type": "Verb",
+    "definition": "To spread throughout something",
+    "example": "The smell of fresh bread permeated the entire house."
+  },
+  {
+    "word": "Pernicious",
+    "type": "Adjective",
+    "definition": "Having a harmful effect in a gradual way",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Perpetually",
@@ -348,16 +2880,143 @@
     "example": "Despite numerous setbacks, he persevered with his research."
   },
   {
+    "word": "Perspective",
+    "type": "Noun",
+    "definition": "A particular attitude toward something",
+    "example": "To be added"
+  },
+  {
+    "word": "Pervasive",
+    "type": "Adjective",
+    "definition": "Spreading widely throughout an area",
+    "example": "To be added"
+  },
+  {
+    "word": "Phase",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Phenomenon",
+    "type": "Noun",
+    "definition": "A fact or situation that is observed to exist",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Philanthropy",
+    "type": "Noun",
+    "definition": "The desire to promote welfare of others",
+    "example": "To be added"
+  },
+  {
+    "word": "Philosophy",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Physical",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Pious",
+    "type": "Adjective",
+    "definition": "Devoutly religious",
+    "example": "To be added"
+  },
+  {
+    "word": "Placate",
+    "type": "Verb",
+    "definition": "Make someone less angry by being conciliatory",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Platitude",
+    "type": "Noun",
+    "definition": "A remark that is used too often to be interesting",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Plausible",
+    "type": "Adjective",
+    "definition": "Seeming reasonable or probable",
+    "example": "To be added"
+  },
+  {
+    "word": "Plus",
+    "type": "Preposition",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
     "word": "Poignant",
     "type": "Adjective",
     "definition": "Evoking sadness or regret",
     "example": "The poignant farewell scene moved the audience to tears."
   },
   {
+    "word": "Polarize",
+    "type": "Verb",
+    "definition": "Divide or cause to divide into opposing groups",
+    "example": "To be added"
+  },
+  {
+    "word": "Policy",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Ponder",
     "type": "Verb",
     "definition": "To think about something carefully",
     "example": "The philosopher pondered the meaning of existence for hours."
+  },
+  {
+    "word": "Ponderous",
+    "type": "Adjective",
+    "definition": "Having great weight; dull and laborious",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Portion",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Pose",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Positive",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Potential",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Practitioner",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Pragmatic",
@@ -372,16 +3031,151 @@
     "example": "The acrobat maintained his precarious balance on the tightrope."
   },
   {
+    "word": "Precede",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Precipitate",
+    "type": "Verb",
+    "definition": "Cause something to happen suddenly",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Precise",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Predict",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Predilection",
+    "type": "Noun",
+    "definition": "A preference or special liking for something",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Predominantly",
     "type": "Adverb",
     "definition": "Mainly; for the most part",
     "example": "The audience was predominantly young adults in their twenties."
   },
   {
+    "word": "Preliminary",
+    "type": "Adjective",
+    "definition": "Preceding the main part; introductory",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Premise",
+    "type": "Noun",
+    "definition": "A statement assumed to be true",
+    "example": "To be added"
+  },
+  {
+    "word": "Preposterous",
+    "type": "Adjective",
+    "definition": "Contrary to reason; absurd",
+    "example": "To be added"
+  },
+  {
+    "word": "Presume",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Presumptuous",
+    "type": "Adjective",
+    "definition": "Failing to observe proper respect",
+    "example": "To be added"
+  },
+  {
     "word": "Pretentious",
     "type": "Adjective",
     "definition": "Attempting to impress by affecting importance",
-    "example": "His pretentious use of big words alienated his colleagues."
+    "example": "His pretentious use of big words alienated his colleagues.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Previous",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Primary",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Prime",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Principle",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Prior",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Pristine",
+    "type": "Adjective",
+    "definition": "In its original condition; unspoiled",
+    "example": "To be added"
+  },
+  {
+    "word": "Proceed",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Process",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Prodigal",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Prodigious",
+    "type": "Adjective",
+    "definition": "Remarkably or impressively great in extent",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Profligate",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Profound",
@@ -390,10 +3184,70 @@
     "example": "The philosopher's profound insights changed how we think about ethics."
   },
   {
+    "word": "Project",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
     "word": "Proliferate",
     "type": "Verb",
     "definition": "To increase rapidly in number",
-    "example": "Social media platforms proliferated throughout the early 2000s."
+    "example": "Social media platforms proliferated throughout the early 2000s.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Promote",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Propensity",
+    "type": "Noun",
+    "definition": "An inclination or natural tendency",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Proportion",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Propriety",
+    "type": "Noun",
+    "definition": "Conformity to conventionally accepted standards",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Prospect",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Protocol",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Provincial",
+    "type": "Adjective",
+    "definition": "Of or concerning a province; narrow-minded",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Provocative",
+    "type": "Adjective",
+    "definition": "Causing annoyance or sexual desire",
+    "example": "To be added"
   },
   {
     "word": "Prowl",
@@ -402,10 +3256,183 @@
     "example": "The cat prowled through the garden, hunting for mice."
   },
   {
+    "word": "Prudent",
+    "type": "Adjective",
+    "definition": "Acting with or showing care and thought for the future",
+    "example": "It is prudent to save money for emergencies."
+  },
+  {
+    "word": "Psychology",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Publication",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Publish",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Pungent",
+    "type": "Adjective",
+    "definition": "Having a sharply strong taste or smell",
+    "example": "To be added"
+  },
+  {
+    "word": "Purchase",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Pursue",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Qualitative",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Quell",
+    "type": "Verb",
+    "definition": "Put an end to by force",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Querulous",
+    "type": "Adjective",
+    "definition": "Complaining in a petulant way",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Quiescent",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Quixotic",
+    "type": "Adjective",
+    "definition": "Exceedingly idealistic; unrealistic and impractical",
+    "example": "His quixotic quest for perfection frustrated his team."
+  },
+  {
+    "word": "Quote",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Radical",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Ragged",
+    "type": "Adjective",
+    "definition": "Having a rough, torn, or frayed appearance",
+    "example": "The homeless man's ragged clothes told the story of years spent living on the streets."
+  },
+  {
+    "word": "Rancorous",
+    "type": "Adjective",
+    "definition": "Characterized by bitterness or resentment",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Random",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Range",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Ratio",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Rational",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "React",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Recalcitrant",
+    "type": "Adjective",
+    "definition": "Having an obstinately uncooperative attitude",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Recoil",
+    "type": "Verb",
+    "definition": "To draw back in fear, disgust, or shock",
+    "example": "The children recoiled in horror when they discovered the dead animal in the garden."
+  },
+  {
     "word": "Reconcile",
     "type": "Verb",
     "definition": "To restore friendly relations; to make consistent",
     "example": "The committee worked to reconcile the conflicting budget proposals."
+  },
+  {
+    "word": "Recover",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Rectify",
+    "type": "Verb",
+    "definition": "Put right; correct",
+    "example": "To be added"
+  },
+  {
+    "word": "Redundant",
+    "type": "Adjective",
+    "definition": "Not needed because something else serves the purpose",
+    "example": "To be added"
+  },
+  {
+    "word": "Refine",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Refute",
@@ -414,10 +3441,166 @@
     "example": "The scientist's data refuted the popular theory about climate patterns."
   },
   {
+    "word": "Regime",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Region",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Register",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Regulate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Reinforce",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Reject",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Relax",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Release",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Relegate",
+    "type": "Verb",
+    "definition": "Assign to a lower position",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Relevant",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Relinquish",
+    "type": "Verb",
+    "definition": "Voluntarily cease to keep or claim",
+    "example": "To be added"
+  },
+  {
+    "word": "Reluctance",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Reluctantly",
+    "type": "Adverb",
+    "definition": "Unwillingly; with hesitation",
+    "example": "She reluctantly agreed to work overtime, knowing it would ruin her weekend plans."
+  },
+  {
+    "word": "Rely",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Reminisce",
     "type": "Verb",
     "definition": "To indulge in memories of the past",
     "example": "The old friends reminisced about their college days."
+  },
+  {
+    "word": "Remiss",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Remove",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Reprehensible",
+    "type": "Adjective",
+    "definition": "Deserving censure or condemnation",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Reproach",
+    "type": "Verb",
+    "definition": "Express disapproval or disappointment",
+    "example": "To be added"
+  },
+  {
+    "word": "Repudiate",
+    "type": "Verb",
+    "definition": "Refuse to accept or be associated with",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Require",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Rescind",
+    "type": "Verb",
+    "definition": "Revoke, cancel, or repeal",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Research",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Reside",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Resigned",
+    "type": "Adjective",
+    "definition": "Accepting something undesirable but inevitable",
+    "example": "With a resigned sigh, she accepted that her flight would be delayed for another three hours."
   },
   {
     "word": "Resilient",
@@ -426,10 +3609,78 @@
     "example": "The resilient community rebuilt after the devastating earthquake."
   },
   {
+    "word": "Resolute",
+    "type": "Adjective",
+    "definition": "Admirably purposeful and unwavering",
+    "example": "To be added"
+  },
+  {
+    "word": "Resolve",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Resoundingly",
+    "type": "Adverb",
+    "definition": "In a deep, clear, and continuing manner; decisively",
+    "example": "The proposal was resoundingly rejected by the board of directors."
+  },
+  {
+    "word": "Resource",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Respond",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Restore",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Restrict",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Retain",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Reticent",
+    "type": "Adjective",
+    "definition": "Not revealing one's thoughts readily",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Retrospective",
     "type": "Adjective",
     "definition": "Looking back on past events",
     "example": "In retrospective analysis, the warning signs were obvious."
+  },
+  {
+    "word": "Reveal",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Revenue",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Revere",
@@ -438,10 +3689,88 @@
     "example": "The students revered their inspiring literature teacher."
   },
   {
+    "word": "Reverent",
+    "type": "Adjective",
+    "definition": "Feeling or showing deep respect",
+    "example": "To be added"
+  },
+  {
+    "word": "Reverse",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Revise",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Revolution",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Rhetoric",
+    "type": "Noun",
+    "definition": "The art of effective or persuasive speaking",
+    "example": "To be added"
+  },
+  {
+    "word": "Rigid",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
     "word": "Rigorously",
     "type": "Adverb",
     "definition": "In an extremely thorough way",
     "example": "The data was rigorously analyzed before publication."
+  },
+  {
+    "word": "Role",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Route",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Saccharine",
+    "type": "Adjective",
+    "definition": "Excessively sweet or sentimental",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Sagacious",
+    "type": "Adjective",
+    "definition": "Having or showing keen judgment; wise",
+    "example": "The sagacious leader guided the team through difficult times.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Sanguine",
+    "type": "Adjective",
+    "definition": "Optimistic especially in difficult situation",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Sardonic",
+    "type": "Adjective",
+    "definition": "Grimly mocking or cynical",
+    "example": "His sardonic comment about the \"great success\" of the project revealed his true feelings.",
+    "difficulty": "Hard"
   },
   {
     "word": "Saunter",
@@ -450,10 +3779,104 @@
     "example": "The tourists sauntered through the historic district, admiring the architecture."
   },
   {
+    "word": "Savage",
+    "type": "Adjective",
+    "definition": "Fierce, violent, and uncontrolled",
+    "example": "The savage storm destroyed several houses along the coastal town."
+  },
+  {
+    "word": "Scamper",
+    "type": "Verb",
+    "definition": "To run with quick, light steps",
+    "example": "The squirrels scampered up the oak tree when the dog approached."
+  },
+  {
+    "word": "Scenario",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Schedule",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Scheme",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Scope",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Scrupulous",
+    "type": "Adjective",
+    "definition": "Diligent, thorough, and extremely attentive",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Scrutinize",
     "type": "Verb",
     "definition": "To examine closely and critically",
     "example": "The detective scrutinized every piece of evidence for clues."
+  },
+  {
+    "word": "Seclusion",
+    "type": "Noun",
+    "definition": "The state of being private and away from others",
+    "example": "To be added"
+  },
+  {
+    "word": "Section",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Secure",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Sedentary",
+    "type": "Adjective",
+    "definition": "Requiring sitting; inactive",
+    "example": "To be added"
+  },
+  {
+    "word": "Seek",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Select",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Sentimental",
+    "type": "Adjective",
+    "definition": "Having or showing tender feelings; emotional",
+    "example": "She kept the sentimental letter from her late father in a special box."
+  },
+  {
+    "word": "Sequence",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Serendipitous",
@@ -462,10 +3885,93 @@
     "example": "Their serendipitous meeting at the coffee shop led to a lifelong friendship."
   },
   {
+    "word": "Serendipity",
+    "type": "Noun",
+    "definition": "The occurrence of events by chance in a happy or beneficial way",
+    "example": "Finding the old letter was pure serendipity."
+  },
+  {
+    "word": "Series",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Sex",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Shift",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Shudder",
+    "type": "Verb",
+    "definition": "To tremble convulsively, typically from fear or revulsion",
+    "example": "She shuddered at the thought of eating insects during the survival course."
+  },
+  {
+    "word": "Significant",
+    "type": "Adjective",
+    "definition": "Sufficiently great or important to merit attention",
+    "example": "To be added"
+  },
+  {
+    "word": "Similar",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Simulate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Site",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Skeptical",
+    "type": "Adjective",
+    "definition": "Doubtful; not easily convinced",
+    "example": "The scientist remained skeptical of the new theory until more evidence was presented."
+  },
+  {
     "word": "Slumber",
     "type": "Verb",
     "definition": "To sleep peacefully",
     "example": "The baby slumbered peacefully in her mother's arms."
+  },
+  {
+    "word": "So-called",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Sole",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Solemnly",
+    "type": "Adverb",
+    "definition": "In a formal and dignified manner; seriously",
+    "example": "The judge solemnly pronounced the verdict in the packed courtroom."
   },
   {
     "word": "Somber",
@@ -474,16 +3980,265 @@
     "example": "The memorial service maintained a somber tone throughout."
   },
   {
+    "word": "Sombre",
+    "type": "Adjective",
+    "definition": "Dark or dull; grave and serious in mood",
+    "example": "The funeral service was conducted in a sombre atmosphere of mourning and respect."
+  },
+  {
+    "word": "Somewhat",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Sordid",
+    "type": "Adjective",
+    "definition": "Involving ignoble actions; dirty",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Source",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Specific",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Specify",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Specious",
+    "type": "Adjective",
+    "definition": "Superficially plausible but actually wrong",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Sphere",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Spurious",
+    "type": "Adjective",
+    "definition": "Not being what it purports to be; false",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Stable",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Stagnant",
+    "type": "Adjective",
+    "definition": "Having no current or flow; not active",
+    "example": "To be added"
+  },
+  {
+    "word": "Stammer",
+    "type": "Verb",
+    "definition": "To speak with involuntary repetition or hesitation",
+    "example": "The nervous witness began to stammer when the lawyer questioned him aggressively."
+  },
+  {
+    "word": "Stark",
+    "type": "Adjective",
+    "definition": "Severe or bare in appearance; unpleasantly harsh",
+    "example": "The stark white walls of the hospital room made the patient feel isolated and cold."
+  },
+  {
+    "word": "Statistic",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Status",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Stoic",
+    "type": "Adjective",
+    "definition": "Enduring pain without showing feelings",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Straightforward",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Strategy",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Stress",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Strident",
+    "type": "Adjective",
+    "definition": "Loud and harsh; presenting in forceful way",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Structure",
+    "type": "Noun",
+    "definition": "The arrangement of parts as a whole",
+    "example": "To be added"
+  },
+  {
+    "word": "Style",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Submissive",
+    "type": "Adjective",
+    "definition": "Willing to obey; yielding to authority",
+    "example": "The submissive employee never questioned his supervisor's decisions, even when they seemed wrong."
+  },
+  {
+    "word": "Submit",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Subordinate",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Subsequent",
+    "type": "Adjective",
+    "definition": "Coming after something in time",
+    "example": "To be added"
+  },
+  {
     "word": "Subsequently",
     "type": "Adverb",
     "definition": "After a particular thing has happened",
     "example": "The store was robbed and subsequently closed for investigation."
   },
   {
+    "word": "Subsidiary",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Substantiate",
     "type": "Verb",
     "definition": "To provide evidence to support",
-    "example": "The researcher could not substantiate her controversial claims."
+    "example": "The researcher could not substantiate her controversial claims.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Substitute",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Subtly",
+    "type": "Adverb",
+    "definition": "In a way that is not obvious; delicately",
+    "example": "The artist subtly incorporated political messages into her seemingly innocent paintings."
+  },
+  {
+    "word": "Subversive",
+    "type": "Adjective",
+    "definition": "Seeking to undermine authority",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Successor",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Succinct",
+    "type": "Adjective",
+    "definition": "Briefly and clearly expressed",
+    "example": "To be added"
+  },
+  {
+    "word": "Sufficient",
+    "type": "Adjective",
+    "definition": "Enough; adequate",
+    "example": "To be added"
+  },
+  {
+    "word": "Sum",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Summary",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Supercilious",
+    "type": "Adjective",
+    "definition": "Behaving as though one is superior to others",
+    "example": "Her supercilious attitude alienated her colleagues."
+  },
+  {
+    "word": "Superfluous",
+    "type": "Adjective",
+    "definition": "Unnecessary, especially excessive",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Supplement",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Surreptitious",
+    "type": "Adjective",
+    "definition": "Kept secret because illicit",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Surreptitiously",
@@ -492,10 +4247,135 @@
     "example": "He surreptitiously checked his phone during the important meeting."
   },
   {
+    "word": "Survey",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Survive",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Suspend",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Sustain",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Sycophant",
+    "type": "Noun",
+    "definition": "A person who acts obsequiously to gain advantage",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Symbol",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Symbolism",
+    "type": "Noun",
+    "definition": "The use of symbols to represent ideas",
+    "example": "To be added"
+  },
+  {
+    "word": "Taciturn",
+    "type": "Adjective",
+    "definition": "Reserved or uncommunicative in speech",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Tactful",
+    "type": "Adjective",
+    "definition": "Having skill in dealing with difficult situations diplomatically",
+    "example": "The tactful diplomat managed to negotiate a peaceful resolution to the conflict."
+  },
+  {
+    "word": "Tangential",
+    "type": "Adjective",
+    "definition": "Relating to or along a tangent; divergent",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Tangible",
     "type": "Adjective",
     "definition": "Perceptible by touch; clear and definite",
     "example": "The new policy produced tangible improvements in student performance."
+  },
+  {
+    "word": "Tape",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Target",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Task",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Team",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Technical",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Technique",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Technology",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Temerity",
+    "type": "Noun",
+    "definition": "Excessive confidence or boldness",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Temporary",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Tenacious",
@@ -504,16 +4384,131 @@
     "example": "Her tenacious pursuit of justice impressed the legal community."
   },
   {
+    "word": "Tenacity",
+    "type": "Noun",
+    "definition": "The quality of being determined",
+    "example": "To be added"
+  },
+  {
+    "word": "Tender",
+    "type": "Adjective",
+    "definition": "Gentle and caring; easily damaged",
+    "example": "The mother's tender embrace comforted her crying child after the nightmare."
+  },
+  {
+    "word": "Tense",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Tentative",
+    "type": "Adjective",
+    "definition": "Not certain or fixed; provisional",
+    "example": "To be added"
+  },
+  {
     "word": "Tentatively",
     "type": "Adverb",
     "definition": "In an uncertain or hesitant way",
     "example": "She tentatively approached the unfamiliar dog in the park."
   },
   {
+    "word": "Terminate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Terse",
+    "type": "Adjective",
+    "definition": "Sparing in the use of words; abrupt",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Text",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Theme",
+    "type": "Noun",
+    "definition": "The subject of a talk, piece of writing, etc.",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Theory",
+    "type": "Noun",
+    "definition": "A supposition explaining something",
+    "example": "To be added"
+  },
+  {
+    "word": "Thereby",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Thesis",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Thorny",
+    "type": "Adjective",
+    "definition": "Having sharp points; difficult to handle or solve",
+    "example": "The committee faced the thorny issue of budget cuts while maintaining quality services."
+  },
+  {
     "word": "Toil",
     "type": "Verb",
     "definition": "To work extremely hard",
     "example": "The farmers toiled in the fields from dawn until dusk."
+  },
+  {
+    "word": "Tone",
+    "type": "Noun",
+    "definition": "The general character or attitude of writing",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Topic",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Torpid",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Trace",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Tractable",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Tradition",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Tranquil",
@@ -528,10 +4523,178 @@
     "example": "Great art transcends cultural and linguistic boundaries."
   },
   {
+    "word": "Transfer",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Transform",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Transient",
+    "type": "Adjective",
+    "definition": "Lasting only for a short time",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Transit",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Transmit",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Transport",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Tremble",
+    "type": "Verb",
+    "definition": "To shake involuntarily from emotion, cold, or weakness",
+    "example": "Her hands trembled with excitement as she opened the acceptance letter."
+  },
+  {
+    "word": "Trend",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Trigger",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Truculent",
+    "type": "Adjective",
+    "definition": "Eager or quick to argue or fight",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Ubiquitous",
     "type": "Adjective",
     "definition": "Present everywhere",
-    "example": "Smartphones have become ubiquitous in modern society."
+    "example": "Smartphones have become ubiquitous in modern society.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Ultimate",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Unassuming",
+    "type": "Adjective",
+    "definition": "Not pretentious or arrogant; modest",
+    "example": "To be added"
+  },
+  {
+    "word": "Undergo",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Underlie",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Undermine",
+    "type": "Verb",
+    "definition": "To weaken or damage something gradually",
+    "example": "Constant criticism can undermine a person's confidence and self-esteem."
+  },
+  {
+    "word": "Undertake",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Uniform",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Unify",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Unique",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Unprecedented",
+    "type": "Adjective",
+    "definition": "Never done or known before",
+    "example": "To be added"
+  },
+  {
+    "word": "Unscrupulous",
+    "type": "Adjective",
+    "definition": "Having or showing no moral principles",
+    "example": "To be added"
+  },
+  {
+    "word": "Unwitting",
+    "type": "Adjective",
+    "definition": "Not done on purpose; not aware",
+    "example": "To be added"
+  },
+  {
+    "word": "Urbane",
+    "type": "Adjective",
+    "definition": "Courteous and refined in manner",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Utilise",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Vacillate",
+    "type": "Verb",
+    "definition": "Alternate between different opinions",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Valid",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Vary",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
   },
   {
     "word": "Vehemently",
@@ -540,22 +4703,102 @@
     "example": "The citizens vehemently opposed the construction of the nuclear plant."
   },
   {
+    "word": "Vehicle",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Venerable",
+    "type": "Adjective",
+    "definition": "Accorded great respect due to age or wisdom",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Verbose",
     "type": "Adjective",
     "definition": "Using more words than needed",
     "example": "The verbose professor's lectures often exceeded the allotted time."
   },
   {
+    "word": "Version",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Vex",
+    "type": "Verb",
+    "definition": "Make someone feel annoyed or frustrated",
+    "example": "To be added"
+  },
+  {
+    "word": "Via",
+    "type": "Preposition",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Viable",
+    "type": "Adjective",
+    "definition": "Capable of working successfully",
+    "example": "To be added"
+  },
+  {
+    "word": "Vicarious",
+    "type": "Adjective",
+    "definition": "Experienced in imagination through others",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Vindicate",
     "type": "Verb",
     "definition": "To clear of blame or suspicion",
-    "example": "The DNA evidence vindicated the wrongly accused man."
+    "example": "The DNA evidence vindicated the wrongly accused man.",
+    "difficulty": "Hard"
+  },
+  {
+    "word": "Violate",
+    "type": "Verb",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Virtual",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Virtuoso",
+    "type": "Noun",
+    "definition": "A person highly skilled in music or arts",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Visceral",
     "type": "Adjective",
     "definition": "Relating to deep feelings rather than intellect",
     "example": "The horror movie provoked a visceral reaction from the audience."
+  },
+  {
+    "word": "Visible",
+    "type": "Adjective",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Easy"
+  },
+  {
+    "word": "Vitriolic",
+    "type": "Adjective",
+    "definition": "Filled with bitter criticism or malice",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Vivacious",
@@ -570,6 +4813,19 @@
     "example": "The volatile political situation required careful diplomatic handling."
   },
   {
+    "word": "Volume",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Voracious",
+    "type": "Adjective",
+    "definition": "Wanting or devouring great quantities",
+    "example": "To be added",
+    "difficulty": "Hard"
+  },
+  {
     "word": "Voraciously",
     "type": "Adverb",
     "definition": "With great eagerness",
@@ -582,562 +4838,41 @@
     "example": "They wandered through the maze-like streets of the old city."
   },
   {
-    "word": "Zealously",
-    "type": "Adverb",
-    "definition": "With great energy and passion",
-    "example": "The activist zealously campaigned for environmental protection."
-  },
-  {
-    "word": "Egregious",
+    "word": "Wary",
     "type": "Adjective",
-    "definition": "Outstandingly bad; shocking",
-    "example": "The company made an egregious error in its financial statements."
-  },
-  {
-    "word": "Intransigent",
-    "type": "Adjective",
-    "definition": "Unwilling to change one's views or agree",
-    "example": "The intransigent negotiators refused to compromise."
-  },
-  {
-    "word": "Permeate",
-    "type": "Verb",
-    "definition": "To spread throughout something",
-    "example": "The smell of fresh bread permeated the entire house."
-  },
-  {
-    "word": "Sagacious",
-    "type": "Adjective",
-    "definition": "Having or showing keen judgment; wise",
-    "example": "The sagacious leader guided the team through difficult times."
-  },
-  {
-    "word": "Fortitude",
-    "type": "Noun",
-    "definition": "Courage in facing difficulties",
-    "example": "She showed great fortitude during her long recovery from illness."
-  },
-  {
-    "word": "Munificent",
-    "type": "Adjective",
-    "definition": "More generous than is usual or necessary",
-    "example": "The munificent donation helped build a new library."
-  },
-  {
-    "word": "Ebullient",
-    "type": "Adjective",
-    "definition": "Cheerful and full of energy",
-    "example": "Her ebullient personality made her popular at parties."
-  },
-  {
-    "word": "Ineffable",
-    "type": "Adjective",
-    "definition": "Too great or extreme to be expressed in words",
-    "example": "The beauty of the sunset was ineffable."
-  },
-  {
-    "word": "Prudent",
-    "type": "Adjective",
-    "definition": "Acting with or showing care and thought for the future",
-    "example": "It is prudent to save money for emergencies."
-  },
-  {
-    "word": "Lugubrious",
-    "type": "Adjective",
-    "definition": "Looking or sounding sad and dismal",
-    "example": "His lugubrious expression worried his friends."
-  },
-  {
-    "word": "Obfuscate",
-    "type": "Verb",
-    "definition": "To make something unclear or confusing",
-    "example": "The company tried to obfuscate the details of the agreement."
-  },
-  {
-    "word": "Supercilious",
-    "type": "Adjective",
-    "definition": "Behaving as though one is superior to others",
-    "example": "Her supercilious attitude alienated her colleagues."
-  },
-  {
-    "word": "Quixotic",
-    "type": "Adjective",
-    "definition": "Exceedingly idealistic; unrealistic and impractical",
-    "example": "His quixotic quest for perfection frustrated his team."
-  },
-  {
-    "word": "Serendipity",
-    "type": "Noun",
-    "definition": "The occurrence of events by chance in a happy or beneficial way",
-    "example": "Finding the old letter was pure serendipity."
-  },
-  {
-    "word": "Allude",
-    "type": "Verb",
-    "definition": "To hint at or refer to something indirectly",
-    "example": "The author alluded to his troubled childhood without explicitly describing the traumatic events."
-  },
-  {
-    "word": "Assert",
-    "type": "Verb",
-    "definition": "To state or declare confidently and forcefully",
-    "example": "The scientist asserted that climate change was the primary cause of the unusual weather patterns."
-  },
-  {
-    "word": "Bemoan",
-    "type": "Verb",
-    "definition": "To express sorrow, regret, or disappointment about something",
-    "example": "The elderly woman bemoaned the loss of traditional values in modern society."
-  },
-  {
-    "word": "Condemn",
-    "type": "Verb",
-    "definition": "To express strong disapproval of something; to criticize severely",
-    "example": "Human rights organizations condemned the government's treatment of peaceful protesters."
-  },
-  {
-    "word": "Concede",
-    "type": "Verb",
-    "definition": "To admit or acknowledge something, often reluctantly",
-    "example": "After hours of debate, the politician finally conceded that his opponent had made valid points."
-  },
-  {
-    "word": "Contend",
-    "type": "Verb",
-    "definition": "To argue or assert; to struggle against difficulties",
-    "example": "The lawyer contended that her client was innocent despite the overwhelming evidence."
-  },
-  {
-    "word": "Decry",
-    "type": "Verb",
-    "definition": "To publicly denounce or condemn",
-    "example": "Environmental activists decried the company's decision to clear-cut the ancient forest."
-  },
-  {
-    "word": "Dismiss",
-    "type": "Verb",
-    "definition": "To reject or disregard as unworthy of consideration",
-    "example": "The judge dismissed the case due to lack of sufficient evidence."
-  },
-  {
-    "word": "Elucidate",
-    "type": "Verb",
-    "definition": "To make clear or explain in detail",
-    "example": "The professor elucidated the complex mathematical theorem with simple diagrams and examples."
-  },
-  {
-    "word": "Embellish",
-    "type": "Verb",
-    "definition": "To make more attractive by adding decorative details; to exaggerate",
-    "example": "The storyteller embellished his tale with dramatic gestures and colorful descriptions."
-  },
-  {
-    "word": "Evoke",
-    "type": "Verb",
-    "definition": "To bring forth or recall a feeling, memory, or image",
-    "example": "The old photograph evoked memories of her grandmother's warm kitchen and homemade cookies."
-  },
-  {
-    "word": "Exaggerate",
-    "type": "Verb",
-    "definition": "To represent something as larger, better, or worse than it actually is",
-    "example": "He tends to exaggerate his accomplishments when telling stories to his friends."
-  },
-  {
-    "word": "Imply",
-    "type": "Verb",
-    "definition": "To suggest something without explicitly stating it",
-    "example": "Her raised eyebrow implied that she disagreed with the proposal."
-  },
-  {
-    "word": "Illustrate",
-    "type": "Verb",
-    "definition": "To explain or make clear by using examples or comparisons",
-    "example": "The teacher illustrated the concept of gravity by dropping various objects from different heights."
-  },
-  {
-    "word": "Juxtapose",
-    "type": "Verb",
-    "definition": "To place two things side by side to highlight their differences or similarities",
-    "example": "The documentary juxtaposed scenes of poverty with images of extreme wealth to highlight social inequality."
-  },
-  {
-    "word": "Lament",
-    "type": "Verb",
-    "definition": "To express grief, sorrow, or regret",
-    "example": "The community gathered to lament the loss of their beloved library to budget cuts."
-  },
-  {
-    "word": "Magnify",
-    "type": "Verb",
-    "definition": "To make something appear larger or more important than it is",
-    "example": "The media tends to magnify minor political scandals into major controversies."
-  },
-  {
-    "word": "Misconstrue",
-    "type": "Verb",
-    "definition": "To interpret something wrongly or incorrectly",
-    "example": "She misconstrued his friendly gesture as romantic interest, leading to an awkward misunderstanding."
-  },
-  {
-    "word": "Navigate",
-    "type": "Verb",
-    "definition": "To find one's way through a difficult or complex situation",
-    "example": "New students often struggle to navigate the complex social dynamics of high school."
-  },
-  {
-    "word": "Undermine",
-    "type": "Verb",
-    "definition": "To weaken or damage something gradually",
-    "example": "Constant criticism can undermine a person's confidence and self-esteem."
-  },
-  {
-    "word": "Ambivalent",
-    "type": "Adjective",
-    "definition": "Having mixed feelings or contradictory attitudes toward something",
-    "example": "She felt ambivalent about the job offer, excited by the opportunity but worried about relocating."
-  },
-  {
-    "word": "Apathetic",
-    "type": "Adjective",
-    "definition": "Showing little or no interest, enthusiasm, or concern",
-    "example": "The apathetic student showed no interest in participating in class discussions."
-  },
-  {
-    "word": "Belligerent",
-    "type": "Adjective",
-    "definition": "Aggressive and hostile; eager to fight",
-    "example": "The belligerent customer shouted at the cashier over a minor billing error."
-  },
-  {
-    "word": "Benevolent",
-    "type": "Adjective",
-    "definition": "Kind, generous, and charitable",
-    "example": "The benevolent millionaire donated millions to build schools in underprivileged communities."
-  },
-  {
-    "word": "Boastful",
-    "type": "Adjective",
-    "definition": "Excessively proud and bragging about one's achievements",
-    "example": "His boastful attitude about his promotion annoyed his colleagues at the dinner party."
-  },
-  {
-    "word": "Callous",
-    "type": "Adjective",
-    "definition": "Showing no concern for others' feelings; insensitive",
-    "example": "The manager's callous response to employee concerns created a hostile work environment."
-  },
-  {
-    "word": "Contrived",
-    "type": "Adjective",
-    "definition": "Artificially created; lacking naturalness or spontaneity",
-    "example": "The movie's contrived plot twists made it difficult for audiences to connect with the story."
-  },
-  {
-    "word": "Detached",
-    "type": "Adjective",
-    "definition": "Emotionally distant; not involved or interested",
-    "example": "The therapist maintained a detached professional demeanor during the session."
-  },
-  {
-    "word": "Disgruntled",
-    "type": "Adjective",
-    "definition": "Angry or dissatisfied; discontented",
-    "example": "The disgruntled employees organized a strike to protest their working conditions."
-  },
-  {
-    "word": "Frivolous",
-    "type": "Adjective",
-    "definition": "Lacking seriousness or importance; trivial",
-    "example": "The judge dismissed the frivolous lawsuit that had no basis in fact."
-  },
-  {
-    "word": "Haughty",
-    "type": "Adjective",
-    "definition": "Arrogantly superior and disdainful",
-    "example": "The haughty aristocrat looked down on anyone she considered beneath her social status."
-  },
-  {
-    "word": "Incredulous",
-    "type": "Adjective",
-    "definition": "Unwilling or unable to believe something",
-    "example": "She gave him an incredulous look when he claimed to have climbed Mount Everest."
-  },
-  {
-    "word": "Irreverent",
-    "type": "Adjective",
-    "definition": "Showing a lack of respect for things generally taken seriously",
-    "example": "The comedian's irreverent jokes about politics offended some audience members."
-  },
-  {
-    "word": "Melodramatic",
-    "type": "Adjective",
-    "definition": "Excessively emotional or theatrical",
-    "example": "Her melodramatic reaction to losing her phone seemed disproportionate to the situation."
-  },
-  {
-    "word": "Nostalgic",
-    "type": "Adjective",
-    "definition": "Feeling sentimental longing for the past",
-    "example": "The nostalgic grandmother shared stories of her childhood during the war years."
-  },
-  {
-    "word": "Ominous",
-    "type": "Adjective",
-    "definition": "Giving the impression that something bad will happen; threatening",
-    "example": "The ominous dark clouds gathering on the horizon warned of an approaching storm."
-  },
-  {
-    "word": "Resigned",
-    "type": "Adjective",
-    "definition": "Accepting something undesirable but inevitable",
-    "example": "With a resigned sigh, she accepted that her flight would be delayed for another three hours."
-  },
-  {
-    "word": "Sardonic",
-    "type": "Adjective",
-    "definition": "Grimly mocking or cynical",
-    "example": "His sardonic comment about the \"great success\" of the project revealed his true feelings."
-  },
-  {
-    "word": "Sentimental",
-    "type": "Adjective",
-    "definition": "Having or showing tender feelings; emotional",
-    "example": "She kept the sentimental letter from her late father in a special box."
-  },
-  {
-    "word": "Skeptical",
-    "type": "Adjective",
-    "definition": "Doubtful; not easily convinced",
-    "example": "The scientist remained skeptical of the new theory until more evidence was presented."
-  },
-  {
-    "word": "Submissive",
-    "type": "Adjective",
-    "definition": "Willing to obey; yielding to authority",
-    "example": "The submissive employee never questioned his supervisor's decisions, even when they seemed wrong."
-  },
-  {
-    "word": "Tactful",
-    "type": "Adjective",
-    "definition": "Having skill in dealing with difficult situations diplomatically",
-    "example": "The tactful diplomat managed to negotiate a peaceful resolution to the conflict."
-  },
-  {
-    "word": "Abruptly",
-    "type": "Adverb",
-    "definition": "Suddenly and unexpectedly",
-    "example": "The meeting ended abruptly when the fire alarm sounded."
-  },
-  {
-    "word": "Begrudgingly",
-    "type": "Adverb",
-    "definition": "Reluctantly; with resentment",
-    "example": "He begrudgingly admitted that his rival's plan was better than his own."
-  },
-  {
-    "word": "Blatantly",
-    "type": "Adverb",
-    "definition": "In an open and obvious manner; shamelessly",
-    "example": "The politician blatantly ignored the reporter's question about the scandal."
-  },
-  {
-    "word": "Cautiously",
-    "type": "Adverb",
-    "definition": "Carefully; being alert to potential danger",
-    "example": "She cautiously approached the stray dog, unsure of its temperament."
-  },
-  {
-    "word": "Deliberately",
-    "type": "Adverb",
-    "definition": "Intentionally; on purpose",
-    "example": "He deliberately arrived late to avoid the awkward small talk before the meeting."
-  },
-  {
-    "word": "Earnestly",
-    "type": "Adverb",
-    "definition": "With sincere and intense conviction",
-    "example": "The student earnestly pleaded for an extension on her assignment deadline."
-  },
-  {
-    "word": "Excessively",
-    "type": "Adverb",
-    "definition": "To a degree that is more than normal or desirable",
-    "example": "The critic was excessively harsh in her review of the young actor's performance."
-  },
-  {
-    "word": "Faintly",
-    "type": "Adverb",
-    "definition": "Barely; weakly or slightly",
-    "example": "She could faintly hear music coming from the apartment next door."
-  },
-  {
-    "word": "Frankly",
-    "type": "Adverb",
-    "definition": "Honestly and directly",
-    "example": "Frankly, I don't think this project will succeed without additional funding."
-  },
-  {
-    "word": "Grimly",
-    "type": "Adverb",
-    "definition": "In a forbidding or serious manner",
-    "example": "The doctor grimly delivered the news about the patient's deteriorating condition."
-  },
-  {
-    "word": "Impulsively",
-    "type": "Adverb",
-    "definition": "Without thinking; acting on sudden urges",
-    "example": "She impulsively bought the expensive dress, regretting it immediately afterward."
-  },
-  {
-    "word": "Indifferently",
-    "type": "Adverb",
-    "definition": "Without interest or concern; showing no preference",
-    "example": "The teenager indifferently shrugged when asked about his future career plans."
-  },
-  {
-    "word": "Mockingly",
-    "type": "Adverb",
-    "definition": "In a teasing or scornful manner",
-    "example": "The bullies mockingly imitated the new student's accent during lunch."
-  },
-  {
-    "word": "Notably",
-    "type": "Adverb",
-    "definition": "In a way that is worthy of attention; particularly",
-    "example": "The team's performance was notably improved after the new coach arrived."
-  },
-  {
-    "word": "Passionately",
-    "type": "Adverb",
-    "definition": "With intense emotion or strong feeling",
-    "example": "The activist passionately argued for environmental protection at the town hall meeting."
-  },
-  {
-    "word": "Reluctantly",
-    "type": "Adverb",
-    "definition": "Unwillingly; with hesitation",
-    "example": "She reluctantly agreed to work overtime, knowing it would ruin her weekend plans."
-  },
-  {
-    "word": "Resoundingly",
-    "type": "Adverb",
-    "definition": "In a deep, clear, and continuing manner; decisively",
-    "example": "The proposal was resoundingly rejected by the board of directors."
-  },
-  {
-    "word": "Solemnly",
-    "type": "Adverb",
-    "definition": "In a formal and dignified manner; seriously",
-    "example": "The judge solemnly pronounced the verdict in the packed courtroom."
-  },
-  {
-    "word": "Subtly",
-    "type": "Adverb",
-    "definition": "In a way that is not obvious; delicately",
-    "example": "The artist subtly incorporated political messages into her seemingly innocent paintings."
-  },
-  {
-    "word": "Brood",
-    "type": "Verb",
-    "definition": "To think deeply about something in a troubled or unhappy way",
-    "example": "He would brood for hours about his failed relationship, unable to move forward."
-  },
-  {
-    "word": "Clutch",
-    "type": "Verb",
-    "definition": "To hold tightly; to grasp desperately",
-    "example": "The frightened child clutched her mother's hand as they walked through the dark forest."
-  },
-  {
-    "word": "Dwell",
-    "type": "Verb",
-    "definition": "To think or speak persistently about something",
-    "example": "Rather than dwelling on past mistakes, she decided to focus on future opportunities."
-  },
-  {
-    "word": "Envelop",
-    "type": "Verb",
-    "definition": "To wrap up, cover, or surround completely",
-    "example": "The thick fog began to envelop the entire village by nightfall."
-  },
-  {
-    "word": "Falter",
-    "type": "Verb",
-    "definition": "To hesitate or waver; to lose strength or momentum",
-    "example": "Her voice began to falter as she delivered the emotional eulogy."
-  },
-  {
-    "word": "Glimmer",
-    "type": "Verb",
-    "definition": "To shine faintly with a wavering light",
-    "example": "Stars glimmered in the clear night sky above the mountain peak."
-  },
-  {
-    "word": "Grumble",
-    "type": "Verb",
-    "definition": "To complain in a low, continuous voice",
-    "example": "The students began to grumble about the difficult assignment as they left class."
-  },
-  {
-    "word": "Loom",
-    "type": "Verb",
-    "definition": "To appear impressively large or threatening; to seem imminent",
-    "example": "The final exams loomed ahead, causing anxiety among the graduating students."
-  },
-  {
-    "word": "Meander",
-    "type": "Verb",
-    "definition": "To wander aimlessly; to follow a winding course",
-    "example": "The river meandered through the peaceful countryside for miles."
-  },
-  {
-    "word": "Mumble",
-    "type": "Verb",
-    "definition": "To speak in a low, unclear voice",
-    "example": "The embarrassed teenager mumbled an apology after breaking the vase."
-  },
-  {
-    "word": "Peer",
-    "type": "Verb",
-    "definition": "To look intently or with difficulty",
-    "example": "She peered through the window to see who was knocking at her door so late."
-  },
-  {
-    "word": "Recoil",
-    "type": "Verb",
-    "definition": "To draw back in fear, disgust, or shock",
-    "example": "The children recoiled in horror when they discovered the dead animal in the garden."
-  },
-  {
-    "word": "Scamper",
-    "type": "Verb",
-    "definition": "To run with quick, light steps",
-    "example": "The squirrels scampered up the oak tree when the dog approached."
-  },
-  {
-    "word": "Shudder",
-    "type": "Verb",
-    "definition": "To tremble convulsively, typically from fear or revulsion",
-    "example": "She shuddered at the thought of eating insects during the survival course."
-  },
-  {
-    "word": "Stammer",
-    "type": "Verb",
-    "definition": "To speak with involuntary repetition or hesitation",
-    "example": "The nervous witness began to stammer when the lawyer questioned him aggressively."
-  },
-  {
-    "word": "Tremble",
-    "type": "Verb",
-    "definition": "To shake involuntarily from emotion, cold, or weakness",
-    "example": "Her hands trembled with excitement as she opened the acceptance letter."
+    "definition": "Feeling or showing caution",
+    "example": "To be added"
   },
   {
     "word": "Waver",
     "type": "Verb",
     "definition": "To be uncertain or indecisive; to fluctuate",
     "example": "His confidence began to waver as the job interview progressed poorly."
+  },
+  {
+    "word": "Weary",
+    "type": "Adjective",
+    "definition": "Extremely tired; having one's patience exhausted",
+    "example": "The weary traveler collapsed into the hotel bed after the long international flight."
+  },
+  {
+    "word": "Welfare",
+    "type": "Noun",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Whereas",
+    "type": "Conjunction",
+    "definition": "To be added",
+    "example": "To be added"
+  },
+  {
+    "word": "Whereby",
+    "type": "Adverb",
+    "definition": "To be added",
+    "example": "To be added",
+    "difficulty": "Hard"
   },
   {
     "word": "Wither",
@@ -1158,105 +4893,15 @@
     "example": "The elderly man yearned to return to his childhood home in the countryside."
   },
   {
-    "word": "Ashen",
+    "word": "Zealous",
     "type": "Adjective",
-    "definition": "Very pale, as from shock, fear, or illness",
-    "example": "His face turned ashen when he received the devastating news about the accident."
+    "definition": "Having great energy or enthusiasm",
+    "example": "To be added"
   },
   {
-    "word": "Brisk",
-    "type": "Adjective",
-    "definition": "Quick and energetic; pleasantly cold and invigorating",
-    "example": "They took a brisk walk through the park to enjoy the crisp autumn air."
-  },
-  {
-    "word": "Chilly",
-    "type": "Adjective",
-    "definition": "Noticeably cold; unfriendly in manner",
-    "example": "The chilly morning required an extra layer of clothing before leaving the house."
-  },
-  {
-    "word": "Desolate",
-    "type": "Adjective",
-    "definition": "Barren and lifeless; feeling abandoned and lonely",
-    "example": "The desolate landscape stretched for miles without a single tree or building in sight."
-  },
-  {
-    "word": "Dreary",
-    "type": "Adjective",
-    "definition": "Dull, bleak, and lifeless; depressingly drab",
-    "example": "The dreary office cubicle made her long for a job with more creative freedom."
-  },
-  {
-    "word": "Exuberant",
-    "type": "Adjective",
-    "definition": "Full of energy, excitement, and cheerfulness",
-    "example": "The exuberant children ran around the playground, laughing and playing games."
-  },
-  {
-    "word": "Faint",
-    "type": "Adjective",
-    "definition": "Barely perceptible; weak or dim",
-    "example": "There was a faint smell of roses in the air as they walked through the garden."
-  },
-  {
-    "word": "Lush",
-    "type": "Adjective",
-    "definition": "Rich and abundant in growth; luxurious",
-    "example": "The lush tropical rainforest was filled with exotic plants and vibrant wildlife."
-  },
-  {
-    "word": "Ragged",
-    "type": "Adjective",
-    "definition": "Having a rough, torn, or frayed appearance",
-    "example": "The homeless man's ragged clothes told the story of years spent living on the streets."
-  },
-  {
-    "word": "Savage",
-    "type": "Adjective",
-    "definition": "Fierce, violent, and uncontrolled",
-    "example": "The savage storm destroyed several houses along the coastal town."
-  },
-  {
-    "word": "Sombre",
-    "type": "Adjective",
-    "definition": "Dark or dull; grave and serious in mood",
-    "example": "The funeral service was conducted in a sombre atmosphere of mourning and respect."
-  },
-  {
-    "word": "Stark",
-    "type": "Adjective",
-    "definition": "Severe or bare in appearance; unpleasantly harsh",
-    "example": "The stark white walls of the hospital room made the patient feel isolated and cold."
-  },
-  {
-    "word": "Tender",
-    "type": "Adjective",
-    "definition": "Gentle and caring; easily damaged",
-    "example": "The mother's tender embrace comforted her crying child after the nightmare."
-  },
-  {
-    "word": "Thorny",
-    "type": "Adjective",
-    "definition": "Having sharp points; difficult to handle or solve",
-    "example": "The committee faced the thorny issue of budget cuts while maintaining quality services."
-  },
-  {
-    "word": "Weary",
-    "type": "Adjective",
-    "definition": "Extremely tired; having one's patience exhausted",
-    "example": "The weary traveler collapsed into the hotel bed after the long international flight."
-  },
-  {
-    "word": "incessant",
-    "type": "Adjective",
-    "definition": "Continuing without pause or interruption",
-    "example": "The incessant buzzing of the mosquito kept her awake all night."
-  },
-  {
-    "word": "Adamant",
-    "type": "Adjective",
-    "definition": "Refusing to be persuaded",
-    "example": "She was adamant about finishing her degree despite financial difficulties."
+    "word": "Zealously",
+    "type": "Adverb",
+    "definition": "With great energy and passion",
+    "example": "The activist zealously campaigned for environmental protection."
   }
 ]
