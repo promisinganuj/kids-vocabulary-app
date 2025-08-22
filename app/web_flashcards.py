@@ -87,6 +87,54 @@ def get_ai_word_suggestion_based_on_patterns(user_id: int) -> dict:
         # Get user profile for context
         user = db_manager.get_user_by_id(user_id)
         
+        # Create comprehensive list of words to avoid (both visible and hidden words)
+        words_to_avoid = set()
+        
+        # Get all user words (including hidden ones)
+        try:
+            with db_manager.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT LOWER(TRIM(word)) as word FROM vocabulary 
+                    WHERE user_id = ?
+                ''', (user_id,))
+                user_vocabulary = [row['word'] for row in cursor.fetchall()]
+                words_to_avoid.update(user_vocabulary)
+        except Exception as e:
+            print(f"Warning: Could not fetch complete user vocabulary: {e}")
+            # Fallback to regular method
+            user_vocabulary = [w.get("word", "").lower().strip() for w in user_words if w.get("word")]
+            words_to_avoid.update(user_vocabulary)
+        
+        # Get words from AI feedback history (words user has already seen)
+        try:
+            with db_manager.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT LOWER(TRIM(word)) as word FROM ai_suggestions_feedback 
+                    WHERE user_id = ?
+                ''', (user_id,))
+                seen_words = [row['word'] for row in cursor.fetchall()]
+                words_to_avoid.update(seen_words)
+        except Exception as e:
+            print(f"Warning: Could not fetch AI feedback history: {e}")
+        
+        # Add common word variations to be extra safe
+        words_with_variations = set(words_to_avoid)
+        for word in list(words_to_avoid):
+            # Add plural forms
+            if not word.endswith('s'):
+                words_with_variations.add(word + 's')
+            # Add common suffixes
+            if len(word) > 4:
+                words_with_variations.add(word + 'ing')
+                words_with_variations.add(word + 'ed')
+                words_with_variations.add(word + 'er')
+                words_with_variations.add(word + 'ly')
+        
+        words_to_avoid = words_with_variations
+        print(f"📝 Words to avoid for user {user_id}: {len(words_to_avoid)} total (including variations)")
+        
         # Build context for AI
         user_context = {
             "total_words": len(user_words),
@@ -98,6 +146,14 @@ def get_ai_word_suggestion_based_on_patterns(user_id: int) -> dict:
             "learning_goals": user.learning_goals if user else None,
             "recent_words": [w.get("word", "") for w in user_words[-5:]] if user_words else []
         }
+        
+        # Create list of words to explicitly avoid in the prompt (limit to avoid prompt being too long)
+        avoid_words_sample = sorted(list(words_to_avoid))[:150]  # Increased from 100 to 150
+        avoid_words_list = ", ".join(avoid_words_sample)
+        
+        # Additional words list for emphasis (most recent words)
+        recent_avoided_words = sorted(list(words_to_avoid))[-50:] if len(words_to_avoid) > 50 else []
+        recent_words_emphasis = ", ".join(recent_avoided_words) if recent_avoided_words else ""
         
         # Create the prompt for AI word suggestion
         prompt = f"""You are an AI tutor helping a student learn vocabulary. Based on their learning patterns, suggest ONE new vocabulary word that would be perfect for their next learning session.
@@ -114,14 +170,26 @@ Learning Pattern Analysis:
 - Words they find challenging: {', '.join(user_context['difficult_words'][:3]) if user_context['difficult_words'] else 'None identified yet'}
 - Common word types they study: {', '.join(user_context['common_word_types'][:3]) if user_context['common_word_types'] else 'Various'}
 
-Instructions:
+❌ CRITICAL: DO NOT SUGGEST ANY OF THESE WORDS - THEY ALREADY KNOW THEM:
+{avoid_words_list}
+
+❌ ESPECIALLY AVOID THESE RECENT WORDS:
+{recent_words_emphasis}
+
+🚨 ABSOLUTE REQUIREMENTS:
+1. The word MUST NOT appear in the forbidden lists above
+2. The word must be completely NEW and UNKNOWN to this student
+3. Do not suggest ANY variations, forms, or derivatives of forbidden words
+4. If unsure whether a word is in their vocabulary, choose a different word
+5. Check your suggestion against the forbidden lists before responding
+
+Instructions for the perfect word:
 1. Suggest a word that is appropriately challenging (not too easy, not too hard)
 2. Choose a word that complements their existing vocabulary
-3. Avoid words they already know
-4. Consider their class level and learning goals
-5. Provide a clear, student-friendly definition
-6. Give a practical example sentence
-7. Explain why this word is a good fit for them
+3. Consider their class level and learning goals
+4. Provide a clear, student-friendly definition
+5. Give a practical example sentence
+6. Explain why this word is perfect for this student
 
 Respond ONLY with valid JSON in this exact format:
 {{
@@ -133,100 +201,143 @@ Respond ONLY with valid JSON in this exact format:
     "error": null
 }}
 
-If you cannot suggest a word, respond with:
+If you cannot suggest a word that meets ALL requirements, respond with:
 {{
     "word": null,
     "type": null,
     "definition": null,
     "example": null,
     "reasoning": null,
-    "error": "Reason why no suggestion could be made"
+    "error": "Could not find a suitable new word that meets all requirements"
 }}"""
 
-        # Ensure endpoint ends with a slash
-        if not endpoint.endswith('/'):
-            endpoint += '/'
+        # Retry mechanism for getting unique words
+        max_retries = 3
+        retry_count = 0
+        failed_words = []  # Track words that failed
         
-        # Prepare Azure OpenAI HTTP request
-        url = f"{endpoint}openai/deployments/{deployment}/chat/completions?api-version={api_version}"
-        headers = {
-            "api-key": api_key,
-            "Content-Type": "application/json"
-        }
-        
-        data = {
-            "messages": [
-                {"role": "system", "content": "You are an expert vocabulary tutor who provides personalized word suggestions based on learning patterns. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 400,
-            "temperature": 0.7
-        }
-        
-        # Ensure endpoint ends with a slash
-        if endpoint and not endpoint.endswith('/'):
-            endpoint += '/'
-        
-        # Prepare Azure OpenAI HTTP request
-        
-        # Make the HTTP request
-        response = requests.post(url, headers=headers, json=data, timeout=30)
-        
-        if response.status_code == 200:
-            response_data = response.json()
-            content = response_data["choices"][0]["message"]["content"].strip()
+        while retry_count < max_retries:
+            # Ensure endpoint ends with a slash
+            if endpoint and not endpoint.endswith('/'):
+                endpoint += '/'
             
-            # Parse the JSON response
-            try:
-                result = json.loads(content)
+            # Prepare Azure OpenAI HTTP request
+            url = f"{endpoint}openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+            headers = {
+                "api-key": api_key,
+                "Content-Type": "application/json"
+            }
+            
+            # Increase temperature for variety on retries
+            temperature = 0.7 + (retry_count * 0.15)
+            
+            # Modify prompt for retries to include failed words
+            current_prompt = prompt
+            if failed_words:
+                failed_words_text = ", ".join(failed_words)
+                current_prompt += f"\n\n🚨 URGENT: You already suggested these words which they know: {failed_words_text}\nDo NOT suggest these or similar words again!"
+            
+            data = {
+                "messages": [
+                    {"role": "system", "content": "You are an expert vocabulary tutor who provides personalized word suggestions based on learning patterns. Always respond with valid JSON only. Never suggest words the student already knows or has seen."},
+                    {"role": "user", "content": current_prompt}
+                ],
+                "max_tokens": 400,
+                "temperature": temperature
+            }
+            
+            print(f"🤖 AI request attempt {retry_count + 1}/{max_retries} with temperature {temperature}")
+            
+            # Make the HTTP request
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                content = response_data["choices"][0]["message"]["content"].strip()
                 
-                # Validate the response format
-                required_keys = ["word", "type", "definition", "example", "reasoning", "error"]
-                if not all(key in result for key in required_keys):
+                # Parse the JSON response
+                try:
+                    result = json.loads(content)
+                    
+                    # Validate the response format
+                    required_keys = ["word", "type", "definition", "example", "reasoning", "error"]
+                    if not all(key in result for key in required_keys):
+                        return {
+                            "word": None,
+                            "type": None,
+                            "definition": None,
+                            "example": None,
+                            "reasoning": None,
+                            "error": "Invalid AI response format",
+                            "is_new": True
+                        }
+                    
+                    # Check if the suggested word already exists in user's vocabulary or seen words
+                    suggested_word = result.get("word", "").lower().strip()
+                    
+                    if suggested_word and suggested_word not in words_to_avoid:
+                        # Word is truly new - success!
+                        result["is_new"] = True
+                        print(f"✅ AI suggested new word: '{suggested_word}' on attempt {retry_count + 1}")
+                        return result
+                    elif suggested_word:
+                        # Word already exists - add to failed list and retry
+                        failed_words.append(suggested_word)
+                        retry_count += 1
+                        print(f"⚠️ AI suggested existing word '{suggested_word}', retrying ({retry_count}/{max_retries})")
+                        
+                        if retry_count >= max_retries:
+                            return {
+                                "word": None,
+                                "type": None,
+                                "definition": None,
+                                "example": None,
+                                "reasoning": None,
+                                "error": f"AI repeatedly suggested existing words ({', '.join(failed_words)}) after {max_retries} attempts. Please try again later.",
+                                "is_new": True
+                            }
+                        # Continue to next retry
+                        continue
+                    else:
+                        # No word suggested
+                        result["is_new"] = True
+                        return result
+                        
+                except json.JSONDecodeError:
+                    if retry_count < max_retries - 1:
+                        retry_count += 1
+                        print(f"⚠️ Failed to parse AI response, retrying ({retry_count}/{max_retries})")
+                        continue
                     return {
                         "word": None,
                         "type": None,
                         "definition": None,
                         "example": None,
                         "reasoning": None,
-                        "error": "Invalid AI response format",
+                        "error": "Failed to parse AI response after multiple attempts",
                         "is_new": True
                     }
-                
-                # Check if the suggested word already exists in user's vocabulary
-                suggested_word = result.get("word", "").lower()
-                is_new_word = True
-                
-                if suggested_word:
-                    # Check if word exists in user's vocabulary
-                    existing_words = [w.get("word", "").lower() for w in user_words]
-                    is_new_word = suggested_word not in existing_words
-                
-                # Add is_new flag to the result
-                result["is_new"] = is_new_word
-                
-                return result
-                
-            except json.JSONDecodeError:
+            else:
                 return {
                     "word": None,
                     "type": None,
                     "definition": None,
                     "example": None,
                     "reasoning": None,
-                    "error": "Failed to parse AI response",
+                    "error": f"Azure OpenAI API error: {response.status_code}",
                     "is_new": True
                 }
-        else:
-            return {
-                "word": None,
-                "type": None,
-                "definition": None,
-                "example": None,
-                "reasoning": None,
-                "error": f"Azure OpenAI API error: {response.status_code}",
-                "is_new": True
-            }
+        
+        # Should not reach here, but just in case
+        return {
+            "word": None,
+            "type": None,
+            "definition": None,
+            "example": None,
+            "reasoning": None,
+            "error": "Maximum retry attempts exceeded",
+            "is_new": True
+        }
             
     except requests.exceptions.Timeout:
         return {
