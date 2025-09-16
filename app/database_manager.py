@@ -498,6 +498,43 @@ class DatabaseManager:
                         cursor.execute(f'ALTER TABLE users ADD COLUMN {col_name} {col_def}')
                         print(f"✅ Added {col_name} column to users table")
                 
+                # Create AI learning sessions table if it doesn't exist
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS ai_learning_sessions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        target_words INTEGER NOT NULL DEFAULT 10,
+                        words_completed INTEGER DEFAULT 0,
+                        words_correct INTEGER DEFAULT 0,
+                        current_difficulty TEXT DEFAULT 'medium',
+                        session_started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        session_ended_at TIMESTAMP,
+                        is_completed BOOLEAN DEFAULT 0,
+                        total_time_seconds INTEGER DEFAULT 0,
+                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                    )
+                ''')
+                
+                # Create AI learning session words table if it doesn't exist
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS ai_learning_session_words (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        session_id INTEGER NOT NULL,
+                        word_id INTEGER,
+                        base_word_id INTEGER,
+                        word_text TEXT NOT NULL,
+                        user_response TEXT,
+                        is_correct BOOLEAN,
+                        response_time_ms INTEGER DEFAULT 0,
+                        difficulty_level TEXT DEFAULT 'medium',
+                        word_order INTEGER DEFAULT 0,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (session_id) REFERENCES ai_learning_sessions (id) ON DELETE CASCADE,
+                        FOREIGN KEY (word_id) REFERENCES vocabulary (id) ON DELETE SET NULL,
+                        FOREIGN KEY (base_word_id) REFERENCES base_vocabulary (id) ON DELETE SET NULL
+                    )
+                ''')
+                
                 # Try to create new indexes that might not exist
                 try:
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_base_word ON vocabulary(base_word_id)')
@@ -506,6 +543,8 @@ class DatabaseManager:
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_word_likes_word ON word_likes(word_id)')
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_reset_tokens_token ON password_reset_tokens(token)')
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_reset_tokens_user ON password_reset_tokens(user_id)')
+                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_learning_sessions(user_id)')
+                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_session_words_session ON ai_learning_session_words(session_id)')
                 except sqlite3.OperationalError as e:
                     # Ignore errors for tables that don't exist yet
                     if "no such table" not in str(e).lower():
@@ -1952,6 +1991,238 @@ class DatabaseManager:
         finally:
             if 'conn' in locals():
                 conn.close()
+
+    # AI Learning Session Methods
+    def create_ai_learning_session(self, user_id: int, target_words: int) -> Optional[int]:
+        """Create a new AI learning session."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO ai_learning_sessions (user_id, target_words)
+                    VALUES (?, ?)
+                ''', (user_id, target_words))
+                session_id = cursor.lastrowid
+                conn.commit()
+                return session_id
+        except sqlite3.Error as e:
+            print(f"Database error creating AI learning session: {e}")
+            return None
+
+    def get_ai_learning_session(self, session_id: int) -> Optional[Dict]:
+        """Get AI learning session details."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT * FROM ai_learning_sessions WHERE id = ?
+                ''', (session_id,))
+                row = cursor.fetchone()
+                if row:
+                    return dict(row)
+                return None
+        except sqlite3.Error as e:
+            print(f"Database error getting AI learning session: {e}")
+            return None
+
+    def update_ai_learning_session_progress(self, session_id: int, words_completed: int, 
+                                          words_correct: int, current_difficulty: str) -> bool:
+        """Update AI learning session progress."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE ai_learning_sessions 
+                    SET words_completed = ?, words_correct = ?, current_difficulty = ?
+                    WHERE id = ?
+                ''', (words_completed, words_correct, current_difficulty, session_id))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            print(f"Database error updating AI learning session: {e}")
+            return False
+
+    def complete_ai_learning_session(self, session_id: int, total_time_seconds: int) -> bool:
+        """Complete an AI learning session."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE ai_learning_sessions 
+                    SET is_completed = 1, session_ended_at = CURRENT_TIMESTAMP, 
+                        total_time_seconds = ?
+                    WHERE id = ?
+                ''', (total_time_seconds, session_id))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            print(f"Database error completing AI learning session: {e}")
+            return False
+
+    def add_word_to_ai_session(self, session_id: int, word_text: str, word_id: Optional[int] = None,
+                              base_word_id: Optional[int] = None, difficulty_level: str = 'medium',
+                              word_order: int = 0) -> bool:
+        """Add a word to an AI learning session."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO ai_learning_session_words 
+                    (session_id, word_id, base_word_id, word_text, difficulty_level, word_order)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (session_id, word_id, base_word_id, word_text, difficulty_level, word_order))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            print(f"Database error adding word to AI session: {e}")
+            return False
+
+    def record_ai_session_response(self, session_id: int, word_text: str, user_response: str,
+                                 is_correct: bool, response_time_ms: int = 0) -> bool:
+        """Record user response for a word in AI learning session."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE ai_learning_session_words 
+                    SET user_response = ?, is_correct = ?, response_time_ms = ?
+                    WHERE session_id = ? AND word_text = ?
+                ''', (user_response, is_correct, response_time_ms, session_id, word_text))
+                conn.commit()
+                return True
+        except sqlite3.Error as e:
+            print(f"Database error recording AI session response: {e}")
+            return False
+
+    def get_ai_session_summary(self, session_id: int) -> Optional[Dict]:
+        """Get summary statistics for an AI learning session."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Get session details
+                cursor.execute('''
+                    SELECT s.*, 
+                           COUNT(w.id) as total_words_attempted,
+                           SUM(CASE WHEN w.is_correct = 1 THEN 1 ELSE 0 END) as words_correct,
+                           AVG(w.response_time_ms) as avg_response_time
+                    FROM ai_learning_sessions s
+                    LEFT JOIN ai_learning_session_words w ON s.id = w.session_id
+                    WHERE s.id = ?
+                    GROUP BY s.id
+                ''', (session_id,))
+                
+                row = cursor.fetchone()
+                if row:
+                    summary = dict(row)
+                    
+                    # Get word-by-word breakdown
+                    cursor.execute('''
+                        SELECT word_text, difficulty_level, is_correct, user_response, response_time_ms
+                        FROM ai_learning_session_words 
+                        WHERE session_id = ?
+                        ORDER BY word_order
+                    ''', (session_id,))
+                    
+                    summary['words_breakdown'] = [dict(row) for row in cursor.fetchall()]
+                    return summary
+                return None
+        except sqlite3.Error as e:
+            print(f"Database error getting AI session summary: {e}")
+            return None
+
+    def get_words_for_ai_learning(self, user_id: int, difficulty: str = 'medium', 
+                                 limit: int = 20, exclude_mastered_words: bool = True) -> List[Dict]:
+        """Get words from user's vocabulary for AI learning sessions, excluding already known words."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Check how many words user has in their vocabulary
+                cursor.execute('SELECT COUNT(*) as count FROM vocabulary WHERE user_id = ?', (user_id,))
+                user_word_count = cursor.fetchone()['count']
+                print(f"Debug: User {user_id} has {user_word_count} words in their vocabulary")
+                
+                # Check what difficulty values exist in user's vocabulary
+                cursor.execute('SELECT DISTINCT difficulty FROM vocabulary WHERE user_id = ?', (user_id,))
+                available_difficulties = [row['difficulty'] for row in cursor.fetchall()]
+                print(f"Debug: Available difficulties in user vocabulary: {available_difficulties}")
+                
+                if exclude_mastered_words:
+                    # Count words that are not mastered (mastery_level < 3 means not "already know")
+                    cursor.execute('''
+                        SELECT COUNT(*) as count FROM vocabulary 
+                        WHERE user_id = ? AND mastery_level < 3
+                    ''', (user_id,))
+                    available_words = cursor.fetchone()['count']
+                    print(f"Debug: {available_words} words available for learning (excluding mastered)")
+                
+                # Determine target difficulty
+                if difficulty in available_difficulties:
+                    target_difficulty = difficulty
+                elif available_difficulties:
+                    target_difficulty = available_difficulties[0]  # Use first available
+                    print(f"Debug: Requested difficulty '{difficulty}' not found, using '{target_difficulty}'")
+                else:
+                    print("Debug: No words found in user vocabulary")
+                    return []
+                
+                # Build the query to get words from user's vocabulary
+                if exclude_mastered_words:
+                    # Exclude words with mastery_level 3 (considered "already know")
+                    query = '''
+                        SELECT * FROM vocabulary 
+                        WHERE user_id = ? AND difficulty = ? AND mastery_level < 3
+                        ORDER BY RANDOM()
+                        LIMIT ?
+                    '''
+                    params = (user_id, target_difficulty, limit)
+                else:
+                    # Include all words regardless of mastery level
+                    query = '''
+                        SELECT * FROM vocabulary 
+                        WHERE user_id = ? AND difficulty = ?
+                        ORDER BY RANDOM()
+                        LIMIT ?
+                    '''
+                    params = (user_id, target_difficulty, limit)
+                
+                print(f"Debug: Querying user vocabulary for difficulty '{target_difficulty}', excluding mastered: {exclude_mastered_words}")
+                cursor.execute(query, params)
+                results = [dict(row) for row in cursor.fetchall()]
+                print(f"Debug: Found {len(results)} words for difficulty '{target_difficulty}'")
+                
+                # If no words found for specific difficulty, try getting any available words from user vocabulary
+                if not results and exclude_mastered_words:
+                    print(f"Debug: No words found for difficulty '{target_difficulty}', trying any difficulty (excluding mastered)")
+                    query = '''
+                        SELECT * FROM vocabulary 
+                        WHERE user_id = ? AND mastery_level < 3
+                        ORDER BY RANDOM()
+                        LIMIT ?
+                    '''
+                    params = (user_id, limit)
+                    cursor.execute(query, params)
+                    results = [dict(row) for row in cursor.fetchall()]
+                    print(f"Debug: Found {len(results)} words when trying any difficulty (excluding mastered)")
+                elif not results and not exclude_mastered_words:
+                    print(f"Debug: No words found for difficulty '{target_difficulty}', trying any difficulty (including mastered)")
+                    query = '''
+                        SELECT * FROM vocabulary 
+                        WHERE user_id = ?
+                        ORDER BY RANDOM()
+                        LIMIT ?
+                    '''
+                    params = (user_id, limit)
+                    cursor.execute(query, params)
+                    results = [dict(row) for row in cursor.fetchall()]
+                    print(f"Debug: Found {len(results)} words when trying any difficulty (including mastered)")
+                
+                return results
+                
+        except sqlite3.Error as e:
+            print(f"Database error getting words for AI learning: {e}")
+            return []
 
 
 # Migration function to update date_of_birth to year_of_birth

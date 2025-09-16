@@ -841,7 +841,7 @@ def ai_learning():
     user = get_current_user()
     analysis = db_manager.analyze_user_learning_patterns(user_id)
     is_user_admin = is_admin()
-    return render_template('ai_learning.html', user=user, analysis=analysis, is_admin=is_user_admin)
+    return render_template('ai_learning_enhanced.html', user=user, analysis=analysis, is_admin=is_user_admin)
 
 @app.route('/api/ai/suggest-word')
 @auth.login_required
@@ -903,6 +903,281 @@ def ai_feedback():
         return jsonify({'success': True, 'message': 'Feedback recorded'})
     else:
         return jsonify({'success': False, 'error': 'Failed to record feedback'}), 500
+
+@app.route('/api/ai/session/start', methods=['POST'])
+@auth.login_required
+def start_ai_learning_session():
+    """Start a new AI learning session."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    target_words = data.get('target_words', 10)
+    if target_words < 5 or target_words > 50:
+        return jsonify({'success': False, 'error': 'Target words must be between 5 and 50'}), 400
+    
+    session_id = db_manager.create_ai_learning_session(user_id, target_words)
+    
+    if session_id:
+        return jsonify({'success': True, 'session_id': session_id})
+    else:
+        return jsonify({'success': False, 'error': 'Failed to create session'}), 500
+
+@app.route('/api/ai/session/<int:session_id>/word')
+@auth.login_required
+def get_next_session_word(session_id):
+    """Get next word for AI learning session."""
+    user_id = require_user_id()
+    
+    try:
+        # Get session details
+        session = db_manager.get_ai_learning_session(session_id)
+        if not session:
+            print(f"Debug: Session {session_id} not found")
+            return jsonify({'success': False, 'error': 'Session not found'}), 404
+        
+        if session['user_id'] != user_id:
+            print(f"Debug: Session {session_id} belongs to user {session['user_id']}, not {user_id}")
+            return jsonify({'success': False, 'error': 'Session not found'}), 404
+        
+        if session['is_completed']:
+            print(f"Debug: Session {session_id} is already completed")
+            return jsonify({'success': False, 'error': 'Session already completed'}), 400
+        
+        # Determine current difficulty based on recent performance
+        current_difficulty = session.get('current_difficulty', 'medium')
+        print(f"Debug: Current difficulty for session {session_id}: {current_difficulty}")
+        
+        # Get words from user's vocabulary (excluding mastered words)
+        available_words = db_manager.get_words_for_ai_learning(
+            user_id, 
+            difficulty=current_difficulty, 
+            limit=5,
+            exclude_mastered_words=True  # Exclude words marked as "already know" (mastery_level 3)
+        )
+        
+        if not available_words:
+            print(f"Debug: No words found for difficulty {current_difficulty}, trying fallback")
+            # Try different difficulty if no words found
+            for fallback_difficulty in ['easy', 'medium', 'hard']:
+                if fallback_difficulty != current_difficulty:
+                    available_words = db_manager.get_words_for_ai_learning(
+                        user_id, 
+                        difficulty=fallback_difficulty, 
+                        limit=5,
+                        exclude_mastered_words=True
+                    )
+                    if available_words:
+                        current_difficulty = fallback_difficulty
+                        print(f"Debug: Found words with fallback difficulty: {fallback_difficulty}")
+                        break
+        
+        # Final fallback: if no words found excluding mastered, try including mastered words
+        if not available_words:
+            print(f"Debug: No words found excluding mastered, trying to include mastered words")
+            available_words = db_manager.get_words_for_ai_learning(
+                user_id, 
+                difficulty=current_difficulty, 
+                limit=5,
+                exclude_mastered_words=False  # Include mastered words as final fallback
+            )
+            if available_words:
+                print(f"Debug: Found {len(available_words)} words including mastered ones")
+        
+        if not available_words:
+            print(f"Debug: No suitable words found for user {user_id}")
+            return jsonify({'success': False, 'error': 'No vocabulary words found. Please add some words to your vocabulary first.'}), 404
+        
+        # Select a random word
+        import random
+        selected_word = random.choice(available_words)
+        print(f"Debug: Selected word: {selected_word['word']} (difficulty: {current_difficulty})")
+        
+        # Add word to session
+        word_order = session['words_completed'] + 1
+        success = db_manager.add_word_to_ai_session(
+            session_id, 
+            selected_word['word'],
+            base_word_id=selected_word['id'],
+            difficulty_level=current_difficulty,
+            word_order=word_order
+        )
+        
+        if not success:
+            print(f"Debug: Failed to add word to session {session_id}")
+            return jsonify({'success': False, 'error': 'Failed to add word to session'}), 500
+        
+        return jsonify({
+            'success': True,
+            'word': {
+                'word': selected_word['word'],
+                'type': selected_word['word_type'],
+                'definition': selected_word['definition'],
+                'example': selected_word['example'],
+                'difficulty': current_difficulty
+            },
+            'session_progress': {
+                'current': session['words_completed'] + 1,
+                'total': session['target_words'],
+                'correct': session['words_correct']
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error in get_next_session_word: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.route('/api/ai/session/<int:session_id>/response', methods=['POST'])
+@auth.login_required
+def record_session_response(session_id):
+    """Record user response for a word in AI learning session."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    if not data or 'word' not in data or 'response' not in data:
+        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+    
+    # Get session details
+    session = db_manager.get_ai_learning_session(session_id)
+    if not session or session['user_id'] != user_id:
+        return jsonify({'success': False, 'error': 'Session not found'}), 404
+    
+    word = data['word']
+    response = data['response']  # 'know' or 'learn'
+    response_time_ms = data.get('response_time_ms', 0)
+    
+    is_correct = response == 'know'
+    
+    # Record the response
+    success = db_manager.record_ai_session_response(
+        session_id, word, response, is_correct, response_time_ms
+    )
+    
+    if not success:
+        return jsonify({'success': False, 'error': 'Failed to record response'}), 500
+    
+    # Update session progress
+    words_completed = session['words_completed'] + 1
+    words_correct = session['words_correct'] + (1 if is_correct else 0)
+    
+    # Adjust difficulty based on recent performance
+    if words_completed >= 3:  # Only adjust after a few words
+        recent_accuracy = words_correct / words_completed
+        current_difficulty = session.get('current_difficulty', 'medium')
+        
+        if recent_accuracy >= 0.8 and current_difficulty != 'hard':
+            new_difficulty = 'hard' if current_difficulty == 'medium' else 'medium'
+        elif recent_accuracy <= 0.3 and current_difficulty != 'easy':
+            new_difficulty = 'easy' if current_difficulty == 'medium' else 'medium'
+        else:
+            new_difficulty = current_difficulty
+    else:
+        new_difficulty = session.get('current_difficulty', 'medium')
+    
+    # Update session
+    db_manager.update_ai_learning_session_progress(
+        session_id, words_completed, words_correct, new_difficulty
+    )
+    
+    # Check if session is complete
+    session_complete = words_completed >= session['target_words']
+    
+    return jsonify({
+        'success': True,
+        'session_complete': session_complete,
+        'progress': {
+            'current': words_completed,
+            'total': session['target_words'],
+            'correct': words_correct,
+            'accuracy': round((words_correct / words_completed * 100) if words_completed > 0 else 0, 1)
+        },
+        'difficulty_adjusted': new_difficulty != session.get('current_difficulty', 'medium'),
+        'new_difficulty': new_difficulty
+    })
+
+@app.route('/api/ai/session/<int:session_id>/complete', methods=['POST'])
+@auth.login_required
+def complete_ai_learning_session(session_id):
+    """Complete an AI learning session and get summary."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    # Get session details
+    session = db_manager.get_ai_learning_session(session_id)
+    if not session or session['user_id'] != user_id:
+        return jsonify({'success': False, 'error': 'Session not found'}), 404
+    
+    total_time_seconds = data.get('total_time_seconds', 0)
+    
+    # Complete the session
+    success = db_manager.complete_ai_learning_session(session_id, total_time_seconds)
+    
+    if not success:
+        return jsonify({'success': False, 'error': 'Failed to complete session'}), 500
+    
+    # Get session summary
+    summary = db_manager.get_ai_session_summary(session_id)
+    
+    if summary:
+        return jsonify({'success': True, 'summary': summary})
+    else:
+        return jsonify({'success': False, 'error': 'Failed to generate summary'}), 500
+
+@app.route('/api/debug/vocab-stats')
+@auth.login_required
+def debug_vocab_stats():
+    """Debug endpoint to check vocabulary statistics."""
+    user_id = require_user_id()
+    
+    try:
+        with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Check base vocabulary stats
+            cursor.execute('SELECT COUNT(*) as count FROM base_vocabulary WHERE is_active = 1')
+            total_base = cursor.fetchone()['count']
+            
+            cursor.execute('SELECT DISTINCT difficulty FROM base_vocabulary WHERE is_active = 1')
+            difficulties = [row['difficulty'] for row in cursor.fetchall()]
+            
+            # Check user vocabulary count
+            cursor.execute('SELECT COUNT(*) as count FROM vocabulary WHERE user_id = ?', (user_id,))
+            user_words = cursor.fetchone()['count']
+            
+            # Check overlap
+            cursor.execute('''
+                SELECT COUNT(*) as count FROM base_vocabulary bv
+                WHERE bv.is_active = 1
+                AND bv.word NOT IN (
+                    SELECT LOWER(v.word) FROM vocabulary v WHERE v.user_id = ?
+                )
+            ''', (user_id,))
+            available_new = cursor.fetchone()['count']
+            
+            # Get sample words for each difficulty
+            difficulty_samples = {}
+            for diff in difficulties:
+                cursor.execute('''
+                    SELECT word FROM base_vocabulary 
+                    WHERE difficulty = ? AND is_active = 1 
+                    LIMIT 3
+                ''', (diff,))
+                difficulty_samples[diff] = [row['word'] for row in cursor.fetchall()]
+            
+            return jsonify({
+                'success': True,
+                'stats': {
+                    'total_base_vocabulary': total_base,
+                    'available_difficulties': difficulties,
+                    'user_vocabulary_count': user_words,
+                    'available_new_words': available_new,
+                    'difficulty_samples': difficulty_samples
+                }
+            })
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/manage')
 @auth.login_required
