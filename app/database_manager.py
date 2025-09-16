@@ -138,9 +138,16 @@ class DatabaseManager:
         self.update_schema_if_needed()
     
     def get_connection(self) -> sqlite3.Connection:
-        """Get database connection with row factory."""
-        conn = sqlite3.connect(self.db_path)
+        """Get database connection with row factory and optimized settings."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)  # 30 second timeout
         conn.row_factory = sqlite3.Row  # This allows dict-like access to rows
+        
+        # Configure SQLite for better concurrency
+        conn.execute("PRAGMA busy_timeout = 30000")  # 30 second busy timeout
+        conn.execute("PRAGMA journal_mode = WAL")    # Write-Ahead Logging for better concurrency
+        conn.execute("PRAGMA synchronous = NORMAL")  # Balance between safety and performance
+        conn.execute("PRAGMA cache_size = -64000")   # 64MB cache
+        
         return conn
     
     def init_database(self) -> None:
@@ -1654,8 +1661,43 @@ class DatabaseManager:
                 ''', (user_id,))
                 deleted_count = cursor.rowcount
                 
-                # Copy base vocabulary to user
-                copied_count = self.copy_base_vocabulary_to_user(user_id)
+                # Copy base vocabulary to user directly within this connection
+                cursor.execute('''
+                    SELECT id, word, word_type, definition, example, difficulty, category
+                    FROM base_vocabulary 
+                    WHERE is_active = 1
+                ''')
+                
+                base_words = cursor.fetchall()
+                copied_count = 0
+                skipped_count = 0
+                
+                for base_word in base_words:
+                    try:
+                        cursor.execute('''
+                            INSERT INTO vocabulary 
+                            (user_id, word, word_type, definition, example, difficulty, source, base_word_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            user_id,
+                            base_word['word'],
+                            base_word['word_type'],
+                            base_word['definition'],
+                            base_word['example'],
+                            base_word['difficulty'],
+                            'base_vocabulary',
+                            base_word['id']
+                        ))
+                        copied_count += 1
+                    except sqlite3.IntegrityError:
+                        # Word already exists for this user
+                        skipped_count += 1
+                
+                conn.commit()
+                
+                print(f"✅ Copied {copied_count} base words to user {user_id}")
+                if skipped_count > 0:
+                    print(f"⚠️  Skipped {skipped_count} words already in user's vocabulary")
                 
                 return True, f"Reloaded {copied_count} base words for user '{user['username']}' (removed {deleted_count} old base words)", copied_count
                 
