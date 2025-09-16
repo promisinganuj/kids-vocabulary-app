@@ -83,7 +83,8 @@ class VocabularyWord:
                  word_id: Optional[int] = None, user_id: Optional[int] = None,
                  difficulty: str = 'medium', times_reviewed: int = 0, 
                  times_correct: int = 0, mastery_level: int = 0,
-                 created_at: Optional[str] = None, last_reviewed: Optional[str] = None):
+                 created_at: Optional[str] = None, last_reviewed: Optional[str] = None,
+                 is_hidden: int = 0):
         self.word = word.strip()
         self.word_type = word_type.strip()
         self.definition = definition.strip()
@@ -96,6 +97,7 @@ class VocabularyWord:
         self.mastery_level = mastery_level
         self.created_at = created_at
         self.last_reviewed = last_reviewed
+        self.is_hidden = is_hidden
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert word to dictionary for JSON serialization."""
@@ -112,6 +114,7 @@ class VocabularyWord:
             'mastery_level': self.mastery_level,
             'created_at': self.created_at,
             'last_reviewed': self.last_reviewed,
+            'is_hidden': self.is_hidden,
             'accuracy': round((self.times_correct / self.times_reviewed * 100) if self.times_reviewed > 0 else 0, 1)
         }
 
@@ -946,7 +949,8 @@ class DatabaseManager:
                     times_correct=row['times_correct'],
                     mastery_level=row['mastery_level'],
                     created_at=row['created_at'],
-                    last_reviewed=row['last_reviewed']
+                    last_reviewed=row['last_reviewed'],
+                    is_hidden=row['is_hidden'] or 0
                 )
                 words.append(word.to_dict())
             
@@ -1352,22 +1356,28 @@ class DatabaseManager:
                 new_times_reviewed = current_times_reviewed + 1
                 new_times_correct = current_times_correct + (1 if correct else 0)
                 
-                # Calculate new mastery level based on accuracy
+                # Calculate new mastery level based on accuracy and review count
                 accuracy = (new_times_correct / new_times_reviewed) * 100 if new_times_reviewed > 0 else 0
                 
-                # Simple mastery level calculation:
-                # 0-30%: mastery_level = 0 (needs practice)
-                # 31-60%: mastery_level = 1 (learning)
-                # 61-80%: mastery_level = 2 (good)
-                # 81-100%: mastery_level = 3 (mastered)
-                if accuracy <= 30:
+                # Enhanced mastery level calculation with minimum review requirements:
+                # Level 0 (needs practice): accuracy < 50% OR very few reviews
+                # Level 1 (learning): 50-70% accuracy with 2+ reviews  
+                # Level 2 (good): 70-85% accuracy with 3+ reviews
+                # Level 3 (mastered): 85%+ accuracy with 4+ reviews
+                
+                if new_times_reviewed < 2 or accuracy < 50:
                     mastery_level = 0
-                elif accuracy <= 60:
+                elif new_times_reviewed >= 2 and accuracy >= 50 and accuracy < 70:
                     mastery_level = 1
-                elif accuracy <= 80:
+                elif new_times_reviewed >= 3 and accuracy >= 70 and accuracy < 85:
                     mastery_level = 2
-                else:
+                elif new_times_reviewed >= 4 and accuracy >= 85:
                     mastery_level = 3
+                else:
+                    # Keep current level if not enough data or borderline performance
+                    cursor.execute('SELECT mastery_level FROM vocabulary WHERE id = ? AND user_id = ?', (word_id, user_id))
+                    current_mastery = cursor.fetchone()['mastery_level']
+                    mastery_level = current_mastery
                 
                 # Update the word statistics
                 cursor.execute('''
@@ -1874,6 +1884,7 @@ class DatabaseManager:
             if not user_words:
                 return {
                     "total_words": 0,
+                    "words_mastered": 0,
                     "average_accuracy": 0,
                     "difficult_words": [],
                     "easy_words": [],
@@ -1886,6 +1897,9 @@ class DatabaseManager:
             total_words = len(user_words)
             total_reviews = sum(row['times_reviewed'] for row in user_words if row['times_reviewed'])
             total_correct = sum(row['times_correct'] for row in user_words if row['times_correct'])
+            
+            # Calculate words mastered (mastery_level >= 3)
+            words_mastered = sum(1 for row in user_words if row['mastery_level'] >= 3)
             
             # Calculate average accuracy
             average_accuracy = (total_correct / total_reviews * 100) if total_reviews > 0 else 50
@@ -1921,6 +1935,7 @@ class DatabaseManager:
             
             return {
                 "total_words": total_words,
+                "words_mastered": words_mastered,
                 "average_accuracy": round(average_accuracy, 1),
                 "difficult_words": difficult_words[:5],  # Top 5 difficult words
                 "easy_words": easy_words[:5],  # Top 5 easy words
@@ -1935,6 +1950,7 @@ class DatabaseManager:
             print(f"Database error in analyze_user_learning_patterns: {e}")
             return {
                 "total_words": 0,
+                "words_mastered": 0,
                 "average_accuracy": 0,
                 "difficult_words": [],
                 "easy_words": [],
@@ -2079,15 +2095,81 @@ class DatabaseManager:
 
     def record_ai_session_response(self, session_id: int, word_text: str, user_response: str,
                                  is_correct: bool, response_time_ms: int = 0) -> bool:
-        """Record user response for a word in AI learning session."""
+        """Record user response for a word in AI learning session and update vocabulary mastery."""
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
+                
+                # First, get the session to find the user
+                cursor.execute('SELECT user_id FROM ai_learning_sessions WHERE id = ?', (session_id,))
+                session_result = cursor.fetchone()
+                if not session_result:
+                    print(f"No session found with id {session_id}")
+                    return False
+                
+                user_id = session_result['user_id']
+                
+                # Record response in AI session
                 cursor.execute('''
                     UPDATE ai_learning_session_words 
                     SET user_response = ?, is_correct = ?, response_time_ms = ?
                     WHERE session_id = ? AND word_text = ?
                 ''', (user_response, is_correct, response_time_ms, session_id, word_text))
+                
+                # Update user's vocabulary mastery if this word exists in their vocabulary
+                cursor.execute('''
+                    SELECT id, times_reviewed, times_correct, mastery_level 
+                    FROM vocabulary 
+                    WHERE user_id = ? AND LOWER(word) = LOWER(?)
+                ''', (user_id, word_text))
+                
+                vocab_result = cursor.fetchone()
+                if vocab_result:
+                    # Word exists in user's vocabulary - update mastery
+                    word_id = vocab_result['id']
+                    current_times_reviewed = vocab_result['times_reviewed'] or 0
+                    current_times_correct = vocab_result['times_correct'] or 0
+                    
+                    # Update review statistics
+                    new_times_reviewed = current_times_reviewed + 1
+                    new_times_correct = current_times_correct + (1 if is_correct else 0)
+                    
+                    # Calculate new mastery level based on accuracy and review count
+                    accuracy = (new_times_correct / new_times_reviewed) * 100 if new_times_reviewed > 0 else 0
+                    
+                    # Enhanced mastery level calculation:
+                    # Level 0 (needs practice): accuracy < 50% OR very few reviews
+                    # Level 1 (learning): 50-70% accuracy with 2+ reviews  
+                    # Level 2 (good): 70-85% accuracy with 3+ reviews
+                    # Level 3 (mastered): 85%+ accuracy with 4+ reviews
+                    
+                    if new_times_reviewed < 2 or accuracy < 50:
+                        mastery_level = 0
+                    elif new_times_reviewed >= 2 and accuracy >= 50 and accuracy < 70:
+                        mastery_level = 1
+                    elif new_times_reviewed >= 3 and accuracy >= 70 and accuracy < 85:
+                        mastery_level = 2
+                    elif new_times_reviewed >= 4 and accuracy >= 85:
+                        mastery_level = 3
+                    else:
+                        # Keep current level if not enough data or borderline performance
+                        mastery_level = vocab_result['mastery_level']
+                    
+                    # Update the word statistics
+                    cursor.execute('''
+                        UPDATE vocabulary 
+                        SET times_reviewed = ?, 
+                            times_correct = ?, 
+                            mastery_level = ?,
+                            last_reviewed = CURRENT_TIMESTAMP
+                        WHERE id = ? AND user_id = ?
+                    ''', (new_times_reviewed, new_times_correct, mastery_level, word_id, user_id))
+                    
+                    print(f"Updated vocabulary word '{word_text}' for user {user_id}: "
+                          f"accuracy={accuracy:.1f}%, mastery={mastery_level}")
+                else:
+                    print(f"Word '{word_text}' not found in user {user_id}'s vocabulary - AI session only")
+                
                 conn.commit()
                 return True
         except sqlite3.Error as e:
@@ -2222,6 +2304,173 @@ class DatabaseManager:
                 
         except sqlite3.Error as e:
             print(f"Database error getting words for AI learning: {e}")
+            return []
+    
+    def check_and_award_achievements(self, user_id: int) -> List[str]:
+        """Check for new achievements and return list of earned ones"""
+        achievements = []
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Get vocabulary stats
+                cursor.execute('SELECT COUNT(*) as total FROM vocabulary WHERE user_id = ?', (user_id,))
+                total_words = cursor.fetchone()['total']
+                
+                cursor.execute('SELECT COUNT(*) as mastered FROM vocabulary WHERE user_id = ? AND mastery_level = 3', (user_id,))
+                mastered_words = cursor.fetchone()['mastered']
+                
+                cursor.execute('SELECT COUNT(*) as sessions FROM study_sessions WHERE user_id = ?', (user_id,))
+                total_sessions = cursor.fetchone()['sessions']
+                
+                cursor.execute('''
+                    SELECT COUNT(*) as perfect_sessions FROM study_sessions 
+                    WHERE user_id = ? AND accuracy_percentage = 100 AND words_reviewed > 0
+                ''', (user_id,))
+                perfect_sessions = cursor.fetchone()['perfect_sessions']
+                
+                cursor.execute('SELECT COUNT(*) as ai_sessions FROM ai_learning_sessions WHERE user_id = ?', (user_id,))
+                ai_sessions = cursor.fetchone()['ai_sessions']
+                
+                # Achievement logic - milestone based
+                achievements_earned = []
+                if total_words >= 50: achievements_earned.append("📚 Vocabulary Builder - 50 words learned!")
+                if total_words >= 100: achievements_earned.append("📖 Word Collector - 100 words in library!")
+                if total_words >= 250: achievements_earned.append("🏛️ Lexicon Master - 250 words strong!")
+                
+                if mastered_words >= 10: achievements_earned.append("🎯 First Mastery - 10 words mastered!")
+                if mastered_words >= 25: achievements_earned.append("⭐ Word Expert - 25 words mastered!")
+                if mastered_words >= 50: achievements_earned.append("🏆 Vocabulary Champion - 50 words mastered!")
+                
+                if total_sessions >= 5: achievements_earned.append("🔥 Study Starter - 5 study sessions!")
+                if total_sessions >= 15: achievements_earned.append("📈 Consistent Learner - 15 sessions!")
+                if total_sessions >= 30: achievements_earned.append("💪 Study Master - 30 sessions completed!")
+                
+                if perfect_sessions >= 1: achievements_earned.append("🎯 Perfect Score - 100% accuracy session!")
+                if perfect_sessions >= 3: achievements_earned.append("🌟 Accuracy Expert - 3 perfect sessions!")
+                
+                if ai_sessions >= 3: achievements_earned.append("🤖 AI Learning Explorer - 3 AI sessions!")
+                if ai_sessions >= 10: achievements_earned.append("🧠 AI Study Master - 10 AI sessions!")
+                
+                return achievements_earned
+                
+        except Exception as e:
+            print(f"Error checking achievements: {e}")
+            return []
+    
+    def get_recent_words(self, user_id: int, days: int = 7) -> List[Dict]:
+        """Get words studied in last N days"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT *, 
+                           julianday('now') - julianday(last_reviewed) as days_ago,
+                           ROUND((times_correct * 1.0 / NULLIF(times_reviewed, 0)) * 100, 1) as accuracy_percent
+                    FROM vocabulary 
+                    WHERE user_id = ? 
+                      AND last_reviewed IS NOT NULL 
+                      AND julianday('now') - julianday(last_reviewed) <= ?
+                    ORDER BY last_reviewed DESC
+                    LIMIT 50
+                ''', (user_id, days))
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting recent words: {e}")
+            return []
+    
+    def get_study_insights(self, user_id: int) -> Dict:
+        """Get actionable study insights from existing data"""
+        insights = {
+            'struggling_words': [],
+            'daily_progress': [],
+            'needs_review_count': 0,
+            'total_mastered': 0,
+            'accuracy_trend': 'stable'
+        }
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Words that need attention (low accuracy with multiple reviews)
+                cursor.execute('''
+                    SELECT word, definition, times_reviewed, times_correct, mastery_level,
+                           ROUND((times_correct * 1.0 / NULLIF(times_reviewed, 0)) * 100, 1) as accuracy
+                    FROM vocabulary 
+                    WHERE user_id = ? 
+                      AND times_reviewed >= 2 
+                      AND (times_correct * 1.0 / times_reviewed) < 0.6
+                    ORDER BY times_reviewed DESC, accuracy ASC
+                    LIMIT 10
+                ''', (user_id,))
+                insights['struggling_words'] = [dict(row) for row in cursor.fetchall()]
+                insights['needs_review_count'] = len(insights['struggling_words'])
+                
+                # Progress over time (study sessions)
+                cursor.execute('''
+                    SELECT DATE(start_time) as date, 
+                           AVG(accuracy_percentage) as avg_accuracy,
+                           SUM(words_reviewed) as total_reviewed
+                    FROM study_sessions 
+                    WHERE user_id = ? 
+                      AND start_time >= datetime('now', '-30 days')
+                      AND is_completed = 1
+                    GROUP BY DATE(start_time)
+                    ORDER BY date DESC
+                    LIMIT 14
+                ''', (user_id,))
+                insights['daily_progress'] = [dict(row) for row in cursor.fetchall()]
+                
+                # Total mastered words
+                cursor.execute('SELECT COUNT(*) as mastered FROM vocabulary WHERE user_id = ? AND mastery_level = 3', (user_id,))
+                insights['total_mastered'] = cursor.fetchone()['mastered']
+                
+                # Calculate accuracy trend
+                if len(insights['daily_progress']) >= 3:
+                    recent_avg = sum(day['avg_accuracy'] or 0 for day in insights['daily_progress'][:3]) / 3
+                    older_avg = sum(day['avg_accuracy'] or 0 for day in insights['daily_progress'][-3:]) / 3
+                    
+                    if recent_avg > older_avg + 5:
+                        insights['accuracy_trend'] = 'improving'
+                    elif recent_avg < older_avg - 5:
+                        insights['accuracy_trend'] = 'declining'
+                
+        except Exception as e:
+            print(f"Error getting study insights: {e}")
+        
+        return insights
+    
+    def get_smart_words_for_ai_learning(self, user_id: int, difficulty: str = 'medium', limit: int = 20) -> List[Dict]:
+        """Get words intelligently for AI learning - prioritize struggling words and new words"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Prioritize words user struggles with, then new words, then general review
+                cursor.execute('''
+                    SELECT *, 
+                           (times_correct * 1.0 / NULLIF(times_reviewed, 0)) as accuracy,
+                           COALESCE(julianday('now') - julianday(last_reviewed), 999) as days_since_review,
+                           CASE 
+                               WHEN times_reviewed = 0 THEN 1  -- New words first
+                               WHEN (times_correct * 1.0 / NULLIF(times_reviewed, 0)) < 0.6 AND times_reviewed >= 2 THEN 2  -- Struggling words  
+                               WHEN julianday('now') - julianday(last_reviewed) > 7 THEN 3  -- Haven't seen in a week
+                               WHEN mastery_level < 2 THEN 4  -- Still learning
+                               ELSE 5
+                           END as priority
+                    FROM vocabulary 
+                    WHERE user_id = ? 
+                      AND mastery_level < 3  -- Exclude fully mastered words
+                      AND (difficulty = ? OR difficulty = '')
+                    ORDER BY priority ASC, RANDOM()
+                    LIMIT ?
+                ''', (user_id, difficulty, limit))
+                
+                return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error getting smart words for AI learning: {e}")
             return []
 
 
@@ -2421,6 +2670,10 @@ def migrate_single_user_to_multiuser(old_db_path: str, new_db_path: str, default
 def initialize_multiuser_from_text_file(text_file: str, user_id: int, db_manager: 'DatabaseManager') -> int:
     """Initialize database from text file for a specific user."""
     return db_manager.load_vocabulary_from_text_file(text_file, user_id)
+
+
+# Add the new methods to DatabaseManager class - these go before the end of the class
+# Note: These methods should be added inside the DatabaseManager class, after analyze_user_learning_patterns method
 
 
 if __name__ == '__main__':

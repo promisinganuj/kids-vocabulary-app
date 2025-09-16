@@ -841,7 +841,7 @@ def ai_learning():
     user = get_current_user()
     analysis = db_manager.analyze_user_learning_patterns(user_id)
     is_user_admin = is_admin()
-    return render_template('ai_learning_enhanced.html', user=user, analysis=analysis, is_admin=is_user_admin)
+    return render_template('ai_learning.html', user=user, analysis=analysis, is_admin=is_user_admin)
 
 @app.route('/api/ai/suggest-word')
 @auth.login_required
@@ -947,50 +947,19 @@ def get_next_session_word(session_id):
         current_difficulty = session.get('current_difficulty', 'medium')
         print(f"Debug: Current difficulty for session {session_id}: {current_difficulty}")
         
-        # Get words from user's vocabulary (excluding mastered words)
-        available_words = db_manager.get_words_for_ai_learning(
-            user_id, 
-            difficulty=current_difficulty, 
-            limit=5,
-            exclude_mastered_words=True  # Exclude words marked as "already know" (mastery_level 3)
-        )
-        
-        if not available_words:
-            print(f"Debug: No words found for difficulty {current_difficulty}, trying fallback")
-            # Try different difficulty if no words found
-            for fallback_difficulty in ['easy', 'medium', 'hard']:
-                if fallback_difficulty != current_difficulty:
-                    available_words = db_manager.get_words_for_ai_learning(
-                        user_id, 
-                        difficulty=fallback_difficulty, 
-                        limit=5,
-                        exclude_mastered_words=True
-                    )
-                    if available_words:
-                        current_difficulty = fallback_difficulty
-                        print(f"Debug: Found words with fallback difficulty: {fallback_difficulty}")
-                        break
-        
-        # Final fallback: if no words found excluding mastered, try including mastered words
-        if not available_words:
-            print(f"Debug: No words found excluding mastered, trying to include mastered words")
-            available_words = db_manager.get_words_for_ai_learning(
-                user_id, 
-                difficulty=current_difficulty, 
-                limit=5,
-                exclude_mastered_words=False  # Include mastered words as final fallback
-            )
-            if available_words:
-                print(f"Debug: Found {len(available_words)} words including mastered ones")
+        # Use smart word selection for AI learning sessions
+        available_words = db_manager.get_smart_words_for_ai_learning(user_id, limit=5)
         
         if not available_words:
             print(f"Debug: No suitable words found for user {user_id}")
             return jsonify({'success': False, 'error': 'No vocabulary words found. Please add some words to your vocabulary first.'}), 404
         
-        # Select a random word
-        import random
-        selected_word = random.choice(available_words)
-        print(f"Debug: Selected word: {selected_word['word']} (difficulty: {current_difficulty})")
+        # Smart selection already prioritizes words, so pick the first one
+        selected_word = available_words[0]
+        print(f"Debug: Smart-selected word: {selected_word['word']} (priority score: {selected_word.get('priority_score', 'N/A')})")
+        
+        # Determine difficulty from the word's metadata or default
+        word_difficulty = selected_word.get('difficulty', current_difficulty)
         
         # Add word to session
         word_order = session['words_completed'] + 1
@@ -998,7 +967,7 @@ def get_next_session_word(session_id):
             session_id, 
             selected_word['word'],
             base_word_id=selected_word['id'],
-            difficulty_level=current_difficulty,
+            difficulty_level=word_difficulty,
             word_order=word_order
         )
         
@@ -1622,6 +1591,40 @@ def internal_error(error):
         return jsonify({'error': 'Internal server error'}), 500
     else:
         return render_template('500.html'), 500
+
+# User Experience Enhancement API Routes
+@app.route('/api/user/achievements')
+@auth.login_required
+def get_user_achievements():
+    """API endpoint to get user achievements."""
+    user_id = session['user_id']
+    achievements = db_manager.check_and_award_achievements(user_id)
+    return jsonify({'success': True, 'achievements': achievements})
+
+@app.route('/api/user/recent-words')
+@auth.login_required
+def get_recent_words():
+    """API endpoint to get recently studied words."""
+    user_id = session['user_id']
+    days = request.args.get('days', 7, type=int)
+    recent_words = db_manager.get_recent_words(user_id, days)
+    return jsonify({'success': True, 'recent_words': recent_words})
+
+@app.route('/api/user/insights')
+@auth.login_required
+def get_study_insights():
+    """API endpoint to get personalized study insights."""
+    user_id = session['user_id']
+    insights = db_manager.get_study_insights(user_id)
+    return jsonify({'success': True, 'insights': insights})
+
+@app.route('/recent')
+@auth.login_required
+def recent_words_page():
+    """Recent words page showing recently studied vocabulary."""
+    user_id = session['user_id']
+    recent_words = db_manager.get_recent_words(user_id, 7)
+    return render_template('recent_words.html', recent_words=recent_words)
 
 # Admin Routes
 @app.route('/admin')
