@@ -324,6 +324,36 @@
             box-shadow: none;
         }
 
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(127, 140, 141, 0.3);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .word-input-container {
             display: flex;
             align-items: center;
@@ -480,6 +510,12 @@
             border: 1px solid #f5c6cb;
         }
 
+        .notification.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -600,10 +636,10 @@
         <div class="main-content">
             <div id="notification" class="notification" style="display: none;"></div>
 
-            <!-- Add New Word Section -->
+            <!-- Add/Update Word Section -->
             <div class="add-word-section">
                 <h2 class="section-title">
-                    ➕ Add New Word
+                    ➕ Add/Update Words
                 </h2>
                 
                 <form id="addWordForm">
@@ -613,11 +649,12 @@
                             <div class="word-input-container">
                                 <input type="text" id="wordInput" class="form-input" placeholder="e.g., Scrutinize" required>
                                 <button type="button" id="searchWordBtn" class="btn btn-search">
-                                    🔍 Search
+                                    🔍 Search Online
                                 </button>
                             </div>
-                            <div id="duplicateWarning" class="duplicate-message">⚠️ This word already exists in your vocabulary</div>
+                            <div id="duplicateWarning" class="duplicate-message">⚠️ This word already exists in your vocabulary - loaded for editing</div>
                             <div id="searchStatus" class="search-status"></div>
+                            <input type="hidden" id="wordIdInput" value="">
                         </div>
                         
                         <div class="form-group">
@@ -636,9 +673,14 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-success">
-                        ➕ Add Word
-                    </button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            ➕ Add Word
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="clearFormBtn" style="display: none;">
+                            🗑 Clear Form
+                        </button>
+                    </div>
                 </form>
             </div>
 
@@ -676,6 +718,9 @@
                                 <td class="word-example">{{ word.example }}</td>
                                 <td>
                                     <div class="action-buttons">
+                                        <button class="btn btn-primary btn-sm" onclick="editWord({{ word.id }})">
+                                            ✏️ Edit
+                                        </button>
                                         <button class="btn btn-danger btn-sm" onclick="removeWord({{ word.id }})">
                                             🗑 Remove
                                         </button>
@@ -717,17 +762,14 @@
             const type = document.getElementById('typeInput').value.trim();
             const definition = document.getElementById('definitionInput').value.trim();
             const example = document.getElementById('exampleInput').value.trim();
+            const wordId = document.getElementById('wordIdInput').value;
             
             if (!word || !type || !definition || !example) {
                 showNotification('Please fill in all fields', 'error');
                 return;
             }
             
-            // Check for duplicates before submitting
-            if (checkForDuplicate()) {
-                showNotification('This word already exists in your vocabulary', 'error');
-                return;
-            }
+            const isUpdate = wordId && wordId !== '';
             
             const wordData = {
                 word: word,
@@ -736,8 +778,11 @@
                 example: example
             };
             
-            fetch('/api/words', {
-                method: 'POST',
+            const url = isUpdate ? `/api/words/${wordId}` : '/api/words';
+            const method = isUpdate ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -749,9 +794,9 @@
                     showNotification(data.message, 'success');
                     
                     // Clear form
-                    document.getElementById('addWordForm').reset();
+                    clearForm();
                     
-                    // Reload page to show new word
+                    // Reload page to show changes
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
@@ -761,7 +806,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error adding word. Please try again.', 'error');
+                showNotification(`Error ${isUpdate ? 'updating' : 'adding'} word. Please try again.`, 'error');
             });
         }
 
@@ -844,24 +889,98 @@
         function checkForDuplicate() {
             const wordInput = document.getElementById('wordInput');
             const duplicateWarning = document.getElementById('duplicateWarning');
+            const wordIdInput = document.getElementById('wordIdInput');
             const word = wordInput.value.trim().toLowerCase();
             
             if (word === '') {
                 wordInput.classList.remove('duplicate-warning');
                 duplicateWarning.style.display = 'none';
+                clearFormFields();
+                updateFormMode(false);
                 return false;
             }
             
-            const isDuplicate = allWords.some(w => w.word.toLowerCase() === word);
+            // Find existing word
+            const existingWord = allWords.find(w => w.word.toLowerCase() === word);
             
-            if (isDuplicate) {
+            if (existingWord) {
                 wordInput.classList.add('duplicate-warning');
                 duplicateWarning.style.display = 'block';
+                
+                // Auto-populate form with existing word data
+                document.getElementById('typeInput').value = existingWord.word_type || '';
+                document.getElementById('definitionInput').value = existingWord.definition || '';
+                document.getElementById('exampleInput').value = existingWord.example || '';
+                wordIdInput.value = existingWord.id;
+                
+                // Switch to edit mode
+                updateFormMode(true);
+                
                 return true;
             } else {
                 wordInput.classList.remove('duplicate-warning');
                 duplicateWarning.style.display = 'none';
+                clearFormFields();
+                updateFormMode(false);
                 return false;
+            }
+        }
+
+        function clearFormFields() {
+            document.getElementById('typeInput').value = '';
+            document.getElementById('definitionInput').value = '';
+            document.getElementById('exampleInput').value = '';
+            document.getElementById('wordIdInput').value = '';
+            document.getElementById('searchStatus').textContent = '';
+            document.getElementById('searchStatus').className = 'search-status';
+        }
+
+        function editWord(wordId) {
+            const word = allWords.find(w => w.id === wordId);
+            if (!word) {
+                showNotification('Word not found', 'error');
+                return;
+            }
+            
+            // Populate form with word data
+            document.getElementById('wordInput').value = word.word;
+            document.getElementById('typeInput').value = word.word_type;
+            document.getElementById('definitionInput').value = word.definition;
+            document.getElementById('exampleInput').value = word.example;
+            document.getElementById('wordIdInput').value = word.id;
+            
+            // Update UI to show we're in edit mode
+            document.getElementById('wordInput').classList.add('duplicate-warning');
+            document.getElementById('duplicateWarning').style.display = 'block';
+            updateFormMode(true);
+            
+            // Scroll to form
+            document.querySelector('.add-word-section').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('addWordForm').reset();
+            clearFormFields();
+            updateFormMode(false);
+        }
+
+        function updateFormMode(isEditMode) {
+            const submitBtn = document.getElementById('submitBtn');
+            const clearBtn = document.getElementById('clearFormBtn');
+            const duplicateWarning = document.getElementById('duplicateWarning');
+            
+            if (isEditMode) {
+                submitBtn.innerHTML = '✏️ Update Word';
+                submitBtn.className = 'btn btn-primary';
+                clearBtn.style.display = 'inline-flex';
+                duplicateWarning.style.display = 'none';
+            } else {
+                submitBtn.innerHTML = '➕ Add Word';
+                submitBtn.className = 'btn btn-success';
+                clearBtn.style.display = 'none';
             }
         }
 
@@ -872,6 +991,7 @@
             const typeInput = document.getElementById('typeInput');
             const definitionInput = document.getElementById('definitionInput');
             const exampleInput = document.getElementById('exampleInput');
+            const wordId = document.getElementById('wordIdInput').value;
             
             const word = wordInput.value.trim();
             
@@ -896,10 +1016,13 @@
                         definitionInput.value = data.data.definition || '';
                         exampleInput.value = data.data.example || '';
                         
-                        searchStatus.textContent = '✅ Word found! You can edit the details before saving.';
+                        const isUpdate = wordId && wordId !== '';
+                        const actionText = isUpdate ? 'update' : 'add';
+                        
+                        searchStatus.textContent = `✅ Word found! You can edit the details and ${actionText} the word.`;
                         searchStatus.className = 'search-status success';
                         
-                        showNotification('Word definition found and populated!', 'success');
+                        showNotification(`Word definition found and populated! Click "${isUpdate ? 'Update' : 'Add'} Word" to save.`, 'success');
                     } else {
                         searchStatus.textContent = `❌ ${data.error}`;
                         searchStatus.className = 'search-status error';
@@ -917,7 +1040,7 @@
                 .finally(() => {
                     // Reset button state
                     searchBtn.disabled = false;
-                    searchBtn.textContent = '🔍 Search';
+                    searchBtn.textContent = '🔍 Search Online';
                 });
         }
 
@@ -990,6 +1113,7 @@
         document.getElementById('searchInput').addEventListener('input', searchWords);
         document.getElementById('wordInput').addEventListener('input', checkForDuplicate);
         document.getElementById('searchWordBtn').addEventListener('click', searchWordDefinition);
+        document.getElementById('clearFormBtn').addEventListener('click', clearForm);
         
         // Initialize stats
         updateStats();

@@ -769,6 +769,30 @@ def remove_word(word_id):
     else:
         return jsonify({'success': False, 'error': message}), 500
 
+@app.route('/api/words/<int:word_id>', methods=['PUT'])
+@auth.login_required
+def update_word(word_id):
+    """API endpoint to update an existing word for current user."""
+    user_id = require_user_id()
+    data = request.get_json()
+    
+    if not all(key in data for key in ['word', 'word_type', 'definition', 'example']):
+        return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+    
+    success, message = db_manager.update_user_word(
+        user_id,
+        word_id,
+        data['word'], 
+        data['word_type'], 
+        data['definition'], 
+        data['example']
+    )
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
 @app.route('/api/search/word/<word>')
 @auth.login_required
 def search_word_definition(word):

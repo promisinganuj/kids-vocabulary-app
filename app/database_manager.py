@@ -1252,6 +1252,44 @@ class DatabaseManager:
         except Exception as e:
             return False, f"Error removing word: {str(e)}"
     
+    def update_user_word(self, user_id: int, word_id: int, word: str, word_type: str, definition: str, example: str) -> Tuple[bool, str]:
+        """Update an existing word for a specific user."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # First verify the word belongs to the user
+                cursor.execute('''
+                    SELECT id FROM vocabulary WHERE id = ? AND user_id = ?
+                ''', (word_id, user_id))
+                
+                if not cursor.fetchone():
+                    return False, "Word not found or not owned by user"
+                
+                # Check if another word with the same text already exists for this user (excluding current word)
+                cursor.execute('''
+                    SELECT id FROM vocabulary 
+                    WHERE user_id = ? AND LOWER(word) = LOWER(?) AND id != ?
+                ''', (user_id, word.strip(), word_id))
+                
+                if cursor.fetchone():
+                    return False, "Another word with this name already exists in your vocabulary"
+                
+                # Update the word
+                cursor.execute('''
+                    UPDATE vocabulary 
+                    SET word = ?, word_type = ?, definition = ?, example = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ? AND user_id = ?
+                ''', (word.strip(), word_type.strip(), definition.strip(), example.strip(), word_id, user_id))
+                
+                if cursor.rowcount > 0:
+                    conn.commit()
+                    return True, "Word updated successfully"
+                else:
+                    return False, "Word not found or not owned by user"
+        except Exception as e:
+            return False, f"Error updating word: {str(e)}"
+    
     def record_word_review(self, user_id: int, word_id: int, correct: bool) -> Tuple[bool, str]:
         """Record a word review (correct/incorrect) for a specific user."""
         try:
