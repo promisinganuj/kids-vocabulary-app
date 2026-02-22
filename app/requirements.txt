@@ -1,20 +1,23 @@
 # FastAPI application server
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-gunicorn==21.2.0
+fastapi==0.129.2
+uvicorn[standard]==0.30.6
+gunicorn==25.1.0
 
 # Templating & form handling
-jinja2==3.1.2
-python-multipart==0.0.6
+jinja2==3.1.6
+python-multipart==0.0.22
 
 # Session middleware (required by Starlette SessionMiddleware)
-itsdangerous==2.1.2
+itsdangerous==2.2.0
 
 # Configuration management (includes python-dotenv for .env loading)
 pydantic-settings==2.1.0
 
 # HTTP client (for Azure OpenAI API calls)
-requests==2.31.0
+requests==2.32.4
 
 # Async file serving (required by FastAPI StaticFiles)
 aiofiles==23.2.1
+
+# Security
+bcrypt==4.1.2

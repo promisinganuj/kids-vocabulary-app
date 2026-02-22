@@ -35,8 +35,10 @@ from fastapi_auth import (
     init_authentication, get_current_user, require_authentication, require_admin, 
     get_session_token, auth_manager, user_preferences, RequestState, request_state
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from settings import settings
+import html
+import secrets as _secrets
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -45,8 +47,69 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# Add session middleware
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+# Add session middleware with secure cookie settings
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    session_cookie="session",
+    max_age=settings.SESSION_TIMEOUT_HOURS * 3600,
+    same_site="lax",
+    https_only=settings.is_production,
+)
+
+
+# ─── Security Headers Middleware ────────────────────────────────
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if settings.is_production:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'"
+        )
+    return response
+
+
+# ─── HTTPS Redirect Middleware (production only) ────────────────
+@app.middleware("http")
+async def https_redirect(request: Request, call_next):
+    if settings.is_production and request.headers.get("x-forwarded-proto") == "http":
+        url = request.url.replace(scheme="https")
+        return RedirectResponse(url=str(url), status_code=301)
+    return await call_next(request)
+
+
+# ─── CSRF Protection ───────────────────────────────────────────
+def generate_csrf_token(request: Request) -> str:
+    """Generate or retrieve CSRF token from session."""
+    if "csrf_token" not in request.session:
+        request.session["csrf_token"] = _secrets.token_hex(32)
+    return request.session["csrf_token"]
+
+
+def validate_csrf_token(request: Request, token: str) -> bool:
+    """Validate CSRF token against session."""
+    session_token = request.session.get("csrf_token")
+    if not session_token or not token:
+        return False
+    return _secrets.compare_digest(session_token, token)
+
+
+def sanitize_input(value: str) -> str:
+    """Sanitize user input to prevent XSS. Escapes HTML entities."""
+    if not value:
+        return value
+    return html.escape(value.strip(), quote=True)
 
 # Mount static files (we'll configure this later if needed)
 # app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -293,7 +356,7 @@ async def set_request_state(request: Request, call_next):
             user = auth_manager.validate_session(token)
             request_state.current_user = user
             request_state.session_token = token
-    except:
+    except Exception:
         pass
     
     response = await call_next(request)
@@ -328,7 +391,8 @@ def get_template_context(request: Request, current_user: Optional[User] = None):
         "user": current_user,  # Some templates expect 'user' instead of 'current_user'
         "is_admin": is_admin_sync() if current_user else False,
         "words": [],  # Default empty list
-        "total_words": 0  # Default count
+        "total_words": 0,  # Default count
+        "csrf_token": generate_csrf_token(request),
     }
     return context
 
@@ -629,6 +693,21 @@ async def register(
         except:
             pass
     
+    # CSRF validation
+    csrf_token = None
+    try:
+        if hasattr(request, '_form'):
+            form_data = await request.form()
+            csrf_token = form_data.get('csrf_token')
+    except Exception:
+        pass
+    if not csrf_token:
+        try:
+            json_data_csrf = await request.json()
+            csrf_token = json_data_csrf.get('csrf_token')
+        except Exception:
+            pass
+    
     # Validation
     if not email or not username or not password:
         raise HTTPException(status_code=400, detail='Email, username, and password are required')
@@ -636,8 +715,10 @@ async def register(
     if password != confirm_password:
         raise HTTPException(status_code=400, detail='Passwords do not match')
     
-    if len(password) < 6:
-        raise HTTPException(status_code=400, detail='Password must be at least 6 characters long')
+    # Password strength validation
+    pw_valid, pw_msg = db_manager.validate_password_strength(password)
+    if not pw_valid:
+        raise HTTPException(status_code=400, detail=pw_msg)
     
     # Email validation
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -701,13 +782,14 @@ async def login(
             'session_token': session_token
         })
         
-        # Set session cookie
+        # Set session cookie with security attributes
         response.set_cookie(
             key="session_token",
             value=session_token,
             httponly=True,
-            secure=False,  # Set to True in production with HTTPS
-            samesite="lax"
+            secure=settings.is_production,
+            samesite="lax",
+            max_age=settings.SESSION_TIMEOUT_HOURS * 3600,
         )
         
         return response
@@ -790,11 +872,11 @@ async def add_word(data: WordRequest, current_user: User = Depends(require_authe
     if not data.word or not data.type or not data.definition:
         raise HTTPException(status_code=400, detail='Word, type, and definition are required')
     
-    # Clean and validate input
-    word = data.word.strip()
-    word_type = data.type.strip()
-    definition = data.definition.strip()
-    example = data.example.strip() if data.example else ""
+    # Clean, validate, and sanitize input
+    word = sanitize_input(data.word)
+    word_type = sanitize_input(data.type)
+    definition = sanitize_input(data.definition)
+    example = sanitize_input(data.example) if data.example else ""
     
     if len(word) > 100:
         raise HTTPException(status_code=400, detail='Word is too long (max 100 characters)')
@@ -838,11 +920,11 @@ async def update_word(word_id: int, data: WordUpdateRequest, current_user: User 
     if not word:
         raise HTTPException(status_code=404, detail='Word not found')
     
-    # Use provided values or keep existing ones
-    new_word = data.word.strip() if data.word is not None else word['word']
-    new_type = data.type.strip() if data.type is not None else word['word_type']
-    new_definition = data.definition.strip() if data.definition is not None else word['definition']
-    new_example = data.example.strip() if data.example is not None else word['example']
+    # Use provided values or keep existing ones (sanitized)
+    new_word = sanitize_input(data.word) if data.word is not None else word['word']
+    new_type = sanitize_input(data.type) if data.type is not None else word['word_type']
+    new_definition = sanitize_input(data.definition) if data.definition is not None else word['definition']
+    new_example = sanitize_input(data.example) if data.example is not None else word['example']
     
     success, message = db_manager.update_user_word(current_user.user_id, word_id, new_word, new_type, new_definition, new_example)
     

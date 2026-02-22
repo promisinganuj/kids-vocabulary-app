@@ -12,13 +12,13 @@ Date: August 2025
 import sqlite3
 import os
 import re
-import hashlib
+import bcrypt
 import secrets
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 import shutil
 
-# bcrypt removed - using hashlib instead for password hashing
+# Password hashing with bcrypt (cost factor 12)
 
 
 class User:
@@ -179,7 +179,9 @@ class DatabaseManager:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP,
-                    login_count INTEGER DEFAULT 0
+                    login_count INTEGER DEFAULT 0,
+                    failed_login_count INTEGER DEFAULT 0,
+                    last_failed_login TIMESTAMP
                 )
             ''')
             
@@ -487,7 +489,9 @@ class DatabaseManager:
                     ('school_name', 'TEXT'),
                     ('preferred_study_time', 'TEXT'),
                     ('learning_goals', 'TEXT'),
-                    ('avatar_color', 'TEXT DEFAULT "#3498db"')
+                    ('avatar_color', 'TEXT DEFAULT "#3498db"'),
+                    ('failed_login_count', 'INTEGER DEFAULT 0'),
+                    ('last_failed_login', 'TIMESTAMP'),
                 ]
                 
                 for col_name, col_def in profile_columns:
@@ -553,7 +557,80 @@ class DatabaseManager:
             except Exception as e:
                 print(f"⚠️  Schema update warning: {e}")
 
-    # User Authentication Methods
+    # ─── Account Lockout Helpers ─────────────────────────────────
+    MAX_FAILED_LOGINS = 5
+    LOCKOUT_DURATION_MINUTES = 15
+
+    def _record_failed_login(self, user_id: int, conn) -> None:
+        """Record a failed login attempt."""
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE users 
+            SET failed_login_count = COALESCE(failed_login_count, 0) + 1,
+                last_failed_login = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (user_id,))
+        conn.commit()
+
+    def _reset_failed_logins(self, user_id: int, conn) -> None:
+        """Reset failed login counter after successful login."""
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE users SET failed_login_count = 0, last_failed_login = NULL WHERE id = ?
+        """, (user_id,))
+        conn.commit()
+
+    def _check_account_lockout(self, user_id: int, conn) -> Optional[str]:
+        """Check if account is locked due to too many failed attempts. Returns message if locked, None if OK."""
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT failed_login_count, last_failed_login FROM users WHERE id = ?
+        """, (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        failed_count = row['failed_login_count'] or 0
+        last_failed = row['last_failed_login']
+        if failed_count >= self.MAX_FAILED_LOGINS and last_failed:
+            from datetime import datetime
+            try:
+                if isinstance(last_failed, str):
+                    last_failed_dt = datetime.fromisoformat(last_failed.replace('Z', '+00:00'))
+                else:
+                    last_failed_dt = last_failed
+                lockout_until = last_failed_dt + timedelta(minutes=self.LOCKOUT_DURATION_MINUTES)
+                if datetime.now() < lockout_until:
+                    remaining = int((lockout_until - datetime.now()).total_seconds() / 60) + 1
+                    return f"Account locked due to too many failed attempts. Try again in {remaining} minutes."
+                else:
+                    # Lockout expired, reset counter
+                    self._reset_failed_logins(user_id, conn)
+            except Exception:
+                pass
+        return None
+
+    # ─── Password Policy ────────────────────────────────────────
+    @staticmethod
+    def validate_password_strength(password: str) -> Tuple[bool, str]:
+        """Validate password meets security requirements.
+        
+        Rules:
+        - Minimum 8 characters
+        - At least one uppercase letter
+        - At least one lowercase letter  
+        - At least one digit
+        """
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters long"
+        if not re.search(r'[A-Z]', password):
+            return False, "Password must contain at least one uppercase letter"
+        if not re.search(r'[a-z]', password):
+            return False, "Password must contain at least one lowercase letter"
+        if not re.search(r'[0-9]', password):
+            return False, "Password must contain at least one digit"
+        return True, "Password meets requirements"
+
+        # User Authentication Methods
     def create_user(self, email: str, username: str, password: str) -> Tuple[bool, str, Optional[int]]:
         """Create a new user account."""
         try:
@@ -561,13 +638,14 @@ class DatabaseManager:
             if not email or not username or not password:
                 return False, "Email, username, and password are required", None
             
-            if len(password) < 6:
-                return False, "Password must be at least 6 characters long", None
+            # Validate password strength
+            pw_valid, pw_msg = self.validate_password_strength(password)
+            if not pw_valid:
+                return False, pw_msg, None
             
-            # Generate salt and hash password
-            salt = secrets.token_hex(32)
-            password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), 
-                                               salt.encode('utf-8'), 100000).hex()
+            # Hash password with bcrypt (cost factor 12)
+            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+            salt = ''  # salt is embedded in bcrypt hash
             
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -616,15 +694,35 @@ class DatabaseManager:
                 if not user_row:
                     return False, "Invalid credentials", None
                 
-                # Verify password
+                # Verify password (supports both bcrypt and legacy pbkdf2 hashes)
                 stored_hash = user_row['password_hash']
                 salt = user_row['salt']
                 
-                password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), 
-                                                   salt.encode('utf-8'), 100000).hex()
+                # Check account lockout first
+                lockout_msg = self._check_account_lockout(user_row['id'], conn)
+                if lockout_msg:
+                    return False, lockout_msg, None
                 
-                if password_hash != stored_hash:
-                    return False, "Invalid credentials", None
+                if stored_hash.startswith('$2b$') or stored_hash.startswith('$2a$'):
+                    # bcrypt hash
+                    if not bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+                        self._record_failed_login(user_row['id'], conn)
+                        return False, "Invalid credentials", None
+                else:
+                    # Legacy pbkdf2 hash - verify then upgrade to bcrypt
+                    import hashlib
+                    legacy_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
+                                                       salt.encode('utf-8'), 100000).hex()
+                    if legacy_hash != stored_hash:
+                        self._record_failed_login(user_row['id'], conn)
+                        return False, "Invalid credentials", None
+                    # Upgrade to bcrypt on successful login
+                    new_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+                    cursor.execute('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?',
+                                   (new_hash, '', user_row['id']))
+                
+                # Reset failed login count on success
+                self._reset_failed_logins(user_row['id'], conn)
                 
                 # Update last login
                 cursor.execute('''
@@ -1166,13 +1264,13 @@ class DatabaseManager:
             if not valid:
                 return False, message
             
-            if len(new_password) < 6:
-                return False, "Password must be at least 6 characters long"
+            pw_valid, pw_msg = self.validate_password_strength(new_password)
+            if not pw_valid:
+                return False, pw_msg
             
-            # Generate new password hash
-            salt = secrets.token_hex(32)
-            password_hash = hashlib.pbkdf2_hmac('sha256', new_password.encode('utf-8'), 
-                                               salt.encode('utf-8'), 100000).hex()
+            # Hash new password with bcrypt
+            password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+            salt = ''  # salt is embedded in bcrypt hash
             
             with self.get_connection() as conn:
                 cursor = conn.cursor()
