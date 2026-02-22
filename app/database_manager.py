@@ -279,6 +279,8 @@ class DatabaseManager:
                     ('avatar_color', 'TEXT DEFAULT "#3498db"'),
                     ('failed_login_count', 'INTEGER DEFAULT 0'),
                     ('last_failed_login', 'TIMESTAMP'),
+                    ('oauth_provider', 'TEXT'),
+                    ('oauth_id', 'TEXT'),
                 ]
                 
                 for col_name, col_def in profile_columns:
@@ -461,6 +463,99 @@ class DatabaseManager:
         except Exception as e:
             return False, f"Error creating user: {str(e)}", None
     
+
+    def create_or_get_oauth_user(self, email: str, oauth_provider: str, oauth_id: str,
+                                  first_name: Optional[str] = None, last_name: Optional[str] = None) -> Tuple[bool, str, Optional[User]]:
+        """Find or create a user from an OAuth provider (e.g. Google).
+
+        If a user with this email already exists, link the OAuth provider info
+        and return that user.  Otherwise, create a new account (no password).
+        Returns (success, message, User | None).
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Check if user already exists by email
+                cursor.execute(
+                    "SELECT id, email, username, created_at, last_login, is_active, "
+                    "first_name, last_name, mobile_number, profile_type, class_year, "
+                    "year_of_birth, school_name, preferred_study_time, learning_goals, "
+                    "avatar_color, oauth_provider, oauth_id "
+                    "FROM users WHERE email = ?",
+                    (email.lower().strip(),)
+                )
+                row = cursor.fetchone()
+
+                if row:
+                    user_id = row['id']
+                    # Link OAuth info if not already set
+                    if not row['oauth_provider']:
+                        cursor.execute(
+                            "UPDATE users SET oauth_provider = ?, oauth_id = ? WHERE id = ?",
+                            (oauth_provider, oauth_id, user_id)
+                        )
+                    # Update name if currently empty
+                    if first_name and not row['first_name']:
+                        cursor.execute("UPDATE users SET first_name = ? WHERE id = ?", (first_name, user_id))
+                    if last_name and not row['last_name']:
+                        cursor.execute("UPDATE users SET last_name = ? WHERE id = ?", (last_name, user_id))
+                    # Bump login stats
+                    cursor.execute(
+                        "UPDATE users SET last_login = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?",
+                        (user_id,)
+                    )
+                    conn.commit()
+
+                    user = User(
+                        user_id=row['id'], email=row['email'], username=row['username'],
+                        created_at=row['created_at'], last_login=row['last_login'],
+                        is_active=bool(row['is_active']), first_name=first_name or row['first_name'],
+                        last_name=last_name or row['last_name'], mobile_number=row['mobile_number'],
+                        profile_type=row['profile_type'] or 'Student',
+                        class_year=row['class_year'], year_of_birth=row['year_of_birth'],
+                        school_name=row['school_name'],
+                        preferred_study_time=row['preferred_study_time'],
+                        learning_goals=row['learning_goals'],
+                        avatar_color=row['avatar_color'] or '#3498db',
+                    )
+                    return True, "Existing user signed in via Google", user
+                else:
+                    # Create a brand-new OAuth user (no password)
+                    username = email.split("@")[0]
+                    # Ensure username uniqueness
+                    base_username = username
+                    suffix = 0
+                    while True:
+                        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                        if not cursor.fetchone():
+                            break
+                        suffix += 1
+                        username = f"{base_username}{suffix}"
+
+                    cursor.execute(
+                        "INSERT INTO users (email, username, password_hash, salt, "
+                        "first_name, last_name, oauth_provider, oauth_id) "
+                        "VALUES (?, ?, NULL, NULL, ?, ?, ?, ?)",
+                        (email.lower().strip(), username, first_name, last_name,
+                         oauth_provider, oauth_id)
+                    )
+                    user_id = cursor.lastrowid
+                    conn.commit()
+
+                    if user_id:
+                        self._create_default_user_preferences(user_id)
+
+                    user = User(
+                        user_id=user_id, email=email.lower().strip(), username=username,
+                        created_at=str(datetime.now()), first_name=first_name,
+                        last_name=last_name,
+                    )
+                    return True, "New account created via Google", user
+
+        except Exception as e:
+            return False, f"OAuth user error: {str(e)}", None
+
     def authenticate_user(self, email_or_username: str, password: str) -> Tuple[bool, str, Optional[User]]:
         """Authenticate user with email/username and password."""
         try:

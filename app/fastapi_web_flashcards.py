@@ -37,6 +37,14 @@ from fastapi_auth import (
 )
 from pydantic import BaseModel, field_validator
 from settings import settings
+
+# Google OAuth (conditional import — only used when configured)
+_google_oauth = None
+try:
+    from authlib.integrations.starlette_client import OAuth as AuthlibOAuth
+    _authlib_available = True
+except ImportError:
+    _authlib_available = False
 import html
 import secrets as _secrets
 
@@ -75,7 +83,7 @@ async def add_security_headers(request: Request, call_next):
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data:; "
-            "connect-src 'self'"
+            "connect-src 'self' https://accounts.google.com"
         )
     return response
 
@@ -117,11 +125,33 @@ def sanitize_input(value: str) -> str:
 # Templates
 templates = Jinja2Templates(directory="templates")
 
+# Expose Google OAuth availability to all templates
+templates.env.globals["google_oauth_enabled"] = False  # Updated after settings load
+
 # Initialize database
 db_manager = DatabaseManager()  # Uses DATABASE_URL from settings
 
 # Initialize authentication
 init_authentication(db_manager)
+
+# ─── Google OAuth Setup ─────────────────────────────────────────
+if _authlib_available and settings.google_oauth_configured:
+    _oauth_registry = AuthlibOAuth()
+    _oauth_registry.register(
+        name='google',
+        client_id=settings.GOOGLE_CLIENT_ID,
+        client_secret=settings.GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'},
+    )
+    _google_oauth = _oauth_registry.google
+    templates.env.globals["google_oauth_enabled"] = True
+    print("✅ Google OAuth configured")
+else:
+    if not _authlib_available:
+        print("ℹ️  authlib not installed — Google sign-in disabled")
+    else:
+        print("ℹ️  Google OAuth not configured (set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI)")
 
 # Text file path for initial data loading
 text_file = settings.SEED_DATA_PATH
@@ -958,6 +988,66 @@ async def logout_redirect(request: Request, session_token: Optional[str] = Depen
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie("session_token")
     return response
+
+
+# ─── Google OAuth Routes ────────────────────────────────────────
+@app.get('/auth/google/login')
+async def google_login(request: Request):
+    """Redirect user to Google's consent screen."""
+    if not _google_oauth:
+        raise HTTPException(status_code=501, detail="Google sign-in is not configured")
+    redirect_uri = settings.GOOGLE_REDIRECT_URI or str(request.url_for('google_callback'))
+    return await _google_oauth.authorize_redirect(request, redirect_uri)
+
+
+@app.get('/auth/google/callback')
+async def google_callback(request: Request):
+    """Handle the OAuth callback from Google."""
+    if not _google_oauth:
+        raise HTTPException(status_code=501, detail="Google sign-in is not configured")
+    try:
+        token = await _google_oauth.authorize_access_token(request)
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    user_info = token.get('userinfo')
+    if not user_info:
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    email = user_info.get('email')
+    if not email:
+        return RedirectResponse(url="/login?error=google_no_email", status_code=302)
+
+    # Create or fetch the local user
+    success, message, user = db_manager.create_or_get_oauth_user(
+        email=email,
+        oauth_provider='google',
+        oauth_id=user_info.get('sub', ''),
+        first_name=user_info.get('given_name'),
+        last_name=user_info.get('family_name'),
+    )
+
+    if not success or not user or not auth_manager:
+        print(f"Google OAuth user error: {message}")
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    # Create session (same as normal login)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get('user-agent')
+    session_token = auth_manager.create_session(user, ip_address, user_agent)
+
+    response = RedirectResponse(url="/", status_code=302)
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=settings.is_production,
+        samesite="lax",
+        max_age=settings.SESSION_TIMEOUT_HOURS * 3600,
+    )
+    return response
+
 
 # Main application routes
 @app.get('/', response_class=HTMLResponse)
