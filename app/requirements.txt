@@ -1,11 +1,16 @@
-Flask==3.0.0
-gunicorn==21.2.0
-Werkzeug==3.0.1
-requests==2.31.0
-openai==1.35.0
-python-dotenv==1.0.0
+# FastAPI application server
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+
+# Templating & form handling
 jinja2==3.1.2
 python-multipart==0.0.6
+
+# HTTP client (for Azure OpenAI API calls)
+requests==2.31.0
+
+# Environment configuration
+python-dotenv==1.0.0
+
+# Async file serving (required by FastAPI StaticFiles)
 aiofiles==23.2.1

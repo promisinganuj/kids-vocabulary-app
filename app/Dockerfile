@@ -20,11 +20,10 @@ COPY . .
 RUN mkdir -p /app/data
 
 # Expose port
-EXPOSE 5000
+EXPOSE 5001
 
 # Set environment variables
-ENV FLASK_APP=web_flashcards.py
-ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "web_flashcards.py"]
+CMD ["python", "fastapi_web_flashcards.py"]
