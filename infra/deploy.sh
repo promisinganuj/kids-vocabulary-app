@@ -85,7 +85,47 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
 
     # ─── Step 2: Deploy Infrastructure (Bicep) ──────────────────────
 
-    echo "▸ Deploying Azure infrastructure (this may take a few minutes)..."
+    echo "▸ Deploying Azure infrastructure — phase 1: ACR & supporting resources..."
+    INFRA_OUTPUT=$(az deployment group create \
+        --resource-group "$RESOURCE_GROUP" \
+        --template-file "$SCRIPT_DIR/main.bicep" \
+        --parameters "$SCRIPT_DIR/main.parameters.json" \
+        --parameters \
+            secretKey="$SECRET_KEY" \
+            imageTag="$IMAGE_TAG" \
+            databaseUrl="$DATABASE_URL" \
+            azureOpenaiApiKey="${AZURE_OPENAI_API_KEY:-}" \
+            azureOpenaiEndpoint="${AZURE_OPENAI_ENDPOINT:-}" \
+            azureOpenaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-}" \
+            deployApp=false \
+        --query "properties.outputs" \
+        --output json)
+
+    ACR_NAME=$(echo "$INFRA_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['acrName']['value'])")
+    ACR_LOGIN_SERVER=$(echo "$INFRA_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['acrLoginServer']['value'])")
+
+    echo "  ACR: $ACR_LOGIN_SERVER"
+    echo ""
+
+    # ─── Step 3: Build & Push Docker Image ──────────────────────────
+
+    echo "▸ Logging into Azure Container Registry..."
+    az acr login --name "$ACR_NAME"
+
+    echo "▸ Building Docker image..."
+    docker build \
+        -t "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG" \
+        -t "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" \
+        -f "$PROJECT_ROOT/app/Dockerfile" \
+        "$PROJECT_ROOT/app"
+
+    echo "▸ Pushing image to ACR..."
+    docker push "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG"
+    docker push "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" 2>/dev/null || true
+
+    # ─── Step 4: Deploy Container App (Bicep phase 2) ───────────────
+
+    echo "▸ Deploying Azure infrastructure — phase 2: Container App..."
     DEPLOY_OUTPUT=$(az deployment group create \
         --resource-group "$RESOURCE_GROUP" \
         --template-file "$SCRIPT_DIR/main.bicep" \
@@ -97,6 +137,7 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
             azureOpenaiApiKey="${AZURE_OPENAI_API_KEY:-}" \
             azureOpenaiEndpoint="${AZURE_OPENAI_ENDPOINT:-}" \
             azureOpenaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-}" \
+            deployApp=true \
         --query "properties.outputs" \
         --output json)
 
@@ -110,39 +151,35 @@ else
     ACR_NAME=$(az acr list --resource-group "$RESOURCE_GROUP" --query "[0].name" --output tsv)
     ACR_LOGIN_SERVER=$(az acr list --resource-group "$RESOURCE_GROUP" --query "[0].loginServer" --output tsv)
     CONTAINER_APP_NAME=$(az containerapp list --resource-group "$RESOURCE_GROUP" --query "[0].name" --output tsv)
-fi
 
-echo "  ACR: $ACR_LOGIN_SERVER"
-echo ""
+    echo "  ACR: $ACR_LOGIN_SERVER"
+    echo ""
 
-# ─── Step 3: Build & Push Docker Image ──────────────────────────────
+    # ─── Build & Push Docker Image ──────────────────────────────────
 
-echo "▸ Logging into Azure Container Registry..."
-az acr login --name "$ACR_NAME"
+    echo "▸ Logging into Azure Container Registry..."
+    az acr login --name "$ACR_NAME"
 
-echo "▸ Building Docker image..."
-docker build \
-    -t "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG" \
-    -t "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" \
-    -f "$PROJECT_ROOT/app/Dockerfile" \
-    "$PROJECT_ROOT/app"
+    echo "▸ Building Docker image..."
+    docker build \
+        -t "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG" \
+        -t "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" \
+        -f "$PROJECT_ROOT/app/Dockerfile" \
+        "$PROJECT_ROOT/app"
 
-echo "▸ Pushing image to ACR..."
-docker push "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG"
-docker push "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" 2>/dev/null || true
+    echo "▸ Pushing image to ACR..."
+    docker push "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG"
+    docker push "$ACR_LOGIN_SERVER/$APP_NAME:$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'unknown')" 2>/dev/null || true
 
-# ─── Step 4: Update Container App to use new image ──────────────────
+    # ─── Update Container App to use new image ──────────────────────
 
-echo "▸ Updating Container App with new image..."
-az containerapp update \
-    --name "$CONTAINER_APP_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --image "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG" \
-    --output none
+    echo "▸ Updating Container App with new image..."
+    az containerapp update \
+        --name "$CONTAINER_APP_NAME" \
+        --resource-group "$RESOURCE_GROUP" \
+        --image "$ACR_LOGIN_SERVER/$APP_NAME:$IMAGE_TAG" \
+        --output none
 
-# ─── Step 5: Get the App URL ────────────────────────────────────────
-
-if [[ -z "${APP_URL:-}" ]]; then
     APP_URL="https://$(az containerapp show \
         --name "$CONTAINER_APP_NAME" \
         --resource-group "$RESOURCE_GROUP" \
