@@ -13,6 +13,7 @@ targetScope = 'resourceGroup'
 // ─── Parameters ─────────────────────────────────────────────────────
 
 @description('Base name for all resources (e.g., "vocab")')
+@minLength(3)
 param appName string = 'kids-vocab'
 
 @description('Azure region for all resources')
@@ -55,6 +56,9 @@ param azureOpenaiEndpoint string = ''
 
 @description('Azure OpenAI deployment name (optional)')
 param azureOpenaiDeployment string = ''
+
+@description('Deploy the Container App (set false for infra-only bootstrap)')
+param deployApp bool = true
 
 // ─── Variables ──────────────────────────────────────────────────────
 
@@ -151,7 +155,7 @@ resource envStorage 'Microsoft.App/managedEnvironments/storages@2024-03-01' = {
 
 // ─── Container App ──────────────────────────────────────────────────
 
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
   name: containerAppName
   location: location
   properties: {
@@ -264,7 +268,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 // ─── Outputs ────────────────────────────────────────────────────────
 
 @description('The FQDN of the deployed Container App')
-output appUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
+output appUrl string = deployApp ? 'https://${containerApp.properties.configuration.ingress.fqdn}' : ''
 
 @description('ACR login server')
 output acrLoginServer string = acr.properties.loginServer
@@ -273,7 +277,7 @@ output acrLoginServer string = acr.properties.loginServer
 output acrName string = acr.name
 
 @description('Container App name')
-output containerAppName string = containerApp.name
+output containerAppName string = deployApp ? containerApp.name : ''
 
 @description('Resource group name')
 output resourceGroupName string = resourceGroup().name
