@@ -48,8 +48,15 @@ def _build_engine():
         @event.listens_for(engine, "connect")
         def _set_sqlite_pragmas(dbapi_conn, connection_record):
             cursor = dbapi_conn.cursor()
+            # Set busy_timeout FIRST so subsequent PRAGMAs wait instead of failing
             cursor.execute("PRAGMA busy_timeout = 30000")
-            cursor.execute("PRAGMA journal_mode = WAL")
+            try:
+                cursor.execute("PRAGMA journal_mode = WAL")
+            except Exception:
+                # Another worker may already be switching to WAL; the busy_timeout
+                # above means we waited up to 30 s.  WAL is persistent once set,
+                # so if we lose the race it's already enabled — safe to continue.
+                pass
             cursor.execute("PRAGMA synchronous = NORMAL")
             cursor.execute("PRAGMA cache_size = -64000")
             cursor.close()
