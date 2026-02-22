@@ -17,10 +17,6 @@ import secrets
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 import shutil
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # bcrypt removed - using hashlib instead for password hashing
 

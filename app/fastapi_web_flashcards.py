@@ -35,21 +35,18 @@ from fastapi_auth import (
     init_authentication, get_current_user, require_authentication, require_admin, 
     get_session_token, auth_manager, user_preferences, RequestState, request_state
 )
-from dotenv import load_dotenv
 from pydantic import BaseModel
-import secrets
-
-# Load environment variables from .env file
-load_dotenv()
+from settings import settings
 
 app = FastAPI(
-    title="Vocabulary Flashcard Application",
+    title=settings.APP_NAME,
     description="A web application for managing vocabulary flashcards with multi-user support",
-    version="2.0.0"
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
 )
 
 # Add session middleware
-app.add_middleware(SessionMiddleware, secret_key=os.environ.get('SECRET_KEY', secrets.token_hex(32)))
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Mount static files (we'll configure this later if needed)
 # app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -58,14 +55,13 @@ app.add_middleware(SessionMiddleware, secret_key=os.environ.get('SECRET_KEY', se
 templates = Jinja2Templates(directory="templates")
 
 # Initialize database
-db_path = os.path.join('data', 'vocabulary.db')
-db_manager = DatabaseManager(db_path)
+db_manager = DatabaseManager(settings.db_path)
 
 # Initialize authentication
 init_authentication(db_manager)
 
 # Text file path for initial data loading
-text_file = os.path.join('..', 'seed-data', 'words-list.txt')
+text_file = settings.SEED_DATA_PATH
 
 # OpenAI word search function
 def search_word_with_openai(word: str) -> dict:
@@ -80,37 +76,19 @@ def search_word_with_openai(word: str) -> dict:
     """
     try:
         # Get Azure OpenAI configuration and validate
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-        
-        if not api_key:
+        if not settings.openai_configured:
             return {
                 "word": None,
                 "type": None,
                 "definition": None,
                 "example": None,
-                "error": "Azure OpenAI API key not configured. Please set AZURE_OPENAI_API_KEY environment variable."
+                "error": "Azure OpenAI not configured. Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT."
             }
         
-        if not endpoint:
-            return {
-                "word": None,
-                "type": None,
-                "definition": None,
-                "example": None,
-                "error": "Azure OpenAI endpoint not configured. Please set AZURE_OPENAI_ENDPOINT environment variable."
-            }
-            
-        if not deployment:
-            return {
-                "word": None,
-                "type": None,
-                "definition": None,
-                "example": None,
-                "error": "Azure OpenAI deployment not configured. Please set AZURE_OPENAI_DEPLOYMENT environment variable."
-            }
+        api_key = settings.AZURE_OPENAI_API_KEY
+        endpoint = settings.AZURE_OPENAI_ENDPOINT
+        deployment = settings.AZURE_OPENAI_DEPLOYMENT
+        api_version = settings.AZURE_OPENAI_API_VERSION
         
         # Create the prompt for word definition
         prompt = f"""Please provide information about the word "{word}" in the following JSON format:
@@ -366,12 +344,7 @@ def get_ai_word_suggestion_based_on_patterns(user_id: int) -> dict:
     """
     try:
         # Get Azure OpenAI configuration and validate
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-        
-        if not all([api_key, endpoint, deployment]):
+        if not settings.openai_configured:
             return {
                 "word": None,
                 "type": None,
@@ -380,6 +353,11 @@ def get_ai_word_suggestion_based_on_patterns(user_id: int) -> dict:
                 "error": "Azure OpenAI not properly configured",
                 "reasoning": None
             }
+        
+        api_key = settings.AZURE_OPENAI_API_KEY
+        endpoint = settings.AZURE_OPENAI_ENDPOINT
+        deployment = settings.AZURE_OPENAI_DEPLOYMENT
+        api_version = settings.AZURE_OPENAI_API_VERSION
         
         # Analyze user's learning patterns
         analysis = db_manager.analyze_user_learning_patterns(user_id)
@@ -1345,7 +1323,8 @@ async def health_check():
     return JSONResponse(content={
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
-        'version': '2.0.0'
+        'version': settings.APP_VERSION,
+        'environment': settings.APP_ENV.value,
     })
 
 @app.get('/api/info')
@@ -1353,10 +1332,11 @@ async def app_info():
     """API endpoint to get application information."""
     return JSONResponse(content={
         'success': True,
-        'app_name': 'Vocabulary Flashcard Application',
-        'version': '2.0.0',
+        'app_name': settings.APP_NAME,
+        'version': settings.APP_VERSION,
         'framework': 'FastAPI',
-        'description': 'A web application for managing vocabulary flashcards with multi-user support'
+        'environment': settings.APP_ENV.value,
+        'openai_configured': settings.openai_configured,
     })
 
 # Admin routes
@@ -1395,14 +1375,20 @@ def initialize_app():
         print(f"📊 Database contains {word_count} words")
     
     print("🚀 Vocabulary Flashcard Web Application (FastAPI) initialized")
-    print("🌐 Access the application at: http://localhost:5001")
+    print(f"🌐 Access the application at: http://{settings.HOST}:{settings.PORT}")
     print("🔐 Login required - register a new account or use existing credentials")
-    print("🔧 Management interface at: http://localhost:5001/manage")
-    print("🤖 AI Learning feature at: http://localhost:5001/ai-learning")
+    print(f"🔧 Management interface at: http://{settings.HOST}:{settings.PORT}/manage")
+    print(f"🤖 AI Learning feature at: http://{settings.HOST}:{settings.PORT}/ai-learning")
 
 # Run initialization
 initialize_app()
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("fastapi_web_flashcards:app", host='0.0.0.0', port=5001, reload=True)
+    uvicorn.run(
+        "fastapi_web_flashcards:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.RELOAD,
+        workers=settings.WORKERS if not settings.RELOAD else 1,
+    )
