@@ -72,6 +72,7 @@ var storageName = replace('st${appName}${uniqueSuffix}', '-', '')
 // ─── Azure Container Registry ───────────────────────────────────────
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  #disable-next-line BCP334
   name: substring(acrName, 0, min(length(acrName), 50))
   location: location
   sku: {
@@ -98,6 +99,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
 // ─── Azure Storage Account (for persistent SQLite data) ─────────────
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  #disable-next-line BCP334
   name: substring(storageName, 0, min(length(storageName), 24))
   location: location
   sku: {
@@ -268,6 +270,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) 
 // ─── Outputs ────────────────────────────────────────────────────────
 
 @description('The FQDN of the deployed Container App')
+#disable-next-line BCP318
 output appUrl string = deployApp ? 'https://${containerApp.properties.configuration.ingress.fqdn}' : ''
 
 @description('ACR login server')
@@ -277,6 +280,7 @@ output acrLoginServer string = acr.properties.loginServer
 output acrName string = acr.name
 
 @description('Container App name')
+#disable-next-line BCP318
 output containerAppName string = deployApp ? containerApp.name : ''
 
 @description('Resource group name')
