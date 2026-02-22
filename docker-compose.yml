@@ -1,0 +1,33 @@
+services:
+  vocab-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: vocab-flashcards
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5001}:5001"
+    volumes:
+      # Persist SQLite database across container restarts
+      - vocab-data:/app/data
+    environment:
+      - APP_ENV=production
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - DATABASE_URL=sqlite:///data/vocabulary.db
+      - HOST=0.0.0.0
+      - PORT=5001
+      - WORKERS=${WORKERS:-2}
+      # Optional: Azure OpenAI (uncomment and set if needed)
+      # - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      # - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      # - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  vocab-data:
+    driver: local
