@@ -271,6 +271,149 @@ Only respond with valid JSON, no additional text."""
             "error": f"Azure OpenAI service error: {str(e)}"
         }
 
+
+
+def deep_dive_word_with_openai(word: str) -> dict:
+    """
+    Get a comprehensive deep-dive on a word using Azure OpenAI.
+    Returns meanings, synonyms, antonyms, examples, and themed paragraphs.
+    Results are cached in the database for instant repeat lookups.
+    """
+    # Check cache first
+    try:
+        with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT response_json, id FROM word_deep_dives WHERE LOWER(word) = LOWER(?)",
+                (word.strip(),)
+            )
+            row = cursor.fetchone()
+            if row:
+                # Update lookup count
+                cursor.execute(
+                    "UPDATE word_deep_dives SET lookup_count = lookup_count + 1 WHERE id = ?",
+                    (row['id'],)
+                )
+                conn.commit()
+                return json.loads(row['response_json'])
+    except Exception as e:
+        print(f"Cache lookup failed (non-fatal): {e}")
+
+    # Not cached — call Azure OpenAI
+    try:
+        if not settings.openai_configured:
+            return {"error": "Azure OpenAI not configured."}
+
+        api_key = settings.AZURE_OPENAI_API_KEY
+        endpoint = settings.AZURE_OPENAI_ENDPOINT
+        deployment = settings.AZURE_OPENAI_DEPLOYMENT
+        api_version = settings.AZURE_OPENAI_API_VERSION
+
+        prompt = f"""You are a vocabulary expert for kids (ages 8-15). Provide a comprehensive deep-dive for the word "{word}".
+
+Return ONLY valid JSON in this exact structure:
+{{{{
+    "word": "{word}",
+    "pronunciation": "phonetic pronunciation hint (e.g. pruh-NOUN-see-AY-shun)",
+    "word_types": [
+        {{{{
+            "type": "Part of speech (Noun, Verb, Adjective, etc.)",
+            "definitions": [
+                "Definition 1 (clear, kid-friendly)",
+                "Definition 2 if applicable"
+            ]
+        }}}}
+    ],
+    "difficulty": "easy, medium, or hard",
+    "synonyms": ["synonym1", "synonym2", "synonym3", "synonym4", "synonym5"],
+    "antonyms": ["antonym1", "antonym2", "antonym3"],
+    "examples": [
+        "Example sentence 1 using the word naturally.",
+        "Example sentence 2 in a different context.",
+        "Example sentence 3 showing another usage."
+    ],
+    "themed_paragraphs": {{{{
+        "sports": "A short engaging paragraph (3-4 sentences) using the word in a sports context. Make it vivid and fun for kids.",
+        "study": "A short paragraph using the word in a school/study context.",
+        "science": "A short paragraph using the word in a science context.",
+        "art": "A short paragraph using the word in an art/creativity context.",
+        "adventure": "A short paragraph using the word in an adventure/travel context.",
+        "daily_life": "A short paragraph using the word in an everyday life context."
+    }}}},
+    "fun_fact": "An interesting or surprising fact about this word (origin, history, or fun trivia).",
+    "error": null
+}}}}
+
+Rules:
+- All content must be appropriate and engaging for kids aged 8-15
+- Bold the target word in examples and paragraphs by wrapping it in **asterisks**
+- Provide at least 2 synonyms and 2 antonyms (use "none" if truly no antonyms exist)
+- Each themed paragraph should be 3-4 sentences, vivid and relatable
+- If the word is not valid, set error to a message and leave other fields empty
+- Return ONLY the JSON, no extra text"""
+
+        if not endpoint.endswith('/'):
+            endpoint += '/'
+
+        url = f"{endpoint}openai/deployments/{deployment}/chat/completions?api-version={api_version}"
+        headers = {
+            "api-key": api_key,
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "messages": [
+                {"role": "system", "content": "You are a fun, knowledgeable vocabulary expert for kids. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 2000,
+            "temperature": 0.7
+        }
+
+        response = requests.post(url, headers=headers, json=data, timeout=60)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            content = response_data["choices"][0]["message"]["content"].strip()
+
+            # Strip markdown code fences if present
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1] if "\n" in content else content[3:]
+                if content.endswith("```"):
+                    content = content[:-3].strip()
+
+            result = json.loads(content)
+
+            # Cache the result
+            try:
+                with db_manager.get_connection() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        """INSERT INTO word_deep_dives (word, response_json, lookup_count)
+                           VALUES (?, ?, 1)
+                           ON CONFLICT (word) DO UPDATE SET
+                             response_json = EXCLUDED.response_json,
+                             updated_at = CURRENT_TIMESTAMP,
+                             lookup_count = word_deep_dives.lookup_count + 1""",
+                        (word.strip().lower(), json.dumps(result))
+                    )
+                    conn.commit()
+            except Exception as e:
+                print(f"Cache save failed (non-fatal): {e}")
+
+            return result
+        else:
+            return {"error": f"Azure OpenAI API error: {response.status_code}"}
+
+    except json.JSONDecodeError:
+        return {"error": "Failed to parse AI response"}
+    except requests.exceptions.Timeout:
+        return {"error": "Request timed out. Please try again."}
+    except requests.exceptions.ConnectionError:
+        return {"error": "Unable to connect to AI service."}
+    except Exception as e:
+        return {"error": f"Service error: {str(e)}"}
+
 # Pydantic models for request/response
 class RegisterRequest(BaseModel):
     email: str
@@ -1437,6 +1580,41 @@ async def admin_page(request: Request, current_user: User = Depends(require_admi
     
     return templates.TemplateResponse("admin.html", context)
 
+
+# Deep Dive / Word Explorer routes
+@app.get('/deep-dive', response_class=HTMLResponse)
+async def deep_dive_page(request: Request, current_user: User = Depends(require_authentication)):
+    """Word Explorer deep-dive page."""
+    is_user_admin = is_admin_sync()
+    words = db_manager.get_user_words(current_user.user_id)
+    
+    context = get_template_context(request, current_user)
+    context.update({
+        "is_admin": is_user_admin,
+        "user_words": [w.get('word', '') for w in words] if words else [],
+    })
+    
+    return templates.TemplateResponse("deep_dive.html", context)
+
+
+@app.get('/api/deep-dive/{word}')
+async def api_deep_dive_word(word: str, current_user: User = Depends(require_authentication)):
+    """API endpoint for deep-dive word lookup via Azure OpenAI."""
+    try:
+        # Sanitize input
+        clean_word = html.escape(word.strip())
+        if not clean_word or len(clean_word) > 50:
+            return JSONResponse(content={'success': False, 'error': 'Invalid word'}, status_code=400)
+        
+        result = deep_dive_word_with_openai(clean_word)
+        
+        if result.get('error'):
+            return JSONResponse(content={'success': False, 'error': result['error']}, status_code=400)
+        
+        return JSONResponse(content={'success': True, 'data': result})
+    except Exception as e:
+        return JSONResponse(content={'success': False, 'error': str(e)}, status_code=500)
+
 # Startup function
 def initialize_app():
     """Initialize the application with database and load initial data if needed."""
@@ -1461,6 +1639,7 @@ def initialize_app():
     print("🔐 Login required - register a new account or use existing credentials")
     print(f"🔧 Management interface at: http://{settings.HOST}:{settings.PORT}/manage")
     print(f"🤖 AI Learning feature at: http://{settings.HOST}:{settings.PORT}/ai-learning")
+    print(f"🔍 Word Explorer at: http://{settings.HOST}:{settings.PORT}/deep-dive")
 
 # Run initialization
 initialize_app()

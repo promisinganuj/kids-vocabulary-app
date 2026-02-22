@@ -342,3 +342,19 @@ class AiSuggestionFeedbackModel(Base):
     difficulty = Column(String(20))
     added_to_vocab = Column(Boolean, default=False)
     feedback_at = Column(DateTime, default=func.now())
+
+
+class WordDeepDiveModel(Base):
+    """Cache for deep-dive word lookups from Azure OpenAI."""
+    __tablename__ = "word_deep_dives"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    word = Column(String(255), nullable=False, unique=True)
+    response_json = Column(Text, nullable=False)  # Full JSON response from OpenAI
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    lookup_count = Column(Integer, default=1)  # How many times this word was looked up
+
+    __table_args__ = (
+        Index("idx_deep_dive_word", "word"),
+    )
