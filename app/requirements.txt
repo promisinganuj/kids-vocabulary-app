@@ -21,3 +21,8 @@ aiofiles==23.2.1
 
 # Security
 bcrypt==4.1.2
+
+# Database
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.10
+alembic==1.18.4

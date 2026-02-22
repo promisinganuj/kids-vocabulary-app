@@ -1,4 +1,38 @@
+# Docker Compose for Kids Vocabulary App
+#
+# Usage:
+#   Development (SQLite):   docker compose up vocab-app
+#   Production (PostgreSQL): docker compose --profile postgres up
+#
+# Required env vars (set in .env or export):
+#   SECRET_KEY - session encryption key (required in production)
+#
+# For PostgreSQL, also set:
+#   POSTGRES_PASSWORD - database password
+
 services:
+  # ── PostgreSQL Database ───────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: vocab-postgres
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vocabulary
+      POSTGRES_USER: vocab_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vocab_app -d vocabulary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Vocabulary App ────────────────────────────────────────
   vocab-app:
     build:
       context: ./app
@@ -8,19 +42,26 @@ services:
     ports:
       - "${PORT:-5001}:5001"
     volumes:
-      # Persist SQLite database across container restarts
+      # Persist SQLite database across container restarts (dev/standalone mode)
       - vocab-data:/app/data
     environment:
-      - APP_ENV=production
+      - APP_ENV=${APP_ENV:-production}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
-      - DATABASE_URL=sqlite:///data/vocabulary.db
+      # Default: SQLite for standalone mode
+      # Override with PostgreSQL URL for production:
+      #   DATABASE_URL=postgresql://vocab_app:password@postgres:5432/vocabulary
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/vocabulary.db}
       - HOST=0.0.0.0
       - PORT=5001
       - WORKERS=${WORKERS:-2}
-      # Optional: Azure OpenAI (uncomment and set if needed)
+      # Optional: Azure OpenAI
       # - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       # - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
       # - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
       interval: 30s
@@ -30,4 +71,6 @@ services:
 
 volumes:
   vocab-data:
+    driver: local
+  postgres-data:
     driver: local

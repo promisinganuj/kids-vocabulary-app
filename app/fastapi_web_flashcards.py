@@ -118,7 +118,7 @@ def sanitize_input(value: str) -> str:
 templates = Jinja2Templates(directory="templates")
 
 # Initialize database
-db_manager = DatabaseManager(settings.db_path)
+db_manager = DatabaseManager()  # Uses DATABASE_URL from settings
 
 # Initialize authentication
 init_authentication(db_manager)

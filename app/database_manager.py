@@ -9,7 +9,6 @@ Author: Vocabulary DB Manager
 Date: August 2025
 """
 
-import sqlite3
 import os
 import re
 import bcrypt
@@ -17,6 +16,12 @@ import secrets
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 import shutil
+
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+
+from _db_adapter import ConnectionAdapter
+from database import SessionLocal, init_tables
+from settings import settings
 
 # Password hashing with bcrypt (cost factor 12)
 
@@ -117,339 +122,121 @@ class DatabaseManager:
     """Main database manager for vocabulary operations."""
     
     def __init__(self, db_path: Optional[str] = None, data_dir: Optional[str] = None):
-        """Initialize database manager."""
-        if db_path is None:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            self.data_dir = data_dir or os.path.join(script_dir, 'data')
-            self.db_path = os.path.join(self.data_dir, 'vocabulary.db')
-        else:
-            self.db_path = db_path
-            self.data_dir = os.path.dirname(db_path)
+        """Initialize database manager.
         
-        # Ensure data directory exists
-        os.makedirs(self.data_dir, exist_ok=True)
+        Args:
+            db_path: Legacy parameter (ignored). DATABASE_URL from settings is used.
+            data_dir: Legacy parameter. For SQLite, the data dir is auto-created.
+        """
+        self._is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+        self.db_path = settings.DATABASE_URL
+        
+        if self._is_sqlite:
+            # For SQLite, ensure the data directory exists
+            self.data_dir = data_dir or os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "data"
+            )
+            os.makedirs(self.data_dir, exist_ok=True)
+        else:
+            self.data_dir = None
         
         self.init_database()
         
         # Update schema if needed for existing databases
         self.update_schema_if_needed()
     
-    def get_connection(self) -> sqlite3.Connection:
-        """Get database connection with row factory and optimized settings."""
-        conn = sqlite3.connect(self.db_path, timeout=30.0)  # 30 second timeout
-        conn.row_factory = sqlite3.Row  # This allows dict-like access to rows
+    def get_connection(self) -> ConnectionAdapter:
+        """Get a database connection backed by a SQLAlchemy session.
         
-        # Configure SQLite for better concurrency
-        conn.execute("PRAGMA busy_timeout = 30000")  # 30 second busy timeout
-        conn.execute("PRAGMA journal_mode = WAL")    # Write-Ahead Logging for better concurrency
-        conn.execute("PRAGMA synchronous = NORMAL")  # Balance between safety and performance
-        conn.execute("PRAGMA cache_size = -64000")   # 64MB cache
-        
-        return conn
+        Returns a ConnectionAdapter that behaves like sqlite3.Connection
+        so existing method code works unchanged.  Supports context-manager.
+        """
+        session = SessionLocal()
+        return ConnectionAdapter(session, self._is_sqlite)
     
     def init_database(self) -> None:
-        """Initialize the database and create tables if they don't exist."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Create users table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                    password_hash TEXT NOT NULL,
-                    salt TEXT NOT NULL,
-                    is_active BOOLEAN DEFAULT 1,
-                    is_admin BOOLEAN DEFAULT 0,
-                    email_verified BOOLEAN DEFAULT 0,
-                    verification_token TEXT,
-                    reset_token TEXT,
-                    reset_token_expires TIMESTAMP,
-                    first_name TEXT,
-                    last_name TEXT,
-                    mobile_number TEXT,
-                    profile_type TEXT DEFAULT 'Student',
-                    class_year INTEGER,
-                    year_of_birth INTEGER,
-                    school_name TEXT,
-                    preferred_study_time TEXT,
-                    learning_goals TEXT,
-                    avatar_color TEXT DEFAULT '#3498db',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP,
-                    login_count INTEGER DEFAULT 0,
-                    failed_login_count INTEGER DEFAULT 0,
-                    last_failed_login TIMESTAMP
-                )
-            ''')
-            
-            # Create user sessions table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS user_sessions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    session_token TEXT NOT NULL UNIQUE,
-                    expires_at TIMESTAMP NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    ip_address TEXT,
-                    user_agent TEXT,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create vocabulary table (updated for multi-user with word sources and likes)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS vocabulary (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    word TEXT NOT NULL COLLATE NOCASE,
-                    word_type TEXT NOT NULL,
-                    definition TEXT NOT NULL,
-                    example TEXT NOT NULL,
-                    difficulty TEXT DEFAULT 'medium',
-                    times_reviewed INTEGER DEFAULT 0,
-                    times_correct INTEGER DEFAULT 0,
-                    last_reviewed TIMESTAMP,
-                    mastery_level INTEGER DEFAULT 0,
-                    is_favorite BOOLEAN DEFAULT 0,
-                    is_hidden BOOLEAN DEFAULT 0,
-                    tags TEXT DEFAULT '',
-                    source TEXT DEFAULT 'manual',
-                    base_word_id INTEGER DEFAULT NULL,
-                    like_count INTEGER DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                    FOREIGN KEY (base_word_id) REFERENCES base_vocabulary (id) ON DELETE SET NULL,
-                    UNIQUE(user_id, word)
-                )
-            ''')
-            
-            # Create base vocabulary table (system-wide word collection)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS base_vocabulary (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    word TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                    word_type TEXT NOT NULL,
-                    definition TEXT NOT NULL,
-                    example TEXT NOT NULL,
-                    difficulty TEXT DEFAULT 'medium',
-                    category TEXT DEFAULT 'general',
-                    total_likes INTEGER DEFAULT 0,
-                    is_active BOOLEAN DEFAULT 1,
-                    created_by INTEGER,
-                    approved_by INTEGER,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
-                    FOREIGN KEY (approved_by) REFERENCES users (id) ON DELETE SET NULL
-                )
-            ''')
-            
-            # Create word likes table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS word_likes (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    word_id INTEGER NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                    FOREIGN KEY (word_id) REFERENCES vocabulary (id) ON DELETE CASCADE,
-                    UNIQUE(user_id, word_id)
-                )
-            ''')
-            
-            # Create password reset tokens table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS password_reset_tokens (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    token TEXT NOT NULL UNIQUE,
-                    expires_at TIMESTAMP NOT NULL,
-                    used BOOLEAN DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create study sessions table (updated for multi-user)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS study_sessions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    session_type TEXT DEFAULT 'review',
-                    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    end_time TIMESTAMP,
-                    words_reviewed INTEGER DEFAULT 0,
-                    words_correct INTEGER DEFAULT 0,
-                    duration_seconds INTEGER DEFAULT 0,
-                    session_goal INTEGER DEFAULT 10,
-                    accuracy_percentage REAL DEFAULT 0,
-                    is_completed BOOLEAN DEFAULT 0,
-                    notes TEXT DEFAULT '',
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create study session words table (tracks which words were studied in each session)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS study_session_words (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_id INTEGER NOT NULL,
-                    word_id INTEGER NOT NULL,
-                    was_correct BOOLEAN NOT NULL,
-                    response_time_ms INTEGER DEFAULT 0,
-                    attempts INTEGER DEFAULT 1,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (session_id) REFERENCES study_sessions (id) ON DELETE CASCADE,
-                    FOREIGN KEY (word_id) REFERENCES vocabulary (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create user preferences table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS user_preferences (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    preference_key TEXT NOT NULL,
-                    preference_value TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                    UNIQUE(user_id, preference_key)
-                )
-            ''')
-            
-            # Create vocabulary lists table (for organizing words)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS vocabulary_lists (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    name TEXT NOT NULL,
-                    description TEXT DEFAULT '',
-                    is_public BOOLEAN DEFAULT 0,
-                    is_system BOOLEAN DEFAULT 0,
-                    color TEXT DEFAULT '#3498db',
-                    word_count INTEGER DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create vocabulary list words table (many-to-many relationship)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS vocabulary_list_words (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    list_id INTEGER NOT NULL,
-                    word_id INTEGER NOT NULL,
-                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (list_id) REFERENCES vocabulary_lists (id) ON DELETE CASCADE,
-                    FOREIGN KEY (word_id) REFERENCES vocabulary (id) ON DELETE CASCADE,
-                    UNIQUE(list_id, word_id)
-                )
-            ''')
-            
-            # Create user achievements table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS user_achievements (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    achievement_type TEXT NOT NULL,
-                    achievement_name TEXT NOT NULL,
-                    description TEXT DEFAULT '',
-                    points INTEGER DEFAULT 0,
-                    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    metadata TEXT DEFAULT '{}',
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Create daily stats table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS daily_stats (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    date DATE NOT NULL,
-                    words_studied INTEGER DEFAULT 0,
-                    words_mastered INTEGER DEFAULT 0,
-                    study_time_seconds INTEGER DEFAULT 0,
-                    sessions_completed INTEGER DEFAULT 0,
-                    accuracy_percentage REAL DEFAULT 0,
-                    streak_days INTEGER DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                    UNIQUE(user_id, date)
-                )
-            ''')
-            
-            # Create indexes for better performance (only for columns that should exist)
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_user ON vocabulary(user_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_word ON vocabulary(user_id, word)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_difficulty ON vocabulary(user_id, difficulty)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_study_sessions_user ON study_sessions(user_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_preferences_user ON user_preferences(user_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_daily_stats_user_date ON daily_stats(user_id, date)')
-            
-            # Note: Additional indexes for new columns will be created in update_schema_if_needed()
-            
-            # Create triggers for automatic updates
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
-                AFTER UPDATE ON vocabulary
-                BEGIN
-                    UPDATE vocabulary SET updated_at = CURRENT_TIMESTAMP 
-                    WHERE id = NEW.id;
-                END
-            ''')
-            
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS update_user_timestamp 
-                AFTER UPDATE ON users
-                BEGIN
-                    UPDATE users SET updated_at = CURRENT_TIMESTAMP 
-                    WHERE id = NEW.id;
-                END
-            ''')
-            
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS update_list_word_count 
-                AFTER INSERT ON vocabulary_list_words
-                BEGIN
-                    UPDATE vocabulary_lists 
-                    SET word_count = (
-                        SELECT COUNT(*) FROM vocabulary_list_words 
-                        WHERE list_id = NEW.list_id
-                    )
-                    WHERE id = NEW.list_id;
-                END
-            ''')
-            
-            cursor.execute('''
-                CREATE TRIGGER IF NOT EXISTS update_list_word_count_delete 
-                AFTER DELETE ON vocabulary_list_words
-                BEGIN
-                    UPDATE vocabulary_lists 
-                    SET word_count = (
-                        SELECT COUNT(*) FROM vocabulary_list_words 
-                        WHERE list_id = OLD.list_id
-                    )
-                    WHERE id = OLD.list_id;
-                END
-            ''')
-            
-            conn.commit()
-            print(f"✅ Database initialized: {self.db_path}")
+        """Initialize the database and create tables.
+        
+        Uses SQLAlchemy ORM models (models.py) to create all tables.
+        For SQLite, also creates triggers for auto-updating timestamps.
+        """
+        # Create all tables from ORM models (works for both SQLite and PostgreSQL)
+        init_tables()
+        
+        # SQLite: create triggers for auto-updating timestamps
+        # (PostgreSQL handles this via Alembic migrations or application code)
+        if self._is_sqlite:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
+                    AFTER UPDATE ON vocabulary
+                    BEGIN
+                        UPDATE vocabulary SET updated_at = CURRENT_TIMESTAMP 
+                        WHERE id = NEW.id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_user_timestamp 
+                    AFTER UPDATE ON users
+                    BEGIN
+                        UPDATE users SET updated_at = CURRENT_TIMESTAMP 
+                        WHERE id = NEW.id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_list_word_count 
+                    AFTER INSERT ON vocabulary_list_words
+                    BEGIN
+                        UPDATE vocabulary_lists 
+                        SET word_count = (
+                            SELECT COUNT(*) FROM vocabulary_list_words 
+                            WHERE list_id = NEW.list_id
+                        )
+                        WHERE id = NEW.list_id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_list_word_count_delete 
+                    AFTER DELETE ON vocabulary_list_words
+                    BEGIN
+                        UPDATE vocabulary_lists 
+                        SET word_count = (
+                            SELECT COUNT(*) FROM vocabulary_list_words 
+                            WHERE list_id = OLD.list_id
+                        )
+                        WHERE id = OLD.list_id;
+                    END
+                """)
+                
+                conn.commit()
+        
+        # Log initialization
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT COUNT(*) as count FROM base_vocabulary')
+                row = cursor.fetchone()
+                count = row['count'] if row else 0
+            print(f"\u2705 Database initialized: {self.db_path}")
+            print(f"\U0001f4ca Database contains {count} base vocabulary words")
+        except Exception:
+            print(f"\u2705 Database initialized: {self.db_path}")
     
     def update_schema_if_needed(self):
-        """Update existing database schema to add new columns if they don't exist."""
+        """Update existing database schema to add new columns if they don't exist.
+        
+        For SQLite (dev): runs PRAGMA-based column checks and ALTER TABLE.
+        For PostgreSQL (prod): schema is managed by Alembic migrations.
+        """
+        if not self._is_sqlite:
+            print("\u2705 Schema managed by Alembic (PostgreSQL)")
+            return
+        
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
@@ -546,7 +333,7 @@ class DatabaseManager:
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_reset_tokens_user ON password_reset_tokens(user_id)')
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_learning_sessions(user_id)')
                     cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_session_words_session ON ai_learning_session_words(session_id)')
-                except sqlite3.OperationalError as e:
+                except OperationalError as e:
                     # Ignore errors for tables that don't exist yet
                     if "no such table" not in str(e).lower():
                         print(f"Warning: Could not create some indexes: {e}")
@@ -664,7 +451,7 @@ class DatabaseManager:
                 
                 return True, "User created successfully", user_id
                 
-        except sqlite3.IntegrityError as e:
+        except IntegrityError as e:
             if 'email' in str(e):
                 return False, "Email already exists", None
             elif 'username' in str(e):
@@ -859,10 +646,13 @@ class DatabaseManager:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             for key, value in default_preferences.items():
-                cursor.execute('''
-                    INSERT OR REPLACE INTO user_preferences (user_id, preference_key, preference_value)
-                    VALUES (?, ?, ?)
-                ''', (user_id, key, value))
+                try:
+                    cursor.execute('''
+                        INSERT INTO user_preferences (user_id, preference_key, preference_value)
+                        VALUES (?, ?, ?)
+                    ''', (user_id, key, value))
+                except IntegrityError:
+                    pass  # preference already exists
             conn.commit()
     
     # Vocabulary Management Methods
@@ -906,7 +696,7 @@ class DatabaseManager:
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (user_id, word.strip(), word_type.strip(), definition.strip(), example.strip(), 'seed_data'))
                     loaded_count += 1
-                except sqlite3.IntegrityError:
+                except IntegrityError:
                     # Word already exists for this user (duplicate)
                     skipped_count += 1
                     print(f"⚠️  Skipping duplicate for user {user_id}: {word.strip()}")
@@ -959,7 +749,7 @@ class DatabaseManager:
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (word.strip(), word_type.strip(), definition.strip(), example.strip(), created_by_user_id, created_by_user_id))
                     loaded_count += 1
-                except sqlite3.IntegrityError:
+                except IntegrityError:
                     # Word already exists in base vocabulary (duplicate)
                     skipped_count += 1
                     print(f"⚠️  Skipping duplicate base word: {word.strip()}")
@@ -1005,7 +795,7 @@ class DatabaseManager:
                         base_word['id']
                     ))
                     copied_count += 1
-                except sqlite3.IntegrityError:
+                except IntegrityError:
                     # Word already exists for this user
                     skipped_count += 1
             
@@ -1089,7 +879,7 @@ class DatabaseManager:
                 conn.commit()
                 return True, "Word liked successfully"
                 
-        except sqlite3.IntegrityError:
+        except IntegrityError:
             return False, "You have already liked this word"
         except Exception as e:
             return False, f"Error liking word: {str(e)}"
@@ -1364,7 +1154,7 @@ class DatabaseManager:
                 ''', (user_id, word.strip(), word_type.strip(), definition.strip(), example.strip()))
                 conn.commit()
                 return True, "Word added successfully"
-        except sqlite3.IntegrityError:
+        except IntegrityError:
             return False, "Word already exists in your vocabulary"
         except Exception as e:
             return False, f"Error adding word: {str(e)}"
@@ -1868,7 +1658,7 @@ class DatabaseManager:
                             base_word['id']
                         ))
                         copied_count += 1
-                    except sqlite3.IntegrityError:
+                    except IntegrityError:
                         # Word already exists for this user
                         skipped_count += 1
                 
@@ -2038,7 +1828,7 @@ class DatabaseManager:
                 "total_correct": total_correct
             }
             
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error in analyze_user_learning_patterns: {e}")
             return {
                 "total_words": 0,
@@ -2071,29 +1861,17 @@ class DatabaseManager:
             conn = self.get_connection()
             cursor = conn.cursor()
             
-            # Create table if it doesn't exist
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS ai_suggestion_feedback (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    suggested_word TEXT NOT NULL,
-                    difficulty_rating TEXT NOT NULL,
-                    added_to_vocabulary BOOLEAN NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users (id)
-                )
-            ''')
-            
+            # Table created by ORM models in init_tables()
             cursor.execute('''
                 INSERT INTO ai_suggestion_feedback 
-                (user_id, suggested_word, difficulty_rating, added_to_vocabulary)
+                (user_id, word, difficulty, added_to_vocab)
                 VALUES (?, ?, ?, ?)
             ''', (user_id, word, difficulty, added_to_vocab))
             
             conn.commit()
             return True
             
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error in record_ai_suggestion_feedback: {e}")
             return False
         finally:
@@ -2113,7 +1891,7 @@ class DatabaseManager:
                 session_id = cursor.lastrowid
                 conn.commit()
                 return session_id
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error creating AI learning session: {e}")
             return None
 
@@ -2129,7 +1907,7 @@ class DatabaseManager:
                 if row:
                     return dict(row)
                 return None
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error getting AI learning session: {e}")
             return None
 
@@ -2146,7 +1924,7 @@ class DatabaseManager:
                 ''', (words_completed, words_correct, current_difficulty, session_id))
                 conn.commit()
                 return True
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error updating AI learning session: {e}")
             return False
 
@@ -2163,7 +1941,7 @@ class DatabaseManager:
                 ''', (total_time_seconds, session_id))
                 conn.commit()
                 return True
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error completing AI learning session: {e}")
             return False
 
@@ -2181,7 +1959,7 @@ class DatabaseManager:
                 ''', (session_id, word_id, base_word_id, word_text, difficulty_level, word_order))
                 conn.commit()
                 return True
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error adding word to AI session: {e}")
             return False
 
@@ -2264,7 +2042,7 @@ class DatabaseManager:
                 
                 conn.commit()
                 return True
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error recording AI session response: {e}")
             return False
 
@@ -2301,7 +2079,7 @@ class DatabaseManager:
                     summary['words_breakdown'] = [dict(row) for row in cursor.fetchall()]
                     return summary
                 return None
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error getting AI session summary: {e}")
             return None
 
@@ -2394,7 +2172,7 @@ class DatabaseManager:
                 
                 return results
                 
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             print(f"Database error getting words for AI learning: {e}")
             return []
     
@@ -2568,7 +2346,12 @@ class DatabaseManager:
 
 # Migration function to update date_of_birth to year_of_birth
 def migrate_date_of_birth_to_year_of_birth(db_path: str) -> bool:
-    """Migrate date_of_birth column to year_of_birth in users table."""
+    """Migrate date_of_birth column to year_of_birth in users table.
+    
+    DEPRECATED: Use Alembic migrations for PostgreSQL.
+    Kept for legacy SQLite database upgrades.
+    """
+    import sqlite3
     conn = None
     try:
         conn = sqlite3.connect(db_path)
@@ -2673,6 +2456,7 @@ def migrate_single_user_to_multiuser(old_db_path: str, new_db_path: str, default
         print(f"✅ Created default user: {default_user_email} (Password: {admin_password})")
         
         # Connect to old database and migrate data
+        import sqlite3
         old_conn = sqlite3.connect(old_db_path)
         old_conn.row_factory = sqlite3.Row
         
@@ -2736,7 +2520,7 @@ def migrate_single_user_to_multiuser(old_db_path: str, new_db_path: str, default
                     new_conn.commit()
                     print(f"✅ Migrated {session_count} study sessions")
                     
-                except sqlite3.OperationalError:
+                except OperationalError:
                     print("ℹ️  No study sessions table found in old database")
         
         old_conn.close()
