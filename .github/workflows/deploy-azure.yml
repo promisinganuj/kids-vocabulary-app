@@ -8,6 +8,7 @@
 #
 # Required GitHub Secrets:
 #   AZURE_CREDENTIALS          — Service principal JSON (az ad sp create-for-rbac --sdk-auth)
+#   AZURE_SUBSCRIPTION_ID      — Azure subscription ID
 #   SECRET_KEY                 — App session secret key
 #
 # Optional GitHub Secrets:
@@ -80,7 +81,7 @@ jobs:
             --location "${{ env.LOCATION }}" \
             --output none
 
-      - name: Deploy Bicep infrastructure
+      - name: Deploy Bicep infrastructure (phase 1 — ACR & supporting resources)
         id: infra
         run: |
           OUTPUT=$(az deployment group create \
@@ -93,13 +94,12 @@ jobs:
               azureOpenaiApiKey="${{ secrets.AZURE_OPENAI_API_KEY }}" \
               azureOpenaiEndpoint="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
               azureOpenaiDeployment="${{ secrets.AZURE_OPENAI_DEPLOYMENT }}" \
+              deployApp=false \
             --query "properties.outputs" \
             --output json)
 
           echo "acr_name=$(echo $OUTPUT | jq -r '.acrName.value')" >> "$GITHUB_OUTPUT"
           echo "acr_server=$(echo $OUTPUT | jq -r '.acrLoginServer.value')" >> "$GITHUB_OUTPUT"
-          echo "app_name=$(echo $OUTPUT | jq -r '.containerAppName.value')" >> "$GITHUB_OUTPUT"
-          echo "app_url=$(echo $OUTPUT | jq -r '.appUrl.value')" >> "$GITHUB_OUTPUT"
 
       # ─── Build & Push Container Image ─────────────────────────
       - name: Login to ACR
@@ -118,14 +118,27 @@ jobs:
           docker push "$IMAGE:${{ steps.tag.outputs.tag }}"
           docker push "$IMAGE:latest"
 
-      # ─── Update Container App ─────────────────────────────────
-      - name: Deploy new image to Container App
+      # ─── Deploy Container App (phase 2) ───────────────────────
+      - name: Deploy Bicep infrastructure (phase 2 — Container App)
+        id: deploy
         run: |
-          az containerapp update \
-            --name "${{ steps.infra.outputs.app_name }}" \
+          OUTPUT=$(az deployment group create \
             --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --image "${{ steps.infra.outputs.acr_server }}/${{ env.APP_NAME }}:${{ steps.tag.outputs.tag }}" \
-            --output none
+            --template-file infra/main.bicep \
+            --parameters infra/main.parameters.json \
+            --parameters \
+              secretKey="${{ secrets.SECRET_KEY }}" \
+              imageTag="${{ steps.tag.outputs.tag }}" \
+              azureOpenaiApiKey="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+              azureOpenaiEndpoint="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+              azureOpenaiDeployment="${{ secrets.AZURE_OPENAI_DEPLOYMENT }}" \
+              deployApp=true \
+            --query "properties.outputs" \
+            --output json)
+
+          echo "app_name=$(echo $OUTPUT | jq -r '.containerAppName.value')" >> "$GITHUB_OUTPUT"
+          echo "app_url=$(echo $OUTPUT | jq -r '.appUrl.value')" >> "$GITHUB_OUTPUT"
+          echo "acr_server=$(echo $OUTPUT | jq -r '.acrLoginServer.value')" >> "$GITHUB_OUTPUT"
 
       # ─── Verify Deployment ────────────────────────────────────
       - name: Verify deployment
@@ -133,7 +146,7 @@ jobs:
           echo "Waiting for deployment to stabilize..."
           sleep 30
 
-          APP_URL="${{ steps.infra.outputs.app_url }}"
+          APP_URL="${{ steps.deploy.outputs.app_url }}"
           echo "Checking health at $APP_URL/health ..."
 
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/health" --max-time 30 || echo "000")
@@ -142,7 +155,7 @@ jobs:
             echo "✅ Deployment healthy! App is live at $APP_URL"
           else
             echo "⚠️  Health check returned HTTP $HTTP_CODE (app may still be starting)"
-            echo "    Check logs: az containerapp logs show --name ${{ steps.infra.outputs.app_name }} --resource-group ${{ env.RESOURCE_GROUP }} --follow"
+            echo "    Check logs: az containerapp logs show --name ${{ steps.deploy.outputs.app_name }} --resource-group ${{ env.RESOURCE_GROUP }} --follow"
           fi
 
       # ─── Summary ──────────────────────────────────────────────
@@ -152,8 +165,8 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| **App URL** | ${{ steps.infra.outputs.app_url }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **App URL** | ${{ steps.deploy.outputs.app_url }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Image Tag** | \`${{ steps.tag.outputs.tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| **Container App** | \`${{ steps.infra.outputs.app_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Container App** | \`${{ steps.deploy.outputs.app_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Resource Group** | \`${{ env.RESOURCE_GROUP }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| **Registry** | \`${{ steps.infra.outputs.acr_server }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Registry** | \`${{ steps.deploy.outputs.acr_server }}\` |" >> "$GITHUB_STEP_SUMMARY"
