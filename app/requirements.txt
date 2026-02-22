@@ -6,6 +6,9 @@ uvicorn[standard]==0.24.0
 jinja2==3.1.2
 python-multipart==0.0.6
 
+# Session middleware (required by Starlette SessionMiddleware)
+itsdangerous==2.1.2
+
 # Configuration management (includes python-dotenv for .env loading)
 pydantic-settings==2.1.0
 
