@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Explorer - VCE Flashcards</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+            color: white;
+            padding: 25px 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .user-profile {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-profile a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .profile-details { text-align: right; }
+        .profile-name { font-weight: 600; font-size: 0.95em; }
+        .profile-email { font-size: 0.8em; opacity: 0.8; }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        .stats-bar {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-links { display: flex; gap: 15px; flex-wrap: wrap; }
+
+        .nav-link {
+            color: #8e44ad;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #8e44ad;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        .nav-link:hover { background-color: #8e44ad; color: white; }
+        .nav-link.active { background-color: #8e44ad; color: white; }
+
+        .search-section {
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f0ff, #ede7f6);
+            border-bottom: 2px solid #e8daef;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 12px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 3px solid #d2b4de;
+            border-radius: 25px;
+            font-size: 1.1em;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: #8e44ad;
+            box-shadow: 0 0 15px rgba(142, 68, 173, 0.2);
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
+        }
+        .search-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .search-hint {
+            text-align: center;
+            margin-top: 10px;
+            color: #7d3c98;
+            font-size: 0.9em;
+        }
+        .suggestion-inline {
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+        .suggestion-inline:hover { color: #6c3483; }
+
+        .autocomplete-container { position: relative; }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #d2b4de;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .autocomplete-item:hover { background: #f5f0ff; color: #8e44ad; }
+
+        .loading-container { text-align: center; padding: 60px 20px; display: none; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e8daef;
+            border-top: 5px solid #8e44ad;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text { color: #8e44ad; font-size: 1.2em; font-weight: 500; }
+        .loading-subtext { color: #999; margin-top: 5px; }
+
+        .results-area { padding: 30px; display: none; }
+
+        .word-hero {
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+            color: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .word-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+        .word-hero-title { font-size: 2.5em; font-weight: 700; margin-bottom: 5px; text-transform: capitalize; }
+        .word-pronunciation { font-size: 1.1em; opacity: 0.85; margin-bottom: 12px; font-style: italic; }
+
+        .word-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .badge { padding: 5px 14px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+        .badge-type { background: rgba(255, 255, 255, 0.25); color: white; }
+        .badge-difficulty { background: rgba(255, 255, 255, 0.15); color: white; border: 1px solid rgba(255, 255, 255, 0.3); }
+        .badge-difficulty.easy { background: rgba(46, 204, 113, 0.4); }
+        .badge-difficulty.medium { background: rgba(241, 196, 15, 0.4); }
+        .badge-difficulty.hard { background: rgba(231, 76, 60, 0.4); }
+
+        .word-hero-definition { font-size: 1.15em; opacity: 0.95; line-height: 1.5; }
+
+        .fun-fact {
+            margin-top: 15px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            font-size: 0.95em;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .fun-fact-icon { font-size: 1.3em; flex-shrink: 0; }
+
+        .save-word-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .save-word-btn:hover { background: rgba(255, 255, 255, 0.35); }
+        .save-word-btn.saved { background: rgba(46, 204, 113, 0.5); border-color: rgba(46, 204, 113, 0.7); }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 1px solid #f0e6f6;
+        }
+
+        .section-header {
+            padding: 18px 25px;
+            font-size: 1.2em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .section-header:hover { background: #faf5ff; }
+        .section-header .toggle-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+            color: #999;
+        }
+        .section-header .toggle-icon.open { transform: rotate(180deg); }
+        .section-body { padding: 0 25px 20px; }
+
+        .meanings-section .section-header { background: linear-gradient(135deg, #eaf2f8, #d6eaf8); color: #2471a3; }
+        .word-type-group { margin-bottom: 18px; }
+        .word-type-label { font-weight: 700; color: #8e44ad; font-size: 1.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .definition-item { padding: 8px 0 8px 20px; position: relative; color: #444; line-height: 1.5; }
+        .definition-item::before { content: '\2022'; position: absolute; left: 5px; color: #8e44ad; font-weight: bold; }
+
+        .syn-ant-section .section-header { background: linear-gradient(135deg, #eafaf1, #d5f5e3); color: #1e8449; }
+        .syn-ant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .syn-group, .ant-group { padding: 15px; border-radius: 12px; }
+        .syn-group { background: #f0faf4; border: 1px solid #d5f5e3; }
+        .ant-group { background: #fef5f5; border: 1px solid #fadbd8; }
+        .syn-ant-label { font-weight: 700; margin-bottom: 10px; font-size: 0.95em; }
+        .syn-group .syn-ant-label { color: #27ae60; }
+        .ant-group .syn-ant-label { color: #e74c3c; }
+        .pill-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pill {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .pill:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); }
+        .pill-syn { background: #27ae60; color: white; }
+        .pill-ant { background: #e74c3c; color: white; }
+
+        .examples-section .section-header { background: linear-gradient(135deg, #fef9e7, #fdebd0); color: #b7950b; }
+        .example-item {
+            padding: 12px 16px;
+            background: #fffdf5;
+            border-left: 4px solid #f1c40f;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 10px;
+            color: #555;
+            line-height: 1.6;
+            font-size: 1.02em;
+        }
+        .example-item strong { color: #8e44ad; font-weight: 700; }
+
+        .themes-section .section-header { background: linear-gradient(135deg, #f5eef8, #e8daef); color: #7d3c98; }
+
+        .theme-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .theme-tab {
+            padding: 10px 18px;
+            border: 2px solid #e8daef;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+        .theme-tab:hover { border-color: #8e44ad; color: #8e44ad; background: #faf5ff; }
+        .theme-tab.active { background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border-color: #8e44ad; }
+
+        .theme-content {
+            display: none;
+            padding: 20px;
+            background: #faf5ff;
+            border-radius: 15px;
+            border: 1px solid #e8daef;
+            line-height: 1.8;
+            color: #444;
+            font-size: 1.05em;
+        }
+        .theme-content.active { display: block; animation: fadeIn 0.4s ease; }
+        .theme-content strong { color: #8e44ad; font-weight: 700; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-state { text-align: center; padding: 80px 30px; }
+        .welcome-icon { font-size: 4em; margin-bottom: 15px; }
+        .welcome-title { font-size: 1.8em; color: #8e44ad; margin-bottom: 10px; font-weight: 700; }
+        .welcome-text { color: #888; font-size: 1.1em; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+        .welcome-suggestions { margin-top: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .suggestion-pill {
+            padding: 8px 20px;
+            background: #f5f0ff;
+            color: #8e44ad;
+            border: 2px solid #e8daef;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+        .suggestion-pill:hover { background: #8e44ad; color: white; border-color: #8e44ad; transform: translateY(-2px); }
+
+        .error-state { text-align: center; padding: 50px 30px; display: none; }
+        .error-icon { font-size: 3em; margin-bottom: 10px; }
+        .error-text { color: #e74c3c; font-size: 1.1em; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        .notification.success { background: #27ae60; }
+        .notification.error { background: #e74c3c; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header { padding: 20px; }
+            .header h1 { font-size: 1.5em; }
+            .user-profile { position: static; margin-bottom: 10px; justify-content: flex-end; }
+            .stats-bar { flex-direction: column; align-items: flex-start; }
+            .search-container { flex-direction: column; }
+            .search-btn { width: 100%; }
+            .word-hero-title { font-size: 1.8em; }
+            .syn-ant-grid { grid-template-columns: 1fr; }
+            .save-word-btn { position: static; margin-top: 15px; display: inline-block; }
+            .theme-tabs { justify-content: center; }
+            .nav-links { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="user-profile">
+                <a href="/profile">
+                    <div class="profile-details">
+                        <div class="profile-name" id="userName">Loading...</div>
+                        <div class="profile-email" id="userEmail">...</div>
+                    </div>
+                    <div class="avatar" style="background-color: {{ user.avatar_color if user.avatar_color else '#8e44ad' }}">
+                        {{ user.username[0].upper() if user.username else 'U' }}
+                    </div>
+                </a>
+                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+            </div>
+            <h1>🔍 Word Explorer</h1>
+            <div class="subtitle">Dive deep into any word — meanings, synonyms, themed stories & more!</div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Flashcards</a>
+                <a href="/ai-learning" class="nav-link">🤖 AI Learning</a>
+                <a href="/manage" class="nav-link">Manage Words</a>
+                <a href="/deep-dive" class="nav-link active">🔍 Word Explorer</a>
+                {% if is_admin %}
+                <a href="/admin" class="nav-link">🔧 Admin</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <div class="autocomplete-container" style="flex:1;">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Type a word to explore..." autocomplete="off">
+                    <div class="autocomplete-list" id="autocompleteList"></div>
+                </div>
+                <button class="search-btn" id="searchBtn" onclick="searchWord()">🔍 Explore!</button>
+            </div>
+            <div class="search-hint">Try words like <span class="suggestion-inline" onclick="quickSearch('courage')">courage</span>, <span class="suggestion-inline" onclick="quickSearch('ephemeral')">ephemeral</span>, or <span class="suggestion-inline" onclick="quickSearch('resilience')">resilience</span></div>
+        </div>
+
+        <div class="welcome-state" id="welcomeState">
+            <div class="welcome-icon">🌍✨</div>
+            <div class="welcome-title">Explore Any Word!</div>
+            <div class="welcome-text">Search for any word and discover its meanings, synonyms, antonyms, example sentences, and fun themed stories.</div>
+            <div class="welcome-suggestions">
+                <button class="suggestion-pill" onclick="quickSearch('adventure')">🗺️ Adventure</button>
+                <button class="suggestion-pill" onclick="quickSearch('brilliant')">💡 Brilliant</button>
+                <button class="suggestion-pill" onclick="quickSearch('persevere')">💪 Persevere</button>
+                <button class="suggestion-pill" onclick="quickSearch('serendipity')">🍀 Serendipity</button>
+                <button class="suggestion-pill" onclick="quickSearch('harmony')">🎵 Harmony</button>
+                <button class="suggestion-pill" onclick="quickSearch('catalyst')">🔬 Catalyst</button>
+            </div>
+        </div>
+
+        <div class="loading-container" id="loadingState">
+            <div class="spinner"></div>
+            <div class="loading-text">Exploring "<span id="loadingWord"></span>"...</div>
+            <div class="loading-subtext">Our AI is diving deep into this word for you!</div>
+        </div>
+
+        <div class="error-state" id="errorState">
+            <div class="error-icon">😕</div>
+            <div class="error-text" id="errorText">Something went wrong. Please try again.</div>
+        </div>
+
+        <div class="results-area" id="resultsArea">
+            <div class="word-hero" id="wordHero">
+                <button class="save-word-btn" id="saveWordBtn" onclick="saveWord()">📥 Save to My Words</button>
+                <div class="word-hero-title" id="heroWord"></div>
+                <div class="word-pronunciation" id="heroPronunciation"></div>
+                <div class="word-badges" id="heroBadges"></div>
+                <div class="word-hero-definition" id="heroDefinition"></div>
+                <div class="fun-fact" id="heroFunFact" style="display:none;">
+                    <span class="fun-fact-icon">💡</span>
+                    <span id="funFactText"></span>
+                </div>
+            </div>
+
+            <div class="section-card meanings-section">
+                <div class="section-header" onclick="toggleSection('meanings')">
+                    📖 Meanings & Definitions
+                    <span class="toggle-icon open" id="meanings-toggle">▼</span>
+                </div>
+                <div class="section-body" id="meanings-body">
+                    <div id="meaningsContent"></div>
+                </div>
+            </div>
+
+            <div class="section-card syn-ant-section">
+                <div class="section-header" onclick="toggleSection('synant')">
+                    🔗 Synonyms & Antonyms
+                    <span class="toggle-icon open" id="synant-toggle">▼</span>
+                </div>
+                <div class="section-body" id="synant-body">
+                    <div class="syn-ant-grid">
+                        <div class="syn-group">
+                            <div class="syn-ant-label">✅ Synonyms (similar words)</div>
+                            <div class="pill-cloud" id="synonymPills"></div>
+                        </div>
+                        <div class="ant-group">
+                            <div class="syn-ant-label">❌ Antonyms (opposite words)</div>
+                            <div class="pill-cloud" id="antonymPills"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card examples-section">
+                <div class="section-header" onclick="toggleSection('examples')">
+                    ✏️ Example Sentences
+                    <span class="toggle-icon open" id="examples-toggle">▼</span>
+                </div>
+                <div class="section-body" id="examples-body">
+                    <div id="examplesContent"></div>
+                </div>
+            </div>
+
+            <div class="section-card themes-section">
+                <div class="section-header" onclick="toggleSection('themes')">
+                    🎨 Word in Action — Themed Stories
+                    <span class="toggle-icon open" id="themes-toggle">▼</span>
+                </div>
+                <div class="section-body" id="themes-body">
+                    <div class="theme-tabs" id="themeTabs"></div>
+                    <div id="themeContents"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const userWords = {{ user_words | tojson }};
+
+        const themeConfig = {
+            sports:    { emoji: '🏀', label: 'Sports',         color: '#e67e22' },
+            study:     { emoji: '📚', label: 'Study / School',  color: '#3498db' },
+            science:   { emoji: '🔬', label: 'Science',        color: '#1abc9c' },
+            art:       { emoji: '🎨', label: 'Art & Creativity', color: '#9b59b6' },
+            adventure: { emoji: '🌍', label: 'Adventure',      color: '#27ae60' },
+            daily_life:{ emoji: '🍕', label: 'Daily Life',     color: '#e74c3c' }
+        };
+
+        let currentData = null;
+
+        const searchInput = document.getElementById('searchInput');
+        const autocompleteList = document.getElementById('autocompleteList');
+
+        searchInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (val.length < 1) { autocompleteList.style.display = 'none'; return; }
+            const matches = userWords.filter(w => w.toLowerCase().startsWith(val)).slice(0, 8);
+            if (matches.length === 0) { autocompleteList.style.display = 'none'; return; }
+            autocompleteList.innerHTML = matches.map(w =>
+                '<div class="autocomplete-item" onclick="quickSearch(\'' + w.replace(/'/g, "\\'") + '\')">' + w + '</div>'
+            ).join('');
+            autocompleteList.style.display = 'block';
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { autocompleteList.style.display = 'none'; searchWord(); }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-container')) autocompleteList.style.display = 'none';
+        });
+
+        function quickSearch(word) {
+            searchInput.value = word;
+            autocompleteList.style.display = 'none';
+            searchWord();
+        }
+
+        async function searchWord() {
+            const word = searchInput.value.trim();
+            if (!word) return;
+
+            document.getElementById('welcomeState').style.display = 'none';
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('loadingWord').textContent = word;
+            document.getElementById('searchBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/deep-dive/' + encodeURIComponent(word));
+                const result = await response.json();
+
+                if (result.success) {
+                    currentData = result.data;
+                    renderResults(currentData);
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('resultsArea').style.display = 'block';
+                } else {
+                    showError(result.error || 'Could not find information for that word.');
+                }
+            } catch (err) {
+                showError('Network error. Please check your connection and try again.');
+            }
+
+            document.getElementById('searchBtn').disabled = false;
+        }
+
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorText').textContent = msg;
+        }
+
+        function renderResults(data) {
+            document.getElementById('heroWord').textContent = data.word || '';
+            document.getElementById('heroPronunciation').textContent = data.pronunciation ? '/' + data.pronunciation + '/' : '';
+
+            var badgesHtml = '';
+            if (data.word_types) {
+                data.word_types.forEach(function(wt) {
+                    badgesHtml += '<span class="badge badge-type">' + wt.type + '</span>';
+                });
+            }
+            if (data.difficulty) {
+                badgesHtml += '<span class="badge badge-difficulty ' + data.difficulty + '">' + data.difficulty.charAt(0).toUpperCase() + data.difficulty.slice(1) + '</span>';
+            }
+            document.getElementById('heroBadges').innerHTML = badgesHtml;
+
+            var primaryDef = '';
+            if (data.word_types && data.word_types.length > 0 && data.word_types[0].definitions) {
+                primaryDef = data.word_types[0].definitions[0] || '';
+            }
+            document.getElementById('heroDefinition').textContent = primaryDef;
+
+            if (data.fun_fact) {
+                document.getElementById('heroFunFact').style.display = 'flex';
+                document.getElementById('funFactText').textContent = data.fun_fact;
+            } else {
+                document.getElementById('heroFunFact').style.display = 'none';
+            }
+
+            var saveBtn = document.getElementById('saveWordBtn');
+            var wordLower = (data.word || '').toLowerCase();
+            var alreadySaved = userWords.some(function(w) { return w.toLowerCase() === wordLower; });
+            if (alreadySaved) {
+                saveBtn.textContent = '✅ Already in My Words';
+                saveBtn.classList.add('saved');
+                saveBtn.disabled = true;
+            } else {
+                saveBtn.textContent = '📥 Save to My Words';
+                saveBtn.classList.remove('saved');
+                saveBtn.disabled = false;
+            }
+
+            var meaningsHtml = '';
+            if (data.word_types) {
+                data.word_types.forEach(function(wt) {
+                    meaningsHtml += '<div class="word-type-group">';
+                    meaningsHtml += '<div class="word-type-label">📌 ' + wt.type + '</div>';
+                    if (wt.definitions) {
+                        wt.definitions.forEach(function(def) {
+                            meaningsHtml += '<div class="definition-item">' + escapeHtml(def) + '</div>';
+                        });
+                    }
+                    meaningsHtml += '</div>';
+                });
+            }
+            document.getElementById('meaningsContent').innerHTML = meaningsHtml;
+
+            var synHtml = '';
+            if (data.synonyms) {
+                data.synonyms.forEach(function(s) {
+                    if (s && s.toLowerCase() !== 'none') {
+                        synHtml += '<button class="pill pill-syn" onclick="quickSearch(\'' + s.replace(/'/g, "\\'") + '\')">' + escapeHtml(s) + '</button>';
+                    }
+                });
+            }
+            document.getElementById('synonymPills').innerHTML = synHtml || '<span style="color:#999;">No synonyms available</span>';
+
+            var antHtml = '';
+            if (data.antonyms) {
+                data.antonyms.forEach(function(a) {
+                    if (a && a.toLowerCase() !== 'none') {
+                        antHtml += '<button class="pill pill-ant" onclick="quickSearch(\'' + a.replace(/'/g, "\\'") + '\')">' + escapeHtml(a) + '</button>';
+                    }
+                });
+            }
+            document.getElementById('antonymPills').innerHTML = antHtml || '<span style="color:#999;">No antonyms available</span>';
+
+            var examplesHtml = '';
+            if (data.examples) {
+                data.examples.forEach(function(ex) {
+                    examplesHtml += '<div class="example-item">' + formatBold(escapeHtml(ex)) + '</div>';
+                });
+            }
+            document.getElementById('examplesContent').innerHTML = examplesHtml;
+
+            renderThemes(data.themed_paragraphs || {});
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        function formatBold(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+
+        function renderThemes(themes) {
+            var tabsContainer = document.getElementById('themeTabs');
+            var contentsContainer = document.getElementById('themeContents');
+            var tabsHtml = '';
+            var contentsHtml = '';
+            var first = true;
+
+            var keys = Object.keys(themeConfig);
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var config = themeConfig[key];
+                if (themes[key]) {
+                    var active = first ? ' active' : '';
+                    tabsHtml += '<button class="theme-tab' + active + '" data-theme="' + key + '" onclick="switchTheme(\'' + key + '\')">' + config.emoji + ' ' + config.label + '</button>';
+                    contentsHtml += '<div class="theme-content' + active + '" id="theme-' + key + '">' + formatBold(escapeHtml(themes[key])) + '</div>';
+                    first = false;
+                }
+            }
+
+            tabsContainer.innerHTML = tabsHtml;
+            contentsContainer.innerHTML = contentsHtml;
+        }
+
+        function switchTheme(key) {
+            document.querySelectorAll('.theme-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.theme-content').forEach(function(c) { c.classList.remove('active'); });
+
+            var tab = document.querySelector('.theme-tab[data-theme="' + key + '"]');
+            if (tab) tab.classList.add('active');
+            var content = document.getElementById('theme-' + key);
+            if (content) content.classList.add('active');
+        }
+
+        function toggleSection(id) {
+            var body = document.getElementById(id + '-body');
+            var toggle = document.getElementById(id + '-toggle');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                toggle.classList.add('open');
+            } else {
+                body.style.display = 'none';
+                toggle.classList.remove('open');
+            }
+        }
+
+        async function saveWord() {
+            if (!currentData || !currentData.word) return;
+
+            var wordType = (currentData.word_types && currentData.word_types[0]) ? currentData.word_types[0].type : 'Noun';
+            var definition = (currentData.word_types && currentData.word_types[0] && currentData.word_types[0].definitions) ? currentData.word_types[0].definitions[0] : '';
+            var example = (currentData.examples && currentData.examples[0]) ? currentData.examples[0] : '';
+            var difficulty = currentData.difficulty || 'medium';
+
+            try {
+                var response = await fetch('/api/words', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        word: currentData.word,
+                        word_type: wordType,
+                        definition: definition,
+                        example: example.replace(/\*\*/g, ''),
+                        difficulty: difficulty
+                    })
+                });
+
+                var result = await response.json();
+                if (response.ok) {
+                    var saveBtn = document.getElementById('saveWordBtn');
+                    saveBtn.textContent = '✅ Saved!';
+                    saveBtn.classList.add('saved');
+                    saveBtn.disabled = true;
+                    userWords.push(currentData.word);
+                    showNotification('Word saved to your vocabulary!', 'success');
+                } else {
+                    showNotification(result.error || result.detail || 'Failed to save word.', 'error');
+                }
+            } catch (err) {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
+        function showNotification(msg, type) {
+            var el = document.getElementById('notification');
+            el.textContent = msg;
+            el.className = 'notification ' + type;
+            el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/user/profile')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.username) {
+                        document.getElementById('userName').textContent = data.first_name || data.username;
+                        document.getElementById('userEmail').textContent = data.email || '';
+                    }
+                })
+                .catch(function() {});
+
+            searchInput.focus();
+
+            var params = new URLSearchParams(window.location.search);
+            var wordParam = params.get('word');
+            if (wordParam) {
+                searchInput.value = wordParam;
+                searchWord();
+            }
+        });
+
+        function handleLogout() { window.location.href = '/logout'; }
+    </script>
+</body>
+</html>

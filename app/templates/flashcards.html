@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCE Vocabulary Flashcards - Web App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .user-profile {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .profile-info:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .profile-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-name {
+            font-size: 0.9em;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .profile-email {
+            font-size: 0.75em;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .user-profile {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .profile-info {
+                flex-direction: column;
+                gap: 5px;
+                text-align: center;
+            }
+            
+            .profile-details {
+                align-items: center;
+            }
+        }
+
+        .stats-bar {
+            background-color: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #3498db;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #3498db;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .search-section {
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-heart {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+        }
+
+        .btn-heart:hover {
+            background-color: #c2185b;
+            transform: scale(1.05);
+        }
+
+        .btn-heart.active {
+            background-color: #ad1457;
+            box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .word-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .word-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            border-color: #3498db;
+        }
+
+        .word-card.flipped {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-color: #27ae60;
+        }
+
+        .word-card.hidden {
+            opacity: 0.3;
+            transform: scale(0.95) translateY(-5px);
+            filter: grayscale(100%);
+        }
+
+        .word-card.focused {
+            box-shadow: 0 0 0 3px #3498db;
+            transform: translateY(-5px);
+        }
+
+        .card-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .card-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .hide-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .hide-btn:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .word-card.hidden .hide-btn {
+            background-color: #27ae60;
+        }
+
+        .remove-btn {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .remove-btn:hover {
+            background-color: #d35400;
+            transform: scale(1.1);
+        }
+
+        .like-btn {
+            background-color: #95a5a6;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .like-btn:hover {
+            background-color: #7f8c8d;
+            transform: scale(1.1);
+        }
+
+        .like-btn.liked {
+            background-color: #e91e63;
+            color: white;
+        }
+
+        .like-btn.liked:hover {
+            background-color: #c2185b;
+        }
+
+        .word-front, .word-back {
+            text-align: center;
+        }
+
+        .word-front {
+            display: block;
+        }
+
+        .word-back {
+            display: none;
+        }
+
+        .word-card.flipped .word-front {
+            display: none;
+        }
+
+        .word-card.flipped .word-back {
+            display: block;
+        }
+
+        .word-title {
+            font-size: 2.5em; /* Match AI Learning */
+            font-weight: bold;
+            color: #2d3436; /* Match AI Learning */
+            margin-bottom: 10px;
+        }
+
+        .word-type {
+            background-color: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .word-stats {
+            color: #888;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .word-definition {
+            color: #555;
+            font-style: italic;
+            margin-bottom: 20px; /* Match AI Learning */
+            font-size: 1.3em;    /* Match AI Learning */
+            line-height: 1.5;    /* Match AI Learning */
+        }
+
+        .word-example {
+            color: #666;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #27ae60;
+            font-size: 1.1em; /* Match AI Learning */
+        }
+
+        .flip-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            color: #bdc3c7;
+            font-size: 0.8em;
+        }
+
+
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .session-mode {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .session-timer {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Progress Visualization */
+        .session-progress {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .progress-visual {
+            position: relative;
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 6;
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: #00ff88;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .progress-current {
+            font-size: 1.8em;
+            color: #00ff88;
+        }
+
+        .progress-total {
+            font-size: 1em;
+            opacity: 0.8;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            flex: 1;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* Achievement Popup */
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+            max-width: 300px;
+            display: none;
+        }
+
+        .achievement-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .achievement-icon {
+            font-size: 2em;
+        }
+
+        .achievement-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1em;
+        }
+
+        .achievement-text p {
+            margin: 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes quickFadeInOut {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+
+        /* Difficulty Rating */
+        .difficulty-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .word-card:hover .difficulty-controls {
+            opacity: 1;
+        }
+
+        .difficulty-btn {
+            width: 25px;
+            height: 25px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-easy {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .difficulty-medium {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .difficulty-hard {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .difficulty-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .difficulty-btn.active {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Mastery Indicators */
+        .mastery-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .mastery-new {
+            background-color: #95a5a6;
+        }
+
+        .mastery-learning {
+            background-color: #f39c12;
+        }
+
+        .mastery-mastered {
+            background-color: #27ae60;
+        }
+
+        /* Study Action Buttons */
+        .study-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Dark Mode */
+        .dark-mode {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .dark-mode .container {
+            background-color: #34495e;
+            color: #ecf0f1;
+        }
+
+        .dark-mode .word-card {
+            background-color: #2c3e50;
+            border-color: #34495e;
+            color: #ecf0f1;
+        }
+
+        .dark-mode .word-card:hover {
+            border-color: #3498db;
+        }
+
+        .dark-mode .stats-bar {
+            background-color: #2c3e50;
+            border-bottom-color: #34495e;
+        }
+
+        .dark-mode .search-section {
+            background-color: #2c3e50;
+            border-bottom-color: #34495e;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: #2980b9;
+        }
+
+        /* Search Results */
+        .search-results {
+            margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Search Results Word Cards */
+        .search-word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .search-word-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-word-card:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-word-card .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .search-word-card .word-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .search-word-card .word-type {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .search-word-card .word-definition {
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .search-word-card .word-example {
+            color: #777;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .config-row {
+                flex-direction: column;
+            }
+            
+            .session-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .session-progress {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .achievement-popup {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .word-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
+    
+    <div class="container">
+        <div class="header">
+            <div class="user-profile">
+                <a href="/profile" class="profile-info">
+                    <div class="profile-avatar" id="userAvatar">?</div>
+                    <div class="profile-details">
+                        <div class="profile-name" id="userName">Loading...</div>
+                        <div class="profile-email" id="userEmail">...</div>
+                    </div>
+                </a>
+                <button class="logout-btn" onclick="handleLogout()">
+                    🚪 Logout
+                </button>
+            </div>
+            
+            <h1>🃏 Vocabulary Flashcards</h1>
+            <div class="subtitle">Interactive Web Application</div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalWords">{{ total_words }}</span>
+                    <span class="stat-label">Total Words</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="visibleWords">{{ total_words }}</span>
+                    <span class="stat-label">Visible</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="hiddenWords">0</span>
+                    <span class="stat-label">Hidden</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="likedWords">0</span>
+                    <span class="stat-label">💝 Liked</span>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-link active">Flashcards</a>
+                <a href="/ai-learning" class="nav-link">🤖 AI Assisted Learning!</a>
+                <a href="/manage" class="nav-link">Manage Words</a>
+                <a href="/deep-dive" class="nav-link">🔍 Word Explorer</a>
+                {% if is_admin %}
+                <a href="/admin" class="nav-link">🔧 Admin</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search words, definitions, or examples...">
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="searchWords()">🔍 Search</button>
+                    <button class="btn btn-primary" onclick="showAllWords()">Show Words</button>
+                    <button class="btn btn-primary" onclick="showAllDefinitions()">Show Definitions</button>
+                    <button class="btn btn-heart" onclick="showLikedWords()" id="likedWordsBtn">💝 Show Liked</button>
+                    <button class="btn btn-secondary" onclick="shuffleCards()">Shuffle</button>
+                    <button class="btn btn-success" onclick="showAllCards()">Show All</button>
+                    <button class="btn btn-danger" onclick="hideAllCards()">Hide All</button>
+                    <select id="difficultyFilter" class="btn" onchange="filterByDifficulty()">
+                        <option value="">All Difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div id="searchResults" class="search-results"></div>
+
+
+        <!-- Achievement Notifications -->
+        <div class="achievement-popup" id="achievementPopup">
+            <div class="achievement-content">
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-text">
+                    <h4 id="achievementTitle">Achievement Unlocked!</h4>
+                    <p id="achievementDesc">You've mastered 10 words today!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                Loading flashcards...
+            </div>
+            
+            <div id="wordGrid" class="word-grid">
+                {% for word in words %}
+                <div class="word-card {{ 'hidden' if (word.hidden or word.is_hidden) else '' }}" data-word-id="{{ word.id }}" data-difficulty="{{ word.difficulty or 'medium' }}" onclick="flipCard(this)">
+                    <!-- Mastery Indicator -->
+                    <div class="mastery-indicator mastery-{{ 'mastered' if word.mastery_level == 2 else 'learning' if word.mastery_level == 1 else 'new' }}" 
+                         title="Mastery: {{ 'Mastered' if word.mastery_level == 2 else 'Learning' if word.mastery_level == 1 else 'New' }}"></div>
+                    
+                    <div class="card-controls">
+                        <button class="card-btn like-btn" onclick="event.stopPropagation(); toggleLikeWord({{ word.id }}, this)" title="Like word">♡</button>
+                        <button class="card-btn hide-btn" onclick="event.stopPropagation(); toggleHideCard(this.closest('.word-card'))" title="{{ 'Show card' if (word.hidden or word.is_hidden) else 'Hide/Show card' }}">{{ '↺' if (word.hidden or word.is_hidden) else '×' }}</button>
+                        <button class="card-btn remove-btn" onclick="event.stopPropagation(); removeWord({{ word.id }})" title="Remove word">🗑</button>
+                    </div>
+                    
+                    <!-- Difficulty Controls -->
+                    <div class="difficulty-controls">
+                        <button class="difficulty-btn difficulty-easy {{ 'active' if word.difficulty == 'easy' else '' }}" 
+                                onclick="event.stopPropagation(); updateDifficulty({{ word.id }}, 'easy')" 
+                                title="Mark as Easy">E</button>
+                        <button class="difficulty-btn difficulty-medium {{ 'active' if (word.difficulty or 'medium') == 'medium' else '' }}" 
+                                onclick="event.stopPropagation(); updateDifficulty({{ word.id }}, 'medium')" 
+                                title="Mark as Medium">M</button>
+                        <button class="difficulty-btn difficulty-hard {{ 'active' if word.difficulty == 'hard' else '' }}" 
+                                onclick="event.stopPropagation(); updateDifficulty({{ word.id }}, 'hard')" 
+                                title="Mark as Hard">H</button>
+                    </div>
+                    
+                    <div class="word-front">
+                        <div class="word-title">{{ word.word }}</div>
+            <!-- Front-side quick actions -->
+            <div class="study-actions" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+                <button class="btn btn-success btn-sm" 
+                    onclick="event.stopPropagation(); markKnown({{ word.id }})" 
+                    title="I know this">I know this</button>
+                <button class="btn btn-warning btn-sm" 
+                    onclick="event.stopPropagation(); flipCard(this.closest('.word-card'))" 
+                    title="Show meaning">Review</button>
+                <div class="review-msg" aria-live="polite" role="status" style="font-size:0.85em;color:#555;"></div>
+            </div>
+                    </div>
+                    
+                    <div class="word-back">
+                        <div class="word-title">{{ word.word }}</div>
+                        <div class="word-type">{{ word.word_type }}</div>
+                        <div class="word-definition">{{ word.definition }}</div>
+                        <div class="word-example">{{ word.example }}</div>
+                        
+                        <!-- No study actions on the back after flip -->
+                    </div>
+                    
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allWords = {{ words | tojson }};
+        let originalWords = {{ words | tojson }}; // Store original words for filtering
+        let hiddenCards = new Set();
+
+        // Function to load words (with optional search query)
+        function loadWords(searchQuery = '') {
+            const url = searchQuery ? `/api/words?search=${encodeURIComponent(searchQuery)}` : '/api/words';
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.words) {
+                    allWords = data.words;
+                    originalWords = data.words; // Update original words too
+                    currentWordIndex = 0;
+                    shuffleArray(allWords);
+                    updateWordDisplay();
+                    updateStats();
+                    
+                    // Reset the liked words button if it was active
+                    const likedBtn = document.getElementById('likedWordsBtn');
+                    if (likedBtn) {
+                        likedBtn.classList.remove('active');
+                        likedBtn.textContent = '💝 Show Liked';
+                        likedBtn.title = 'Show only liked words';
+                    }
+                    
+                    console.log(`Loaded ${allWords.length} words` + (searchQuery ? ` for search: "${searchQuery}"` : ''));
+                }
+            })
+            .catch(error => {
+                console.error('Error loading words:', error);
+                showAlert('Error loading words. Please try again.', 'error');
+            });
+        }
+
+        // Enhanced Study Session Management (simplified)
+        let studySession = {
+            active: false,
+            sessionId: null,
+            startTime: null,
+            wordsReviewed: 0,
+            wordsCorrect: 0,
+            timer: null,
+            paused: false,
+            pausedTime: 0
+        };
+
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        function toggleHideCard(card) {
+            const wordId = card.dataset.wordId;
+            const hideBtn = card.querySelector('.hide-btn');
+            
+            if (card.classList.contains('hidden')) {
+                // Unhide on server first
+                fetch(`/api/words/${wordId}/unhide`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        card.classList.remove('hidden');
+                        hideBtn.textContent = '×';
+                        hideBtn.title = 'Hide card';
+                        hiddenCards.delete(wordId);
+                        updateStats();
+                    } else {
+                        showQuickFeedback(data.error || 'Failed to unhide', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Unhide error:', err);
+                    showQuickFeedback('Network error', 'error');
+                });
+            } else {
+                // Hide on server first
+                fetch(`/api/words/${wordId}/hide`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        card.classList.add('hidden');
+                        hideBtn.textContent = '↺';
+                        hideBtn.title = 'Show card';
+                        hiddenCards.add(wordId);
+                        updateStats();
+                    } else {
+                        showQuickFeedback(data.error || 'Failed to hide', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Hide error:', err);
+                    showQuickFeedback('Network error', 'error');
+                });
+            }
+        }
+
+        function showAllWords() {
+            document.querySelectorAll('.word-card').forEach(card => {
+                card.classList.remove('flipped');
+            });
+        }
+
+        function showAllDefinitions() {
+            document.querySelectorAll('.word-card').forEach(card => {
+                card.classList.add('flipped');
+            });
+        }
+
+        function shuffleCards() {
+            const grid = document.getElementById('wordGrid');
+            const cards = Array.from(grid.children);
+            
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                grid.appendChild(cards[j]);
+                cards.splice(j, 1);
+            }
+        }
+
+        function showAllCards() {
+            document.querySelectorAll('.word-card').forEach(card => {
+                const wordId = card.dataset.wordId;
+                const hideBtn = card.querySelector('.hide-btn');
+                
+                card.classList.remove('hidden');
+                hideBtn.textContent = '×';
+                hideBtn.title = 'Hide card';
+                hiddenCards.delete(wordId);
+            });
+            updateStats();
+        }
+
+        function hideAllCards() {
+            document.querySelectorAll('.word-card').forEach(card => {
+                const wordId = card.dataset.wordId;
+                const hideBtn = card.querySelector('.hide-btn');
+                
+                card.classList.add('hidden');
+                hideBtn.textContent = '↺';
+                hideBtn.title = 'Show card';
+                hiddenCards.add(wordId);
+            });
+            updateStats();
+        }
+
+        function showLikedWords() {
+            const likedBtn = document.getElementById('likedWordsBtn');
+            const isActive = likedBtn.classList.contains('active');
+            
+            if (isActive) {
+                // Currently showing liked words, show all words instead
+                likedBtn.classList.remove('active');
+                likedBtn.textContent = '💝 Show Liked';
+                likedBtn.title = 'Show only liked words';
+                
+                // Show all cards that aren't manually hidden
+                document.querySelectorAll('.word-card').forEach(card => {
+                    const wordId = parseInt(card.dataset.wordId);
+                    // Only show cards that aren't in the hiddenCards set
+                    if (!hiddenCards.has(String(wordId))) {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Reset any search
+                document.getElementById('searchInput').value = '';
+                const searchResults = document.getElementById('searchResults');
+                searchResults.classList.remove('show');
+                
+                updateStats();
+            } else {
+                // Show only liked words
+                likedBtn.classList.add('active');
+                likedBtn.textContent = '❤️ Showing Liked';
+                likedBtn.title = 'Show all words';
+                
+                // Check if there are any liked words
+                if (userLikedWords.size === 0) {
+                    showQuickFeedback('You haven\'t liked any words yet! Click the ♡ button on words you like.', 'warning');
+                    likedBtn.classList.remove('active');
+                    likedBtn.textContent = '💝 Show Liked';
+                    likedBtn.title = 'Show only liked words';
+                    return;
+                }
+                
+                // Hide all cards first, then show only liked ones
+                let likedCount = 0;
+                document.querySelectorAll('.word-card').forEach(card => {
+                    const wordId = parseInt(card.dataset.wordId);
+                    
+                    if (userLikedWords.has(wordId)) {
+                        // Show liked word (unless it's manually hidden)
+                        if (!hiddenCards.has(String(wordId))) {
+                            card.style.display = '';
+                            likedCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    } else {
+                        // Hide non-liked words
+                        card.style.display = 'none';
+                    }
+                });
+                
+                updateStats();
+                showQuickFeedback(`Showing ${likedCount} liked words!`, 'success');
+            }
+        }
+
+        function searchWords() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                // If empty query, reload all words
+                loadWords();
+                const searchResults = document.getElementById('searchResults');
+                searchResults.classList.remove('show');
+                return;
+            }
+            
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '<div class="loading">Searching...</div>';
+            searchResults.classList.add('show');
+            
+            // Use the existing /api/words endpoint with search parameter
+            fetch(`/api/words?search=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.words && data.words.length > 0) {
+                    // Display search results
+                    searchResults.innerHTML = `
+                        <h4>🔍 Search Results (${data.words.length} found):</h4>
+                        <div class="search-word-grid">
+                            ${data.words.map(word => `
+                                <div class="search-word-card" onclick="showWordDetails(${word.id})">
+                                    <div class="word-header">
+                                        <span class="word-text">${word.word}</span>
+                                        <span class="word-type">${word.word_type}</span>
+                                    </div>
+                                    <div class="word-definition">${word.definition}</div>
+                                    <div class="word-example"><em>"${word.example}"</em></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="clearSearch()">Clear Search</button>
+                            <button class="btn btn-primary" onclick="showSearchResults()">Show in Flashcards</button>
+                        </div>
+                    `;
+                } else {
+                    searchResults.innerHTML = `
+                        <div style="color: #e74c3c;">
+                            <h5>⚠️ No results found</h5>
+                            <p>No words found matching "${query}". Try rephrasing your search or check the spelling.</p>
+                            <button class="btn btn-secondary" onclick="clearSearch()" style="margin-top: 10px;">Clear Search</button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchResults.innerHTML = `
+                    <div style="color: #e74c3c;">
+                        <h5>❌ Search Error</h5>
+                        <p>There was an error processing your search. Please try again.</p>
+                        <button class="btn btn-secondary" onclick="clearSearch()" style="margin-top: 10px;">Clear Search</button>
+                    </div>
+                `;
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            const searchResults = document.getElementById('searchResults');
+            searchResults.classList.remove('show');
+            searchResults.innerHTML = '';
+            loadWords(); // Reload all words
+        }
+
+        function showSearchResults() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            
+            // Update the main flashcard view with search results
+            currentWordIndex = 0;
+            loadWords(query);
+            
+            // Hide search results panel
+            const searchResults = document.getElementById('searchResults');
+            searchResults.classList.remove('show');
+        }
+
+        function showWordDetails(wordId) {
+            // Find and show the specific word in the flashcard view
+            fetch(`/api/words?search=${wordId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.words && data.words.length > 0) {
+                        // Find the word by ID
+                        const word = data.words.find(w => w.id == wordId);
+                        if (word) {
+                            // Update flashcard display to show this specific word
+                            document.getElementById('currentWord').textContent = word.word;
+                            document.getElementById('currentType').textContent = word.word_type;
+                            document.getElementById('currentDefinition').textContent = word.definition;
+                            document.getElementById('currentExample').textContent = word.example;
+                            
+                            // Hide search results
+                            const searchResults = document.getElementById('searchResults');
+                            searchResults.classList.remove('show');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error loading word details:', error));
+        }
+
+        function removeWord(wordId) {
+            if (!confirm('Are you sure you want to remove this word? This action cannot be undone.')) {
+                return;
+            }
+            
+            fetch(`/api/words/${wordId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the card from the UI
+                    const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                    if (card) {
+                        card.remove();
+                    }
+                    
+                    // Update allWords array
+                    allWords = allWords.filter(w => w.id !== wordId);
+                    
+                    updateStats();
+                    showAchievement('Word Removed', 'Word deleted successfully! 🗑️');
+                } else {
+                    alert('Error removing word: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error removing word. Please try again.');
+            });
+        }
+
+        // Word Liking Functionality
+        let userLikedWords = new Set(); // Track liked words
+
+        function toggleLikeWord(wordId, buttonElement) {
+            const isLiked = userLikedWords.has(wordId);
+            const action = isLiked ? 'unlike' : 'like';
+            
+            fetch(`/api/words/${wordId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isLiked) {
+                        userLikedWords.delete(wordId);
+                        buttonElement.classList.remove('liked');
+                        buttonElement.innerHTML = '♡';
+                        buttonElement.title = 'Like word';
+                        showAchievement('Word Unliked', 'Removed from favorites 💔');
+                    } else {
+                        userLikedWords.add(wordId);
+                        buttonElement.classList.add('liked');
+                        buttonElement.innerHTML = '♥';
+                        buttonElement.title = 'Unlike word';
+                        showAchievement('Word Liked', 'Added to favorites! ❤️');
+                    }
+                    updateStats(); // Update the stats to reflect liked words count
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating like status. Please try again.');
+            });
+        }
+
+        function loadUserLikedWords() {
+            fetch('/api/user/liked-words')
+            .then(response => response.json())
+            .then(data => {
+                userLikedWords = new Set(data.liked_words);
+                
+                // Update UI for liked words
+                data.liked_words.forEach(wordId => {
+                    const button = document.querySelector(`[data-word-id="${wordId}"] .like-btn`);
+                    if (button) {
+                        button.classList.add('liked');
+                        button.innerHTML = '♥';
+                        button.title = 'Unlike word';
+                    }
+                });
+                
+                updateStats(); // Update stats to show liked words count
+            })
+            .catch(error => {
+                console.error('Error loading liked words:', error);
+            });
+        }
+
+        function updateStats() {
+            const allCards = document.querySelectorAll('.word-card');
+            const totalCards = allCards.length;
+            
+            // Count cards that are actually visible (not hidden by display:none or .hidden class)
+            let visibleCount = 0;
+            let hiddenByUserCount = 0; // Hidden by user (hide button)
+            
+            allCards.forEach(card => {
+                const wordId = card.dataset.wordId;
+                const isHiddenByUser = hiddenCards.has(wordId);
+                const isDisplayHidden = card.style.display === 'none';
+                const hasHiddenClass = card.classList.contains('hidden');
+                
+                if (isHiddenByUser || hasHiddenClass) {
+                    hiddenByUserCount++;
+                }
+                
+                if (!isDisplayHidden && !isHiddenByUser && !hasHiddenClass) {
+                    visibleCount++;
+                }
+            });
+            
+            const likedCount = userLikedWords.size;
+            
+            document.getElementById('totalWords').textContent = totalCards;
+            document.getElementById('visibleWords').textContent = visibleCount;
+            document.getElementById('hiddenWords').textContent = hiddenByUserCount;
+            document.getElementById('likedWords').textContent = likedCount;
+        }
+
+
+
+
+
+
+
+        function endStudySession() {
+            if (!studySession.active) return;
+            
+            const duration = Math.floor((Date.now() - studySession.startTime - (studySession.paused ? studySession.pausedTime : 0)) / 1000);
+            
+            fetch(`/api/study/session/${studySession.sessionId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    words_reviewed: studySession.wordsReviewed,
+                    words_correct: studySession.wordsCorrect,
+                    duration_seconds: duration
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Calculate performance
+                    const accuracy = studySession.wordsReviewed > 0 ? 
+                        Math.round((studySession.wordsCorrect / studySession.wordsReviewed) * 100) : 0;
+                    
+                    // Show completion summary
+                    showSessionComplete(studySession.wordsReviewed, studySession.wordsCorrect, accuracy, duration);
+                    
+                    // Reset session
+                    resetSessionUI();
+                    
+                    console.log('Study session ended successfully');
+                }
+            })
+            .catch(error => {
+                console.error('Error ending session:', error);
+                resetSessionUI();
+            });
+        }
+
+        function resetSessionUI() {
+            studySession.active = false;
+            studySession.sessionId = null;
+            studySession.paused = false;
+            
+            document.getElementById('sessionActive').style.display = 'none';
+            
+            clearInterval(studySession.timer);
+        }
+
+        function updateProgress() {
+            const progress = studySession.wordsReviewed;
+            const goal = parseInt(document.getElementById('progressTotal').textContent) || 10;
+            const accuracy = studySession.wordsReviewed > 0 ? 
+                Math.round((studySession.wordsCorrect / studySession.wordsReviewed) * 100) : 0;
+            
+            // Update numbers
+            document.getElementById('progressCurrent').textContent = progress;
+            document.getElementById('wordsReviewed').textContent = studySession.wordsReviewed;
+            document.getElementById('wordsCorrect').textContent = studySession.wordsCorrect;
+            document.getElementById('currentAccuracy').textContent = accuracy + '%';
+            
+            // Update progress circle
+            const progressPercent = Math.min(progress / goal, 1);
+            const circumference = 2 * Math.PI * 50; // radius = 50
+            const strokeDashoffset = circumference - (progressPercent * circumference);
+            document.getElementById('progressCircle').style.strokeDashoffset = strokeDashoffset;
+            
+            // Check for completion
+            if (progress >= goal) {
+                setTimeout(() => {
+                    showAchievement('Goal Achieved!', `Completed ${goal} words! 🎉`);
+                    setTimeout(() => endStudySession(), 2000);
+                }, 500);
+            }
+            
+            // Update daily progress (simplified)
+            document.getElementById('dailyProgress').textContent = progress;
+        }
+
+        function startTimer() {
+            studySession.timer = setInterval(() => {
+                if (!studySession.paused) {
+                    const elapsed = Math.floor((Date.now() - studySession.startTime) / 1000);
+                    document.getElementById('timerDisplay').textContent = formatTime(elapsed);
+                    
+                    // Time limit check can be added here if needed in the future
+                }
+            }, 1000);
+        }
+
+        function showAchievement(title, description) {
+            const popup = document.getElementById('achievementPopup');
+            document.getElementById('achievementTitle').textContent = title;
+            document.getElementById('achievementDesc').textContent = description;
+            
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 4000);
+        }
+
+        function showSessionComplete(reviewed, correct, accuracy, duration) {
+            let message = `🎉 Session Complete!\n\n`;
+            message += `📚 Words Reviewed: ${reviewed}\n`;
+            message += `✅ Correct Answers: ${correct}\n`;
+            message += `🎯 Accuracy: ${accuracy}%\n`;
+            message += `⏱️ Time: ${formatTime(duration)}\n\n`;
+            
+            if (accuracy >= 90) {
+                message += `🏆 Outstanding performance!`;
+            } else if (accuracy >= 75) {
+                message += `👏 Great job!`;
+            } else if (accuracy >= 60) {
+                message += `👍 Good effort!`;
+            } else {
+                message += `💪 Keep practicing!`;
+            }
+            
+            alert(message);
+        }
+
+
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Difficulty Management
+        function updateDifficulty(wordId, difficulty) {
+            fetch(`/api/words/${wordId}/difficulty`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ difficulty: difficulty })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                    card.dataset.difficulty = difficulty;
+                    
+                    // Update difficulty button states
+                    const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                    difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                    card.querySelector(`.difficulty-${difficulty}`).classList.add('active');
+                    
+                    showQuickFeedback(`Difficulty set to ${difficulty.toUpperCase()}`, 'info');
+                    console.log('Difficulty updated:', data.message);
+                } else {
+                    alert('Error updating difficulty: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating difficulty. Please try again.');
+            });
+        }
+
+        // Inline status message on a specific card
+        function setCardMessage(card, text, type = 'info') {
+            if (!card) return;
+            const el = card.querySelector('.review-msg');
+            if (!el) return;
+            el.textContent = text;
+            // Simple coloring by type
+            if (type === 'success') el.style.color = '#2e7d32';
+            else if (type === 'error') el.style.color = '#b00020';
+            else el.style.color = '#555';
+            el.style.opacity = '1';
+            // Auto-fade after a short delay
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.6s ease';
+                el.style.opacity = '0.0';
+                setTimeout(() => { el.textContent = ''; el.style.opacity = '1'; el.style.transition = ''; }, 700);
+            }, 1600);
+        }
+
+        // Mark Known: set easy + hide via backend
+        function markKnown(wordId) {
+            fetch(`/api/words/${wordId}/know`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                if (data.success) {
+                    setCardMessage(card, 'Marked as known — hidden from deck', 'success');
+                    // Update difficulty UI to easy
+                    if (card) {
+                        card.dataset.difficulty = 'easy';
+                        const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                        difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                        const easyBtn = card.querySelector('.difficulty-easy');
+                        if (easyBtn) easyBtn.classList.add('active');
+
+                        // Hide the card visually
+                        if (!card.classList.contains('hidden')) {
+                            const hideBtn = card.querySelector('.hide-btn');
+                            card.classList.add('hidden');
+                            if (hideBtn) { hideBtn.textContent = '↺'; hideBtn.title = 'Show card'; }
+                            hiddenCards.add(String(wordId));
+                            updateStats();
+                        }
+                    }
+                    showQuickFeedback('Marked as known ✔', 'success');
+                } else {
+                    setCardMessage(card, data.error || 'Failed to mark as known', 'error');
+                    showQuickFeedback(data.error || 'Failed to mark as known', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Know error:', err);
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                setCardMessage(card, 'Network error', 'error');
+                showQuickFeedback('Network error', 'error');
+            });
+        }
+
+        // Record Review (Study Progress)
+        function recordReview(wordId, correct) {
+            if (studySession.active) {
+                studySession.wordsReviewed++;
+                if (correct) studySession.wordsCorrect++;
+                
+                // Update progress with enhanced visualization
+                updateProgress();
+                
+                // Show encouraging feedback
+                if (correct) {
+                    showQuickFeedback('✅ Excellent!', 'success');
+                } else {
+                    showQuickFeedback('💡 Keep studying!', 'info');
+                }
+                
+                // Check for achievements
+                if (studySession.wordsCorrect % 5 === 0 && studySession.wordsCorrect > 0) {
+                    showAchievement(`${studySession.wordsCorrect} Correct!`, 'You\'re on fire! 🔥');
+                }
+                
+                // Update session progress on server
+                fetch(`/api/study/session/${studySession.sessionId}/progress`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        words_reviewed: studySession.wordsReviewed,
+                        words_correct: studySession.wordsCorrect,
+                        accuracy: Math.round((studySession.wordsCorrect / studySession.wordsReviewed) * 100),
+                        time_elapsed: Math.floor((Date.now() - studySession.startTime) / 1000)
+                    })
+                })
+                .catch(error => console.error('Error updating session progress:', error));
+            }
+            
+            fetch(`/api/words/${wordId}/review`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ correct: correct })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update mastery indicator
+                    const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                    const masteryIndicator = card.querySelector('.mastery-indicator');
+                    
+                    // Enhanced mastery level update
+                    if (correct) {
+                        masteryIndicator.className = 'mastery-indicator mastery-learning';
+                        masteryIndicator.title = 'Mastery: Learning';
+                    }
+                    
+                    // Enhanced visual feedback
+                    card.style.transform = 'scale(1.05)';
+                    card.style.backgroundColor = correct ? '#d4edda' : '#f8d7da';
+                    card.style.transition = 'all 0.3s ease';
+                    
+                    setTimeout(() => {
+                        card.style.backgroundColor = '';
+                        card.style.transform = '';
+                    }, 1000);
+
+                    // Inline message based on result/actions
+                    if (Array.isArray(data.actions) && data.actions.includes('hidden') && data.correct) {
+                        setCardMessage(card, 'Great job! Card hidden from deck', 'success');
+                    } else if (data.correct === false) {
+                        setCardMessage(card, 'We’ll show this again soon', 'info');
+                    } else {
+                        setCardMessage(card, data.message || 'Review recorded', 'info');
+                    }
+
+                    // React to server-side actions (hide/unhide, difficulty changes)
+                    if (data.actions && Array.isArray(data.actions)) {
+                        if (data.actions.includes('hidden')) {
+                            if (!card.classList.contains('hidden')) {
+                                const hideBtn = card.querySelector('.hide-btn');
+                                card.classList.add('hidden');
+                                if (hideBtn) { hideBtn.textContent = '↺'; hideBtn.title = 'Show card'; }
+                                hiddenCards.add(String(wordId));
+                                updateStats();
+                            }
+                        }
+                        if (data.actions.includes('unhidden')) {
+                            if (card.classList.contains('hidden')) {
+                                const hideBtn = card.querySelector('.hide-btn');
+                                card.classList.remove('hidden');
+                                if (hideBtn) { hideBtn.textContent = '×'; hideBtn.title = 'Hide card'; }
+                                hiddenCards.delete(String(wordId));
+                                updateStats();
+                            }
+                        }
+                        if (data.actions.includes('set_easy')) {
+                            card.dataset.difficulty = 'easy';
+                            const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                            difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                            const easyBtn = card.querySelector('.difficulty-easy');
+                            if (easyBtn) easyBtn.classList.add('active');
+                        }
+                        if (data.actions.includes('set_hard')) {
+                            card.dataset.difficulty = 'hard';
+                            const difficultyBtns = card.querySelectorAll('.difficulty-btn');
+                            difficultyBtns.forEach(btn => btn.classList.remove('active'));
+                            const hardBtn = card.querySelector('.difficulty-hard');
+                            if (hardBtn) hardBtn.classList.add('active');
+                        }
+                    }
+                    
+                    console.log(`Review recorded: ${correct ? 'correct' : 'incorrect'}`);
+                } else {
+                    const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                    setCardMessage(card, data.error || 'Failed to record review', 'error');
+                    console.error('Failed to record review:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error recording review:', error);
+                const card = document.querySelector(`[data-word-id="${wordId}"]`);
+                setCardMessage(card, '❌ Error recording review', 'error');
+                showQuickFeedback('❌ Error recording review', 'error');
+            });
+        }
+
+        function showQuickFeedback(message, type) {
+            // Create or update quick feedback element
+            let feedback = document.getElementById('quickFeedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.id = 'quickFeedback';
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 15px 25px;
+                    border-radius: 25px;
+                    font-weight: bold;
+                    z-index: 2000;
+                    animation: quickFadeInOut 1.5s ease;
+                `;
+                document.body.appendChild(feedback);
+            }
+            
+            feedback.textContent = message;
+            feedback.className = `quick-feedback ${type}`;
+            
+            // Set colors based on type
+            if (type === 'success') {
+                feedback.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                feedback.style.color = 'white';
+            } else if (type === 'info') {
+                feedback.style.background = 'linear-gradient(135deg, #17a2b8, #6610f2)';
+                feedback.style.color = 'white';
+            } else if (type === 'error') {
+                feedback.style.background = 'linear-gradient(135deg, #dc3545, #fd7e14)';
+                feedback.style.color = 'white';
+            }
+            
+            feedback.style.display = 'block';
+            feedback.style.animation = 'quickFadeInOut 1.5s ease';
+            
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 1500);
+        }
+
+        // Filter by Difficulty
+        function filterByDifficulty() {
+            const selectedDifficulty = document.getElementById('difficultyFilter').value;
+            const cards = document.querySelectorAll('.word-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                if (selectedDifficulty === '' || card.dataset.difficulty === selectedDifficulty) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('visibleWords').textContent = visibleCount;
+        }
+
+        // Dark Mode Toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeBtn = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                themeBtn.textContent = '☀️';
+                themeBtn.title = 'Toggle Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeBtn.textContent = '🌙';
+                themeBtn.title = 'Toggle Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Keyboard Navigation
+        function handleKeyboard(event) {
+            // Ignore keyboard shortcuts when user is typing in input fields
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {
+                return;
+            }
+            
+            const cards = document.querySelectorAll('.word-card:not([style*="display: none"])');
+            let currentIndex = -1;
+            
+            // Find currently focused card
+            for (let i = 0; i < cards.length; i++) {
+                if (cards[i].classList.contains('focused')) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            
+            switch(event.key) {
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (currentIndex < cards.length - 1) {
+                        if (currentIndex >= 0) cards[currentIndex].classList.remove('focused');
+                        cards[currentIndex + 1].classList.add('focused');
+                        cards[currentIndex + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (currentIndex > 0) {
+                        cards[currentIndex].classList.remove('focused');
+                        cards[currentIndex - 1].classList.add('focused');
+                        cards[currentIndex - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else if (currentIndex === -1 && cards.length > 0) {
+                        cards[0].classList.add('focused');
+                        cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    break;
+                case ' ':
+                case 'Enter':
+                    event.preventDefault();
+                    if (currentIndex >= 0) {
+                        flipCard(cards[currentIndex]);
+                    }
+                    break;
+                case 'h':
+                case 'H':
+                    event.preventDefault();
+                    if (currentIndex >= 0) {
+                        toggleHideCard(cards[currentIndex]);
+                    }
+                    break;
+            }
+        }
+
+        // Initialize everything
+        document.addEventListener('keydown', handleKeyboard);
+        
+        // User Profile and Logout Functions
+        function loadUserProfile() {
+            fetch('/api/user/profile')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.user) {
+                    const user = data.user;
+                    
+                    // Display full name if available, otherwise username
+                    const displayName = [user.first_name, user.last_name].filter(n => n).join(' ') || user.username;
+                    document.getElementById('userName').textContent = displayName;
+                    document.getElementById('userEmail').textContent = user.email;
+                    
+                    // Set avatar to first letter of name or username with custom color
+                    const avatar = document.getElementById('userAvatar');
+                    const firstLetter = (user.first_name || user.username).charAt(0).toUpperCase();
+                    avatar.textContent = firstLetter;
+                    console.log('Setting avatar color to:', user.avatar_color);
+                    if (user.avatar_color) {
+                        avatar.style.backgroundColor = user.avatar_color;
+                        console.log('Avatar background color set to:', avatar.style.backgroundColor);
+                    } else {
+                        console.log('No avatar color provided, using default');
+                    }
+                } else {
+                    console.error('Failed to load user profile:', data.error);
+                    // Fallback display
+                    document.getElementById('userName').textContent = 'User';
+                    document.getElementById('userEmail').textContent = 'Loading...';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user profile:', error);
+                // Fallback display
+                document.getElementById('userName').textContent = 'User';
+                document.getElementById('userEmail').textContent = 'Error loading profile';
+            });
+        }
+        
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAchievement('Logged Out', 'See you next time! 👋');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 1500);
+                    } else {
+                        alert('Error logging out: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during logout:', error);
+                    // Even if there's an error, redirect to login
+                    window.location.href = '/login';
+                });
+            }
+        }
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.theme-toggle').textContent = '☀️';
+            document.querySelector('.theme-toggle').title = 'Toggle Light Mode';
+        }
+
+    // Initialize hiddenCards from DOM state, then stats
+    document.querySelectorAll('.word-card.hidden').forEach(card => hiddenCards.add(card.dataset.wordId));
+    updateStats();
+        
+        // Load user liked words
+        loadUserLikedWords();
+        
+        // Load user profile
+        loadUserProfile();
+        
+        // Add search input event listener for Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWords();
+            }
+        });
+        
+        // Refresh user profile when window gains focus (user returns from another page)
+        window.addEventListener('focus', function() {
+            loadUserProfile();
+        });
+        
+        // Also refresh on page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadUserProfile();
+            }
+        });
+        
+        console.log('VCE Vocabulary Flashcards app initialized with enhanced features');
+    </script>
+</body>
+</html>

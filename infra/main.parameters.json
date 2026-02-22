@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "kids-vocab"
+    },
+    "imageTag": {
+      "value": "latest"
+    },
+    "cpuCores": {
+      "value": "0.5"
+    },
+    "memorySize": {
+      "value": "1.0Gi"
+    },
+    "minReplicas": {
+      "value": 0
+    },
+    "maxReplicas": {
+      "value": 2
+    },
+    "secretKey": {
+      "value": ""
+    },
+    "databaseUrl": {
+      "value": "sqlite:///data/vocabulary.db"
+    },
+    "azureOpenaiApiKey": {
+      "value": ""
+    },
+    "azureOpenaiEndpoint": {
+      "value": ""
+    },
+    "azureOpenaiDeployment": {
+      "value": ""
+    }
+  }
+}
