@@ -85,6 +85,19 @@ AZURE_OPENAI_DEPLOYMENT=your_deployment_name
 
 Without Azure OpenAI, the app works fully except for the AI search feature.
 
+## ☁️ Deploy to Azure
+
+Host the app on **Azure Container Apps** with one command:
+
+```bash
+az login
+./infra/deploy.sh
+```
+
+This creates an Azure Container Registry, Container Apps Environment, persistent storage for SQLite, and deploys the app with HTTPS. Auto-scales from 0–2 replicas (~$5-20/month for low traffic).
+
+For CI/CD with GitHub Actions (auto-deploy on push to `main`), see [infra/README.md](infra/README.md).
+
 ## 📖 How to Use
 
 ### Starting a Study Session
@@ -130,6 +143,13 @@ kids-vocabulary-app/
 │   ├── requirements.txt           # Python dependencies
 │   ├── start_app.sh               # Application launcher
 │   └── fastapi_start_app.sh       # FastAPI/Uvicorn startup
+├── .github/workflows/            # CI/CD pipelines
+│   └── deploy-azure.yml           # Azure Container Apps deployment
+├── infra/                         # Azure Container App deployment
+│   ├── main.bicep                 # Infrastructure-as-code (Bicep)
+│   ├── main.parameters.json       # Deployment parameters
+│   ├── deploy.sh                  # One-command deployment script
+│   └── README.md                  # Deployment documentation
 ├── seed-data/
 │   └── words-list.txt             # Initial vocabulary data
 ├── utils/                         # Admin utilities
