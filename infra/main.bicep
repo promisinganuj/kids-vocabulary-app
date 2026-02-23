@@ -207,7 +207,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) 
             { name: 'DATABASE_URL', value: databaseUrl }
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '5001' }
-            { name: 'WORKERS', value: '2' }
+            { name: 'WORKERS', value: '1' }
             { name: 'AZURE_OPENAI_API_KEY', secretRef: 'azure-openai-api-key' }
             { name: 'AZURE_OPENAI_ENDPOINT', value: azureOpenaiEndpoint }
             { name: 'AZURE_OPENAI_DEPLOYMENT', value: azureOpenaiDeployment }
