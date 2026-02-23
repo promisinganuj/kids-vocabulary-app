@@ -10,7 +10,6 @@ Date: August 2025
 """
 
 import os
-import fcntl
 import re
 import bcrypt
 import secrets
@@ -141,10 +140,13 @@ class DatabaseManager:
         else:
             self.data_dir = None
         
-        self.init_database()
-        
-        # Update schema if needed for existing databases
-        self.update_schema_if_needed()
+        # Skip DB init if already done by entrypoint (avoids SQLite lock race
+        # when multiple gunicorn workers import this module simultaneously).
+        if not os.environ.get("_DB_INITIALIZED"):
+            self.init_database()
+            # Update schema if needed for existing databases
+            self.update_schema_if_needed()
+            os.environ["_DB_INITIALIZED"] = "1"
     
     def get_connection(self) -> ConnectionAdapter:
         """Get a database connection backed by a SQLAlchemy session.
@@ -160,85 +162,84 @@ class DatabaseManager:
         
         Uses SQLAlchemy ORM models (models.py) to create all tables.
         For SQLite, also creates triggers for auto-updating timestamps.
-        
-        Uses a file lock so multiple gunicorn workers don't race to run
-        DDL simultaneously (which causes SQLite "database is locked").
         """
-        lock_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), ".db_init.lock"
-        )
-        lock_fd = open(lock_path, "w")
-        try:
-            fcntl.flock(lock_fd, fcntl.LOCK_EX)
-            # Create all tables from ORM models (works for both SQLite and PostgreSQL)
-            init_tables()
-            
-            # SQLite: create triggers for auto-updating timestamps
-            # (PostgreSQL handles this via Alembic migrations or application code)
-            if self._is_sqlite:
-                with self.get_connection() as conn:
-                    cursor = conn.cursor()
-                    
-                    cursor.execute("""
-                        CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
-                        AFTER UPDATE ON vocabulary
-                        BEGIN
-                            UPDATE vocabulary SET updated_at = CURRENT_TIMESTAMP 
-                            WHERE id = NEW.id;
-                        END
-                    """)
-                    
-                    cursor.execute("""
-                        CREATE TRIGGER IF NOT EXISTS update_user_timestamp 
-                        AFTER UPDATE ON users
-                        BEGIN
-                            UPDATE users SET updated_at = CURRENT_TIMESTAMP 
-                            WHERE id = NEW.id;
-                        END
-                    """)
-                    
-                    cursor.execute("""
-                        CREATE TRIGGER IF NOT EXISTS update_list_word_count 
-                        AFTER INSERT ON vocabulary_list_words
-                        BEGIN
-                            UPDATE vocabulary_lists 
-                            SET word_count = (
-                                SELECT COUNT(*) FROM vocabulary_list_words 
-                                WHERE list_id = NEW.list_id
-                            )
-                            WHERE id = NEW.list_id;
-                        END
-                    """)
-                    
-                    cursor.execute("""
-                        CREATE TRIGGER IF NOT EXISTS update_list_word_count_delete 
-                        AFTER DELETE ON vocabulary_list_words
-                        BEGIN
-                            UPDATE vocabulary_lists 
-                            SET word_count = (
-                                SELECT COUNT(*) FROM vocabulary_list_words 
-                                WHERE list_id = OLD.list_id
-                            )
-                            WHERE id = OLD.list_id;
-                        END
-                    """)
-                    
-                    conn.commit()
-            
-            # Log initialization
+        # Create all tables from ORM models (works for both SQLite and PostgreSQL)
+        # Retry once on OperationalError (transient SQLite lock from WAL recovery)
+        import time as _time
+        for _attempt in range(2):
             try:
-                with self.get_connection() as conn:
-                    cursor = conn.cursor()
-                    cursor.execute('SELECT COUNT(*) as count FROM base_vocabulary')
-                    row = cursor.fetchone()
-                    count = row['count'] if row else 0
-                print(f"\u2705 Database initialized: {self.db_path}")
-                print(f"\U0001f4ca Database contains {count} base vocabulary words")
-            except Exception:
-                print(f"\u2705 Database initialized: {self.db_path}")
-        finally:
-            fcntl.flock(lock_fd, fcntl.LOCK_UN)
-            lock_fd.close()
+                init_tables()
+                break
+            except OperationalError as e:
+                if _attempt == 0:
+                    print(f"⚠️  init_tables() hit lock, retrying in 1s: {e}")
+                    _time.sleep(1)
+                else:
+                    raise
+        
+        # SQLite: create triggers for auto-updating timestamps
+        # (PostgreSQL handles this via Alembic migrations or application code)
+        if self._is_sqlite:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
+                    AFTER UPDATE ON vocabulary
+                    BEGIN
+                        UPDATE vocabulary SET updated_at = CURRENT_TIMESTAMP 
+                        WHERE id = NEW.id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_user_timestamp 
+                    AFTER UPDATE ON users
+                    BEGIN
+                        UPDATE users SET updated_at = CURRENT_TIMESTAMP 
+                        WHERE id = NEW.id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_list_word_count 
+                    AFTER INSERT ON vocabulary_list_words
+                    BEGIN
+                        UPDATE vocabulary_lists 
+                        SET word_count = (
+                            SELECT COUNT(*) FROM vocabulary_list_words 
+                            WHERE list_id = NEW.list_id
+                        )
+                        WHERE id = NEW.list_id;
+                    END
+                """)
+                
+                cursor.execute("""
+                    CREATE TRIGGER IF NOT EXISTS update_list_word_count_delete 
+                    AFTER DELETE ON vocabulary_list_words
+                    BEGIN
+                        UPDATE vocabulary_lists 
+                        SET word_count = (
+                            SELECT COUNT(*) FROM vocabulary_list_words 
+                            WHERE list_id = OLD.list_id
+                        )
+                        WHERE id = OLD.list_id;
+                    END
+                """)
+                
+                conn.commit()
+        
+        # Log initialization
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT COUNT(*) as count FROM base_vocabulary')
+                row = cursor.fetchone()
+                count = row['count'] if row else 0
+            print(f"\u2705 Database initialized: {self.db_path}")
+            print(f"\U0001f4ca Database contains {count} base vocabulary words")
+        except Exception:
+            print(f"\u2705 Database initialized: {self.db_path}")
 
     def update_schema_if_needed(self):
         """Update existing database schema to add new columns if they don't exist.
