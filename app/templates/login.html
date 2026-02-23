@@ -1,275 +1,215 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VCE Vocabulary Flashcards</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+{% block title %}Login - VCE Vocabulary Flashcards{% endblock %}
 
+{% block head_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #main-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        width: 100%;
+        padding: var(--space-lg);
+    }
+
+    .login-container {
+        background: var(--color-white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+        width: 100%;
+        max-width: var(--container-auth);
+        animation: slideUp 0.6s ease-out;
+    }
+
+    .login-header {
+        background: linear-gradient(135deg, var(--color-accent-blue), var(--color-accent-blue-dark));
+        color: var(--color-white);
+        padding: 40px 30px;
+        text-align: center;
+    }
+
+    .login-header h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-header .subtitle {
+        opacity: 0.9;
+        font-size: 1.1em;
+    }
+
+    .login-form {
+        padding: 40px 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--color-gray-800);
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid var(--color-gray-300);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        transition: all var(--transition-base);
+        background-color: var(--color-gray-50);
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--color-accent-blue);
+        background-color: var(--color-white);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 15px;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--color-accent-blue), var(--color-accent-blue-dark));
+        color: var(--color-white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--color-accent-blue-dark), #21618c);
+        box-shadow: 0 8px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--color-gray-50);
+        color: var(--color-gray-600);
+        border: 2px solid var(--color-gray-300);
+        margin-top: 15px;
+    }
+
+    .btn-secondary:hover {
+        background: var(--color-gray-200);
+        border-color: var(--color-gray-500);
+    }
+
+    .loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 25px 0;
+        color: var(--color-gray-600);
+        position: relative;
+    }
+
+    .divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--color-gray-300);
+    }
+
+    .divider span {
+        background: var(--color-white);
+        padding: 0 15px;
+        position: relative;
+    }
+
+    .btn-google {
+        background: var(--color-white);
+        color: var(--color-gray-700);
+        border: 2px solid var(--color-gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .btn-google:hover {
+        background: var(--color-gray-50);
+        border-color: #4285f4;
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+    }
+
+    .btn-google svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .google-divider {
+        text-align: center;
+        margin: 20px 0;
+        color: var(--color-gray-600);
+        position: relative;
+    }
+
+    .google-divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--color-gray-300);
+    }
+
+    .google-divider span {
+        background: var(--color-white);
+        padding: 0 15px;
+        position: relative;
+    }
+
+    @media (max-width: 480px) {
         .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            width: 100%;
-            max-width: 450px;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            margin: 10px;
         }
 
         .login-header {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-
-        .login-header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .login-header .subtitle {
-            opacity: 0.9;
-            font-size: 1.1em;
+            padding: 30px 20px;
         }
 
         .login-form {
-            padding: 40px 30px;
+            padding: 30px 20px;
         }
+    }
+</style>
+{% endblock %}
 
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background-color: #f8f9fa;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #3498db;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2980b9, #21618c);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #666;
-            border: 2px solid #ddd;
-            margin-top: 15px;
-        }
-
-        .btn-secondary:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .loading::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid transparent;
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .divider {
-            text-align: center;
-            margin: 25px 0;
-            color: #666;
-            position: relative;
-        }
-
-        .divider::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #ddd;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                margin: 10px;
-            }
-            
-            .login-header {
-                padding: 30px 20px;
-            }
-            
-            .login-form {
-                padding: 30px 20px;
-            }
-        }
-
-        .btn-google {
-            background: white;
-            color: #444;
-            border: 2px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .btn-google:hover {
-            background: #f8f9fa;
-            border-color: #4285f4;
-            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
-        }
-
-        .btn-google svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .google-divider {
-            text-align: center;
-            margin: 20px 0;
-            color: #666;
-            position: relative;
-        }
-
-        .google-divider::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #ddd;
-        }
-
-        .google-divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
+{% block content %}
+    <div class="login-container animate-slide-up">
         <div class="login-header">
             <h1>🃏 Welcome Back</h1>
             <p class="subtitle">Sign in to your vocabulary learning account</p>
         </div>
-        
+
         <div class="login-form">
-            <div id="alert-container"></div>
-            
             {% if google_oauth_enabled %}
             <a href="/auth/google/login" class="btn btn-google">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -277,122 +217,96 @@
                 </svg>
                 Sign in with Google
             </a>
-            
+
             <div class="google-divider">
                 <span>or sign in with email</span>
             </div>
             {% endif %}
-            
-            <form id="loginForm">
+
+            <form id="loginForm" aria-label="Login form">
                 <div class="form-group">
                     <label for="email_or_username">Email or Username</label>
-                    <input type="text" id="email_or_username" name="email_or_username" required>
+                    <input type="text" id="email_or_username" name="email_or_username" required autocomplete="username" aria-required="true">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" aria-required="true">
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary" id="loginBtn">
                     Sign In
                 </button>
             </form>
-            
+
             <p style="margin: 15px 0; text-align: center;">
-                <a href="/forgot-password" style="color: #667eea; text-decoration: none; font-size: 0.9rem;">Forgot your password?</a>
+                <a href="/forgot-password" style="color: var(--color-primary); font-size: 0.9rem;">Forgot your password?</a>
             </p>
-            
+
             <div class="divider">
                 <span>Don't have an account?</span>
             </div>
-            
+
             <a href="/register" class="btn btn-secondary">
                 Create New Account
             </a>
         </div>
     </div>
+{% endblock %}
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('loginBtn');
-            const alertContainer = document.getElementById('alert-container');
-            
-            // Get form data
-            const formData = {
-                email_or_username: document.getElementById('email_or_username').value.trim(),
-                password: document.getElementById('password').value
-            };
-            
-            // Validation
-            if (!formData.email_or_username || !formData.password) {
-                showAlert('Please fill in all fields', 'danger');
-                return;
-            }
-            
-            // Show loading state
-            btn.classList.add('loading');
-            btn.textContent = 'Signing In...';
-            
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showAlert('Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
-                } else {
-                    showAlert(result.error || 'Login failed', 'danger');
-                }
-            } catch (error) {
-                showAlert('Network error. Please try again.', 'danger');
-                console.error('Login error:', error);
-            } finally {
-                // Reset loading state
-                btn.classList.remove('loading');
-                btn.textContent = 'Sign In';
-            }
-        });
-        
-        function showAlert(message, type) {
-            const alertContainer = document.getElementById('alert-container');
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type}">
-                    ${message}
-                </div>
-            `;
-            
-            // Auto-hide success messages
-            if (type === 'success') {
-                setTimeout(() => {
-                    alertContainer.innerHTML = '';
-                }, 3000);
-            }
-        }
-        
+{% block scripts %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-        // Check for Google auth errors in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        if (error === 'google_auth_failed') {
-            showAlert('Google sign-in failed. Please try again or use email/password.', 'danger');
-        } else if (error === 'google_no_email') {
-            showAlert('Could not get email from Google. Please try a different method.', 'danger');
+        const btn = document.getElementById('loginBtn');
+        const formData = {
+            email_or_username: document.getElementById('email_or_username').value.trim(),
+            password: document.getElementById('password').value
+        };
+
+        if (!formData.email_or_username || !formData.password) {
+            Toast.warning('Please fill in all fields');
+            return;
         }
-        
-        // Auto-focus first input
-        document.getElementById('email_or_username').focus();
-    </script>
-</body>
-</html>
+
+        btn.classList.add('loading');
+        btn.textContent = 'Signing In...';
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Toast.success('Login successful! Redirecting...');
+                setTimeout(() => { window.location.href = '/'; }, 1000);
+            } else {
+                Toast.error(result.error || 'Login failed');
+            }
+        } catch (error) {
+            Toast.error('Network error. Please try again.');
+            console.error('Login error:', error);
+        } finally {
+            btn.classList.remove('loading');
+            btn.textContent = 'Sign In';
+        }
+    });
+
+    // Check for Google auth errors in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error === 'google_auth_failed') {
+        Toast.error('Google sign-in failed. Please try again or use email/password.');
+    } else if (error === 'google_no_email') {
+        Toast.error('Could not get email from Google. Please try a different method.');
+    }
+
+    // Auto-focus first input
+    document.getElementById('email_or_username').focus();
+</script>
+{% endblock %}

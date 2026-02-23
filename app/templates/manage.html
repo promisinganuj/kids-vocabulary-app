@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Vocabulary Words - VCE Flashcards</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}Manage Words - VCE Vocabulary{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -176,31 +161,6 @@
         .stat-label {
             color: #666;
             font-size: 0.9em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .nav-link {
-            color: #27ae60;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 2px solid #27ae60;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-link:hover {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .nav-link.active {
-            background-color: #27ae60;
-            color: white;
         }
 
         .main-content {
@@ -534,11 +494,6 @@
             margin-left: 10px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2em;
@@ -590,9 +545,10 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <div class="header">
             <div class="user-profile">
                 <a href="/profile" class="profile-info">
@@ -621,18 +577,7 @@
                     <span class="stat-number" id="filteredWords">{{ total_words }}</span>
                     <span class="stat-label">Filtered</span>
                 </div>
-            </div>
-            
-            <div class="nav-links">
-                <a href="/" class="nav-link">Flashcards</a>
-                <a href="/ai-learning" class="nav-link">🤖 AI Assisted Learning!</a>
-                <a href="/manage" class="nav-link active">Manage Words</a>
-                <a href="/deep-dive" class="nav-link">🔍 Word Explorer</a>
-                {% if is_admin %}
-                <a href="/admin" class="nav-link">🔧 Admin</a>
-                {% endif %}
-            </div>
-        </div>
+            </div></div>
 
         <div class="main-content">
             <div id="notification" class="notification" style="display: none;"></div>
@@ -741,8 +686,10 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         let allWords = {{ words | tojson }};
 
         function showNotification(message, type) {
@@ -1095,10 +1042,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Logged out successfully!');
+                        Toast.success('Logged out successfully!');
                         window.location.href = '/login';
                     } else {
-                        alert('Error logging out: ' + data.error);
+                        Toast.error('Error logging out: ' + data.error);
                     }
                 })
                 .catch(error => {
@@ -1134,5 +1081,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

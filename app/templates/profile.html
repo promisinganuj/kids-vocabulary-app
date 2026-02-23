@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Vocabulary Flashcards</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}Profile - VCE Vocabulary{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -246,10 +231,6 @@
             margin-right: 8px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .alert {
             position: fixed;
             top: 50%;
@@ -344,9 +325,10 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <div class="header">
             <div class="navigation">
                 <a href="/" class="nav-btn">← Back to Flashcards</a>
@@ -498,8 +480,10 @@
             </form>
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         let currentUser = null;
         let selectedColor = '#3498db';
 
@@ -728,5 +712,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

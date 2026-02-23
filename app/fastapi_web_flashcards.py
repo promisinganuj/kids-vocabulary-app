@@ -119,8 +119,8 @@ def sanitize_input(value: str) -> str:
         return value
     return html.escape(value.strip(), quote=True)
 
-# Mount static files (we'll configure this later if needed)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="templates")
@@ -833,14 +833,20 @@ async def login_page(request: Request, current_user: Optional[User] = Depends(ge
     """Login page."""
     if current_user:
         return RedirectResponse(url="/", status_code=302)
-    return templates.TemplateResponse("login.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "login"
+    ctx["show_navbar"] = False
+    return templates.TemplateResponse("login.html", ctx)
 
 @app.get('/register', response_class=HTMLResponse)
 async def register_page(request: Request, current_user: Optional[User] = Depends(get_current_user)):
     """Registration page."""
     if current_user:
         return RedirectResponse(url="/", status_code=302)
-    return templates.TemplateResponse("register.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "register"
+    ctx["show_navbar"] = False
+    return templates.TemplateResponse("register.html", ctx)
 
 @app.post('/api/auth/register')
 async def register(
@@ -1067,6 +1073,7 @@ async def index(request: Request, current_user: Optional[User] = Depends(get_cur
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "flashcards"
     return templates.TemplateResponse("flashcards.html", context)
 
 @app.get('/api/words')
@@ -1355,6 +1362,7 @@ async def ai_learning_page(request: Request, current_user: User = Depends(requir
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "ai_learning"
     return templates.TemplateResponse("ai_learning.html", context)
 
 @app.get('/api/ai/suggest-word')
@@ -1616,12 +1624,15 @@ async def manage_page(request: Request, current_user: User = Depends(require_aut
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "manage"
     return templates.TemplateResponse("manage.html", context)
 
 @app.get('/profile', response_class=HTMLResponse)
 async def profile_page(request: Request, current_user: User = Depends(require_authentication)):
     """Profile page."""
-    return templates.TemplateResponse("profile.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "profile"
+    return templates.TemplateResponse("profile.html", ctx)
 
 @app.get('/api/user/profile')
 async def get_user_profile(current_user: User = Depends(require_authentication)):
@@ -1668,6 +1679,7 @@ async def admin_page(request: Request, current_user: User = Depends(require_admi
         "users": users
     })
     
+    context["active_page"] = "admin"
     return templates.TemplateResponse("admin.html", context)
 
 
@@ -1684,6 +1696,7 @@ async def deep_dive_page(request: Request, current_user: User = Depends(require_
         "user_words": [w.get('word', '') for w in words] if words else [],
     })
     
+    context["active_page"] = "deep_dive"
     return templates.TemplateResponse("deep_dive.html", context)
 
 

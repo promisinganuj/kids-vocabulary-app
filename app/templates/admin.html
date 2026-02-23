@@ -1,23 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Vocabulary Flashcards</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}Admin - VCE Vocabulary{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -39,11 +25,6 @@
             color: white;
             font-size: 2rem;
             margin: 0;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
         }
 
         .nav-links a {
@@ -270,11 +251,6 @@
                 gap: 15px;
             }
 
-            .nav-links {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
             .stats-grid {
                 grid-template-columns: 1fr;
             }
@@ -289,19 +265,13 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🔧 Admin Dashboard</h1>
-            <div class="nav-links">
-                <a href="/">📚 Flashcards</a>
-                <a href="/manage">📝 Manage Words</a>
-                <a href="/deep-dive">🔍 Word Explorer</a>
-                <a href="/logout">🚪 Logout</a>
-            </div>
-        </div>
+            <h1>🔧 Admin Dashboard</h1></div>
 
         <!-- Statistics -->
         <div class="stats-grid">
@@ -411,8 +381,10 @@
             </form>
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         let currentUserId = null;
 
         function showMessage(text, type = 'success') {
@@ -541,5 +513,4 @@
                 .catch(error => console.log('Error fetching stats:', error));
         }, 30000);
     </script>
-</body>
-</html>
+{% endblock %}

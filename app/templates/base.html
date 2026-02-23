@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}VCE Vocabulary Flashcards{% endblock %}</title>
+
+    <!-- Common stylesheet -->
+    <link rel="stylesheet" href="/static/css/common.css">
+
+    <!-- Page-specific styles -->
+    {% block head_css %}{% endblock %}
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- Skip-to-content link (a11y) -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    {% block navbar %}
+    {% if show_navbar is not defined or show_navbar %}
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <a href="/" class="navbar-brand">
+            <span class="brand-icon" aria-hidden="true">📚</span>
+            <span>VCE Vocab</span>
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                aria-expanded="false"
+                aria-controls="navbarCollapse"
+                aria-label="Toggle navigation">
+            <span class="toggler-open" aria-hidden="true">☰</span>
+            <span class="toggler-close" aria-hidden="true">✕</span>
+        </button>
+
+        <div class="navbar-collapse" id="navbarCollapse">
+            {% if current_user %}
+            <ul class="navbar-nav" role="menubar">
+                <li role="none"><a href="/" class="nav-link{% if active_page == 'flashcards' %} active{% endif %}" role="menuitem">📖 Flashcards</a></li>
+                <li role="none"><a href="/ai-learning" class="nav-link{% if active_page == 'ai_learning' %} active{% endif %}" role="menuitem">🤖 AI Learning</a></li>
+                <li role="none"><a href="/manage" class="nav-link{% if active_page == 'manage' %} active{% endif %}" role="menuitem">📝 Manage</a></li>
+                <li role="none"><a href="/deep-dive" class="nav-link{% if active_page == 'deep_dive' %} active{% endif %}" role="menuitem">🔍 Explorer</a></li>
+                {% if is_admin %}
+                <li role="none"><a href="/admin" class="nav-link{% if active_page == 'admin' %} active{% endif %}" role="menuitem">🔧 Admin</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="navbar-actions">
+                <a href="/profile" class="navbar-profile" aria-label="View profile for {{ current_user.display_name or current_user.username }}">
+                    <span class="navbar-avatar" aria-hidden="true">{{ (current_user.display_name or current_user.username)[0] | upper }}</span>
+                    <span>{{ current_user.display_name or current_user.username }}</span>
+                </a>
+            </div>
+            {% else %}
+            <ul class="navbar-nav" role="menubar">
+                <li role="none"><a href="/login" class="nav-link" role="menuitem">Login</a></li>
+                <li role="none"><a href="/register" class="nav-link" role="menuitem">Register</a></li>
+            </ul>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+    {% endblock %}
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Common JS -->
+    <script src="/static/js/common.js"></script>
+
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

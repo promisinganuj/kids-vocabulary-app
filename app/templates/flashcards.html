@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VCE Vocabulary Flashcards - Web App</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}VCE Vocabulary Flashcards - Web App{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -182,26 +167,6 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .nav-link {
-            color: #3498db;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 2px solid #3498db;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background-color: #3498db;
-            color: white;
         }
 
         .search-section {
@@ -853,11 +818,6 @@
             margin-left: 10px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Search Results Word Cards */
         .search-word-grid {
             display: grid;
@@ -985,9 +945,10 @@
             }
         }
     </style>
-</head>
-<body>
-    <!-- Theme Toggle Button -->
+{% endblock %}
+
+{% block content %}
+<!-- Theme Toggle Button -->
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
     
     <div class="container">
@@ -1027,18 +988,7 @@
                     <span class="stat-number" id="likedWords">0</span>
                     <span class="stat-label">💝 Liked</span>
                 </div>
-            </div>
-            
-            <div class="nav-links">
-                <a href="/" class="nav-link active">Flashcards</a>
-                <a href="/ai-learning" class="nav-link">🤖 AI Assisted Learning!</a>
-                <a href="/manage" class="nav-link">Manage Words</a>
-                <a href="/deep-dive" class="nav-link">🔍 Word Explorer</a>
-                {% if is_admin %}
-                <a href="/admin" class="nav-link">🔧 Admin</a>
-                {% endif %}
-            </div>
-        </div>
+            </div></div>
 
         <div class="search-section">
             <div class="search-container">
@@ -1135,8 +1085,10 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         let allWords = {{ words | tojson }};
         let originalWords = {{ words | tojson }}; // Store original words for filtering
         let hiddenCards = new Set();
@@ -1489,12 +1441,12 @@
                     updateStats();
                     showAchievement('Word Removed', 'Word deleted successfully! 🗑️');
                 } else {
-                    alert('Error removing word: ' + data.error);
+                    Toast.error('Error removing word: ' + data.error);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error removing word. Please try again.');
+                Toast.error('Error removing word. Please try again.');
             });
         }
 
@@ -1529,12 +1481,12 @@
                     }
                     updateStats(); // Update the stats to reflect liked words count
                 } else {
-                    alert('Error: ' + data.error);
+                    Toast.error('Error: ' + data.error);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating like status. Please try again.');
+                Toast.error('Error updating like status. Please try again.');
             });
         }
 
@@ -1715,7 +1667,7 @@
                 message += `💪 Keep practicing!`;
             }
             
-            alert(message);
+            Toast.info(message);
         }
 
 
@@ -1750,12 +1702,12 @@
                     showQuickFeedback(`Difficulty set to ${difficulty.toUpperCase()}`, 'info');
                     console.log('Difficulty updated:', data.message);
                 } else {
-                    alert('Error updating difficulty: ' + data.error);
+                    Toast.error('Error updating difficulty: ' + data.error);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating difficulty. Please try again.');
+                Toast.error('Error updating difficulty. Please try again.');
             });
         }
 
@@ -2139,7 +2091,7 @@
                             window.location.href = '/login';
                         }, 1500);
                     } else {
-                        alert('Error logging out: ' + data.error);
+                        Toast.error('Error logging out: ' + data.error);
                     }
                 })
                 .catch(error => {
@@ -2189,5 +2141,4 @@
         
         console.log('VCE Vocabulary Flashcards app initialized with enhanced features');
     </script>
-</body>
-</html>
+{% endblock %}
