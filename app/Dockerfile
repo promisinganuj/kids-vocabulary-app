@@ -49,6 +49,7 @@ COPY . .
 # Remove files not needed at runtime & create data directory
 RUN rm -rf Dockerfile .dockerignore start_app.sh fastapi_start_app.sh STARTUP_GUIDE.md __pycache__ && \
     mkdir -p /app/data && \
+    chmod +x /app/entrypoint.sh && \
     chown -R appuser:appuser /app
 
 # Expose port
@@ -67,11 +68,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 USER appuser
 
 # Run with gunicorn + uvicorn workers for production concurrency
-CMD ["gunicorn", "fastapi_web_flashcards:app", \
-     "--bind", "0.0.0.0:5001", \
-     "--workers", "2", \
-     "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--timeout", "120", \
-     "--graceful-timeout", "30", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-"]
+CMD ["./entrypoint.sh"]
