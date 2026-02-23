@@ -67,14 +67,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 USER appuser
 
 # Run with gunicorn + uvicorn workers for production concurrency
-# --preload: import the app once in the master process before forking workers.
-# This prevents multiple workers from racing to initialise the SQLite database
-# (which causes "database is locked" during create_all / DDL).
 CMD ["gunicorn", "fastapi_web_flashcards:app", \
      "--bind", "0.0.0.0:5001", \
      "--workers", "2", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--preload", \
      "--timeout", "120", \
      "--graceful-timeout", "30", \
      "--access-logfile", "-", \
