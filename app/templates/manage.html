@@ -31,30 +31,6 @@
             font-size: 1.1em;
             opacity: 0.9;
         }
-
-        .user-profile {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .profile-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-        }
         
         .profile-info:hover {
             background: rgba(255, 255, 255, 0.2);
@@ -62,75 +38,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .profile-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            color: #27ae60;
-            font-weight: bold;
-        }
-
-        .profile-details {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .profile-name {
-            font-size: 0.9em;
-            font-weight: 600;
-            line-height: 1;
-        }
-
-        .profile-email {
-            font-size: 0.75em;
-            opacity: 0.8;
-            line-height: 1;
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
         @media (max-width: 768px) {
-            .user-profile {
-                position: static;
-                justify-content: center;
-                margin-top: 15px;
-            }
-            
-            .profile-info {
-                flex-direction: column;
-                gap: 5px;
-                text-align: center;
-            }
-            
-            .profile-details {
-                align-items: center;
-            }
         }
 
         .stats-bar {
@@ -550,18 +458,6 @@
 {% block content %}
 <div class="container">
         <div class="header">
-            <div class="user-profile">
-                <a href="/profile" class="profile-info">
-                    <div class="profile-avatar" id="userAvatar">?</div>
-                    <div class="profile-details">
-                        <div class="profile-name" id="userName">Loading...</div>
-                        <div class="profile-email" id="userEmail">...</div>
-                    </div>
-                </a>
-                <button class="logout-btn" onclick="handleLogout()">
-                    🚪 Logout
-                </button>
-            </div>
             
             <h1>🔧 Manage Vocabulary</h1>
             <div class="subtitle">Add, Edit, and Remove Words</div>
@@ -992,69 +888,6 @@
                 });
         }
 
-        // User Profile and Logout Functions
-        function loadUserProfile() {
-            fetch('/api/user/profile')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.user) {
-                    const user = data.user;
-                    
-                    // Display full name if available, otherwise username
-                    const displayName = [user.first_name, user.last_name].filter(n => n).join(' ') || user.username;
-                    document.getElementById('userName').textContent = displayName;
-                    document.getElementById('userEmail').textContent = user.email;
-                    
-                    // Set avatar to first letter of name or username with custom color
-                    const avatar = document.getElementById('userAvatar');
-                    const firstLetter = (user.first_name || user.username).charAt(0).toUpperCase();
-                    avatar.textContent = firstLetter;
-                    console.log('Setting avatar color to:', user.avatar_color);
-                    if (user.avatar_color) {
-                        avatar.style.backgroundColor = user.avatar_color;
-                        console.log('Avatar background color set to:', avatar.style.backgroundColor);
-                    } else {
-                        console.log('No avatar color provided, using default');
-                    }
-                } else {
-                    console.error('Failed to load user profile:', data.error);
-                    // Fallback display
-                    document.getElementById('userName').textContent = 'User';
-                    document.getElementById('userEmail').textContent = 'Loading...';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading user profile:', error);
-                // Fallback display
-                document.getElementById('userName').textContent = 'User';
-                document.getElementById('userEmail').textContent = 'Error loading profile';
-            });
-        }
-        
-        function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                fetch('/api/auth/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Toast.success('Logged out successfully!');
-                        window.location.href = '/login';
-                    } else {
-                        Toast.error('Error logging out: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error during logout:', error);
-                    // Even if there's an error, redirect to login
-                    window.location.href = '/login';
-                });
-            }
-        }
 
         // Initialize event listeners
         document.getElementById('addWordForm').addEventListener('submit', addWord);
@@ -1067,17 +900,14 @@
         updateStats();
         
         // Load user profile
-        loadUserProfile();
         
         // Refresh user profile when window gains focus (user returns from another page)
         window.addEventListener('focus', function() {
-            loadUserProfile();
         });
         
         // Also refresh on page visibility change
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                loadUserProfile();
             }
         });
     </script>

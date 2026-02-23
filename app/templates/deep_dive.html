@@ -30,52 +30,6 @@
             font-size: 1.1em;
         }
 
-        .user-profile {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-profile a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .profile-details { text-align: right; }
-        .profile-name { font-weight: 600; font-size: 0.95em; }
-        .profile-email { font-size: 0.8em; opacity: 0.8; }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.3s ease;
-        }
-        .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
-
         .stats-bar {
             background: #f8f9fa;
             padding: 15px 30px;
@@ -396,7 +350,6 @@
         @media (max-width: 768px) {
             .header { padding: 20px; }
             .header h1 { font-size: 1.5em; }
-            .user-profile { position: static; margin-bottom: 10px; justify-content: flex-end; }
             .stats-bar { flex-direction: column; align-items: flex-start; }
             .search-container { flex-direction: column; }
             .search-btn { width: 100%; }
@@ -411,18 +364,6 @@
 {% block content %}
 <div class="container">
         <div class="header">
-            <div class="user-profile">
-                <a href="/profile">
-                    <div class="profile-details">
-                        <div class="profile-name" id="userName">Loading...</div>
-                        <div class="profile-email" id="userEmail">...</div>
-                    </div>
-                    <div class="avatar" style="background-color: {{ user.avatar_color if user.avatar_color else '#8e44ad' }}">
-                        {{ user.username[0].upper() if user.username else 'U' }}
-                    </div>
-                </a>
-                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
-            </div>
             <h1>🔍 Word Explorer</h1>
             <div class="subtitle">Dive deep into any word — meanings, synonyms, themed stories & more!</div>
         </div>
@@ -819,7 +760,5 @@
                 searchWord();
             }
         });
-
-        function handleLogout() { window.location.href = '/logout'; }
     </script>
 {% endblock %}
