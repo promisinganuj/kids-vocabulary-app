@@ -37,6 +37,14 @@ from fastapi_auth import (
 )
 from pydantic import BaseModel, field_validator
 from settings import settings
+
+# Google OAuth (conditional import — only used when configured)
+_google_oauth = None
+try:
+    from authlib.integrations.starlette_client import OAuth as AuthlibOAuth
+    _authlib_available = True
+except ImportError:
+    _authlib_available = False
 import html
 import secrets as _secrets
 
@@ -75,7 +83,7 @@ async def add_security_headers(request: Request, call_next):
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data:; "
-            "connect-src 'self'"
+            "connect-src 'self' https://accounts.google.com"
         )
     return response
 
@@ -111,17 +119,41 @@ def sanitize_input(value: str) -> str:
         return value
     return html.escape(value.strip(), quote=True)
 
-# Mount static files (we'll configure this later if needed)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files (create directory if missing so container boot doesn't fail)
+_static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+os.makedirs(_static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=_static_dir), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="templates")
+
+# Expose Google OAuth availability to all templates
+templates.env.globals["google_oauth_enabled"] = False  # Updated after settings load
 
 # Initialize database
 db_manager = DatabaseManager()  # Uses DATABASE_URL from settings
 
 # Initialize authentication
 init_authentication(db_manager)
+
+# ─── Google OAuth Setup ─────────────────────────────────────────
+if _authlib_available and settings.google_oauth_configured:
+    _oauth_registry = AuthlibOAuth()
+    _oauth_registry.register(
+        name='google',
+        client_id=settings.GOOGLE_CLIENT_ID,
+        client_secret=settings.GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'},
+    )
+    _google_oauth = _oauth_registry.google
+    templates.env.globals["google_oauth_enabled"] = True
+    print("✅ Google OAuth configured")
+else:
+    if not _authlib_available:
+        print("ℹ️  authlib not installed — Google sign-in disabled")
+    else:
+        print("ℹ️  Google OAuth not configured (set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI)")
 
 # Text file path for initial data loading
 text_file = settings.SEED_DATA_PATH
@@ -803,14 +835,20 @@ async def login_page(request: Request, current_user: Optional[User] = Depends(ge
     """Login page."""
     if current_user:
         return RedirectResponse(url="/", status_code=302)
-    return templates.TemplateResponse("login.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "login"
+    ctx["show_navbar"] = False
+    return templates.TemplateResponse("login.html", ctx)
 
 @app.get('/register', response_class=HTMLResponse)
 async def register_page(request: Request, current_user: Optional[User] = Depends(get_current_user)):
     """Registration page."""
     if current_user:
         return RedirectResponse(url="/", status_code=302)
-    return templates.TemplateResponse("register.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "register"
+    ctx["show_navbar"] = False
+    return templates.TemplateResponse("register.html", ctx)
 
 @app.post('/api/auth/register')
 async def register(
@@ -959,6 +997,66 @@ async def logout_redirect(request: Request, session_token: Optional[str] = Depen
     response.delete_cookie("session_token")
     return response
 
+
+# ─── Google OAuth Routes ────────────────────────────────────────
+@app.get('/auth/google/login')
+async def google_login(request: Request):
+    """Redirect user to Google's consent screen."""
+    if not _google_oauth:
+        raise HTTPException(status_code=501, detail="Google sign-in is not configured")
+    redirect_uri = settings.GOOGLE_REDIRECT_URI or str(request.url_for('google_callback'))
+    return await _google_oauth.authorize_redirect(request, redirect_uri)
+
+
+@app.get('/auth/google/callback')
+async def google_callback(request: Request):
+    """Handle the OAuth callback from Google."""
+    if not _google_oauth:
+        raise HTTPException(status_code=501, detail="Google sign-in is not configured")
+    try:
+        token = await _google_oauth.authorize_access_token(request)
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    user_info = token.get('userinfo')
+    if not user_info:
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    email = user_info.get('email')
+    if not email:
+        return RedirectResponse(url="/login?error=google_no_email", status_code=302)
+
+    # Create or fetch the local user
+    success, message, user = db_manager.create_or_get_oauth_user(
+        email=email,
+        oauth_provider='google',
+        oauth_id=user_info.get('sub', ''),
+        first_name=user_info.get('given_name'),
+        last_name=user_info.get('family_name'),
+    )
+
+    if not success or not user or not auth_manager:
+        print(f"Google OAuth user error: {message}")
+        return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
+
+    # Create session (same as normal login)
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get('user-agent')
+    session_token = auth_manager.create_session(user, ip_address, user_agent)
+
+    response = RedirectResponse(url="/", status_code=302)
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=settings.is_production,
+        samesite="lax",
+        max_age=settings.SESSION_TIMEOUT_HOURS * 3600,
+    )
+    return response
+
+
 # Main application routes
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request, current_user: Optional[User] = Depends(get_current_user)):
@@ -977,6 +1075,7 @@ async def index(request: Request, current_user: Optional[User] = Depends(get_cur
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "flashcards"
     return templates.TemplateResponse("flashcards.html", context)
 
 @app.get('/api/words')
@@ -1265,6 +1364,7 @@ async def ai_learning_page(request: Request, current_user: User = Depends(requir
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "ai_learning"
     return templates.TemplateResponse("ai_learning.html", context)
 
 @app.get('/api/ai/suggest-word')
@@ -1526,12 +1626,15 @@ async def manage_page(request: Request, current_user: User = Depends(require_aut
         "is_admin": is_user_admin
     })
     
+    context["active_page"] = "manage"
     return templates.TemplateResponse("manage.html", context)
 
 @app.get('/profile', response_class=HTMLResponse)
 async def profile_page(request: Request, current_user: User = Depends(require_authentication)):
     """Profile page."""
-    return templates.TemplateResponse("profile.html", get_template_context(request, current_user))
+    ctx = get_template_context(request, current_user)
+    ctx["active_page"] = "profile"
+    return templates.TemplateResponse("profile.html", ctx)
 
 @app.get('/api/user/profile')
 async def get_user_profile(current_user: User = Depends(require_authentication)):
@@ -1578,6 +1681,7 @@ async def admin_page(request: Request, current_user: User = Depends(require_admi
         "users": users
     })
     
+    context["active_page"] = "admin"
     return templates.TemplateResponse("admin.html", context)
 
 
@@ -1594,6 +1698,7 @@ async def deep_dive_page(request: Request, current_user: User = Depends(require_
         "user_words": [w.get('word', '') for w in words] if words else [],
     })
     
+    context["active_page"] = "deep_dive"
     return templates.TemplateResponse("deep_dive.html", context)
 
 

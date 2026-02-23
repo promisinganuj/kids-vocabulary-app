@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assisted Learning - VCE Vocabulary Flashcards</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}AI Learning - VCE Vocabulary{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -67,12 +52,6 @@
             justify-content: center;
             font-weight: bold;
             font-size: 1.2em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            align-items: center;
         }
 
         .nav-links a {
@@ -393,11 +372,6 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Quick Feedback */
         .quick-feedback {
             position: fixed;
@@ -435,22 +409,12 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <div class="header">
-            <div class="user-profile">
-                <div class="nav-links">
-                    <a href="/">🏠 Home</a>
-                    <a href="/">📚 Study</a>
-                    <a href="/manage">⚙️ Manage</a>
-                    <a href="/deep-dive">🔍 Explorer</a>
-                    {% if is_admin %}
-                        <a href="/admin">👑 Admin</a>
-                    {% endif %}
-                    <a href="/logout">🚪 Logout</a>
-                </div>
-                <div class="avatar" style="background-color: {{ user.avatar_color if user.avatar_color else '#3498db' }}">
+            <div class="user-profile"><div class="avatar" style="background-color: {{ user.avatar_color if user.avatar_color else '#3498db' }}">
                     {{ user.username[0].upper() if user.username else 'U' }}
                 </div>
             </div>
@@ -585,8 +549,10 @@
 
     <!-- Quick Feedback Element -->
     <div id="quickFeedback" class="quick-feedback"></div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         let currentSession = null;
         let currentWord = null;
         let sessionStartTime = null;
@@ -908,5 +874,4 @@
             document.getElementById('welcomeScreen').style.display = 'block';
         });
     </script>
-</body>
-</html>
+{% endblock %}

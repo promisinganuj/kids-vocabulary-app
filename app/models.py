@@ -36,8 +36,8 @@ class UserModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True)
     username = Column(String(255), nullable=False, unique=True)
-    password_hash = Column(Text, nullable=False)
-    salt = Column(Text, nullable=False)
+    password_hash = Column(Text, nullable=True)
+    salt = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     email_verified = Column(Boolean, default=False)
@@ -60,6 +60,8 @@ class UserModel(Base):
     login_count = Column(Integer, default=0)
     failed_login_count = Column(Integer, default=0)
     last_failed_login = Column(DateTime)
+    oauth_provider = Column(String(50))  # e.g. "google"
+    oauth_id = Column(String(255))  # Provider's unique user ID
 
     # Relationships
     sessions = relationship("UserSessionModel", back_populates="user", cascade="all, delete-orphan")

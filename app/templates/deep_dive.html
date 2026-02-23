@@ -1,24 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Explorer - VCE Flashcards</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}Word Explorer - VCE Vocabulary{% endblock %}
 
+{% block head_css %}
+<style>
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -45,52 +30,6 @@
             font-size: 1.1em;
         }
 
-        .user-profile {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-profile a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .profile-details { text-align: right; }
-        .profile-name { font-weight: 600; font-size: 0.95em; }
-        .profile-email { font-size: 0.8em; opacity: 0.8; }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.3s ease;
-        }
-        .logout-btn:hover { background: rgba(255, 255, 255, 0.3); }
-
         .stats-bar {
             background: #f8f9fa;
             padding: 15px 30px;
@@ -101,21 +40,6 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-
-        .nav-links { display: flex; gap: 15px; flex-wrap: wrap; }
-
-        .nav-link {
-            color: #8e44ad;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 2px solid #8e44ad;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-        .nav-link:hover { background-color: #8e44ad; color: white; }
-        .nav-link.active { background-color: #8e44ad; color: white; }
 
         .search-section {
             padding: 30px;
@@ -210,11 +134,6 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .loading-text { color: #8e44ad; font-size: 1.2em; font-weight: 500; }
         .loading-subtext { color: #999; margin-top: 5px; }
 
@@ -429,10 +348,8 @@
         }
 
         @media (max-width: 768px) {
-            body { padding: 10px; }
             .header { padding: 20px; }
             .header h1 { font-size: 1.5em; }
-            .user-profile { position: static; margin-bottom: 10px; justify-content: flex-end; }
             .stats-bar { flex-direction: column; align-items: flex-start; }
             .search-container { flex-direction: column; }
             .search-btn { width: 100%; }
@@ -440,40 +357,18 @@
             .syn-ant-grid { grid-template-columns: 1fr; }
             .save-word-btn { position: static; margin-top: 15px; display: inline-block; }
             .theme-tabs { justify-content: center; }
-            .nav-links { justify-content: center; }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+
+{% block content %}
+<div class="container">
         <div class="header">
-            <div class="user-profile">
-                <a href="/profile">
-                    <div class="profile-details">
-                        <div class="profile-name" id="userName">Loading...</div>
-                        <div class="profile-email" id="userEmail">...</div>
-                    </div>
-                    <div class="avatar" style="background-color: {{ user.avatar_color if user.avatar_color else '#8e44ad' }}">
-                        {{ user.username[0].upper() if user.username else 'U' }}
-                    </div>
-                </a>
-                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
-            </div>
             <h1>🔍 Word Explorer</h1>
             <div class="subtitle">Dive deep into any word — meanings, synonyms, themed stories & more!</div>
         </div>
 
-        <div class="stats-bar">
-            <div class="nav-links">
-                <a href="/" class="nav-link">Flashcards</a>
-                <a href="/ai-learning" class="nav-link">🤖 AI Learning</a>
-                <a href="/manage" class="nav-link">Manage Words</a>
-                <a href="/deep-dive" class="nav-link active">🔍 Word Explorer</a>
-                {% if is_admin %}
-                <a href="/admin" class="nav-link">🔧 Admin</a>
-                {% endif %}
-            </div>
-        </div>
+        <div class="stats-bar"></div>
 
         <div class="search-section">
             <div class="search-container">
@@ -577,8 +472,10 @@
     </div>
 
     <div class="notification" id="notification"></div>
+{% endblock %}
 
-    <script>
+{% block scripts %}
+<script>
         const userWords = {{ user_words | tojson }};
 
         const themeConfig = {
@@ -863,8 +760,5 @@
                 searchWord();
             }
         });
-
-        function handleLogout() { window.location.href = '/logout'; }
     </script>
-</body>
-</html>
+{% endblock %}

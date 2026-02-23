@@ -86,6 +86,11 @@ class Settings(BaseSettings):
     AZURE_OPENAI_DEPLOYMENT: Optional[str] = None
     AZURE_OPENAI_API_VERSION: str = "2024-02-15-preview"
 
+    # ─── Google OAuth (optional) ──────────────────────────────────
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URI: Optional[str] = None  # e.g. https://yourapp.com/auth/google/callback
+
     # ─── Seed Data ──────────────────────────────────────────────
     SEED_DATA_PATH: str = os.path.join("..", "seed-data", "words-list.txt")
 
@@ -101,6 +106,7 @@ class Settings(BaseSettings):
             "SECRET_KEY_FILE": "SECRET_KEY",
             "DATABASE_URL_FILE": "DATABASE_URL",
             "AZURE_OPENAI_API_KEY_FILE": "AZURE_OPENAI_API_KEY",
+            "GOOGLE_CLIENT_SECRET_FILE": "GOOGLE_CLIENT_SECRET",
         }
         for file_var, target_var in secret_mappings.items():
             if not values.get(target_var):
@@ -154,6 +160,14 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.APP_ENV == AppEnvironment.DEVELOPMENT
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        """Check if Google OAuth is fully configured."""
+        return bool(
+            self.GOOGLE_CLIENT_ID
+            and self.GOOGLE_CLIENT_SECRET
+        )
 
     @property
     def openai_configured(self) -> bool:
