@@ -119,8 +119,10 @@ def sanitize_input(value: str) -> str:
         return value
     return html.escape(value.strip(), quote=True)
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files (create directory if missing so container boot doesn't fail)
+_static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+os.makedirs(_static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=_static_dir), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="templates")
