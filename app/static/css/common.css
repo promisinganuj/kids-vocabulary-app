@@ -219,6 +219,23 @@ img { max-width: 100%; height: auto; }
     color: var(--color-white);
 }
 
+.navbar-logout {
+    color: rgba(255, 255, 255, 0.85);
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all var(--transition-base);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.navbar-logout:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--color-white);
+    transform: translateY(-1px);
+}
+
 .navbar-avatar {
     width: 32px;
     height: 32px;

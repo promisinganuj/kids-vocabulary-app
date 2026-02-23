@@ -40,8 +40,8 @@
             <ul class="navbar-nav" role="menubar">
                 <li role="none"><a href="/" class="nav-link{% if active_page == 'flashcards' %} active{% endif %}" role="menuitem">📖 Flashcards</a></li>
                 <li role="none"><a href="/ai-learning" class="nav-link{% if active_page == 'ai_learning' %} active{% endif %}" role="menuitem">🤖 AI Learning</a></li>
-                <li role="none"><a href="/manage" class="nav-link{% if active_page == 'manage' %} active{% endif %}" role="menuitem">📝 Manage</a></li>
                 <li role="none"><a href="/deep-dive" class="nav-link{% if active_page == 'deep_dive' %} active{% endif %}" role="menuitem">🔍 Explorer</a></li>
+                <li role="none"><a href="/manage" class="nav-link{% if active_page == 'manage' %} active{% endif %}" role="menuitem">📝 Manage</a></li>
                 {% if is_admin %}
                 <li role="none"><a href="/admin" class="nav-link{% if active_page == 'admin' %} active{% endif %}" role="menuitem">🔧 Admin</a></li>
                 {% endif %}
@@ -52,6 +52,7 @@
                     <span class="navbar-avatar" aria-hidden="true">{{ (current_user.display_name or current_user.username)[0] | upper }}</span>
                     <span>{{ current_user.display_name or current_user.username }}</span>
                 </a>
+                <a href="/logout" class="navbar-logout" aria-label="Log out">🚪 Logout</a>
             </div>
             {% else %}
             <ul class="navbar-nav" role="menubar">
