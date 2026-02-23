@@ -164,7 +164,18 @@ class DatabaseManager:
         For SQLite, also creates triggers for auto-updating timestamps.
         """
         # Create all tables from ORM models (works for both SQLite and PostgreSQL)
-        init_tables()
+        # Retry once on OperationalError (transient SQLite lock from WAL recovery)
+        import time as _time
+        for _attempt in range(2):
+            try:
+                init_tables()
+                break
+            except OperationalError as e:
+                if _attempt == 0:
+                    print(f"⚠️  init_tables() hit lock, retrying in 1s: {e}")
+                    _time.sleep(1)
+                else:
+                    raise
         
         # SQLite: create triggers for auto-updating timestamps
         # (PostgreSQL handles this via Alembic migrations or application code)
