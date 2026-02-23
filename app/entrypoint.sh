@@ -23,10 +23,13 @@ for attempt in range(3):
 # Export so gunicorn worker(s) skip re-init on import
 export _DB_INITIALIZED=1
 
-echo "🚀 Starting gunicorn..."
+# Use WORKERS env var if set (from Azure/Bicep), default to 1
+WORKERS="${WORKERS:-1}"
+
+echo "🚀 Starting gunicorn with $WORKERS worker(s)..."
 exec gunicorn fastapi_web_flashcards:app \
     --bind 0.0.0.0:5001 \
-    --workers 1 \
+    --workers "$WORKERS" \
     --worker-class uvicorn.workers.UvicornWorker \
     --timeout 120 \
     --graceful-timeout 30 \
