@@ -116,8 +116,27 @@ def get_db() -> Session:
 
 
 def init_tables():
-    """Create all tables from ORM models (development / first-run only)."""
-    Base.metadata.create_all(bind=engine)
+    """Create all tables from ORM models.
+
+    Retries up to 5 times on 'database is locked' errors.  This handles:
+    - Multiple gunicorn workers importing the app simultaneously
+    - SQLite on Azure File Share (CIFS) where locking is unreliable
+    - Transient locks from WAL recovery after ungraceful shutdown
+    """
+    import time
+    from sqlalchemy.exc import OperationalError
+
+    for attempt in range(5):
+        try:
+            Base.metadata.create_all(bind=engine)
+            return
+        except OperationalError as exc:
+            if "database is locked" in str(exc) and attempt < 4:
+                wait = 2 * (attempt + 1)  # 2, 4, 6, 8 seconds
+                print(f"\u26a0\ufe0f  init_tables() locked (attempt {attempt+1}/5), retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
 
 
 @property
