@@ -1,6 +1,7 @@
 # ─── Azure Container App – CI/CD Pipeline ────────────────────────────
 #
-# Builds and deploys the Kids Vocabulary App to Azure Container Apps.
+# Builds and deploys the Kids Vocabulary App to Azure Container Apps
+# with Azure Database for PostgreSQL.
 #
 # Triggers:
 #   - Push to 'main' branch (app/ or infra/ changes)
@@ -10,6 +11,7 @@
 #   AZURE_CREDENTIALS          — Service principal JSON (az ad sp create-for-rbac --sdk-auth)
 #   AZURE_SUBSCRIPTION_ID      — Azure subscription ID
 #   SECRET_KEY                 — App session secret key
+#   POSTGRES_PASSWORD          — PostgreSQL administrator password
 #
 # Optional GitHub Secrets:
 #   AZURE_OPENAI_API_KEY       — Azure OpenAI API key
@@ -81,7 +83,7 @@ jobs:
             --location "${{ env.LOCATION }}" \
             --output none
 
-      - name: Deploy Bicep infrastructure (phase 1 — ACR & supporting resources)
+      - name: Deploy Bicep infrastructure (phase 1 — ACR, PostgreSQL & supporting resources)
         id: infra
         run: |
           OUTPUT=$(az deployment group create \
@@ -91,6 +93,7 @@ jobs:
             --parameters \
               secretKey="${{ secrets.SECRET_KEY }}" \
               imageTag="${{ steps.tag.outputs.tag }}" \
+              pgAdminPassword="${{ secrets.POSTGRES_PASSWORD }}" \
               azureOpenaiApiKey="${{ secrets.AZURE_OPENAI_API_KEY }}" \
               azureOpenaiEndpoint="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
               azureOpenaiDeployment="${{ secrets.AZURE_OPENAI_DEPLOYMENT }}" \
@@ -100,6 +103,7 @@ jobs:
 
           echo "acr_name=$(echo $OUTPUT | jq -r '.acrName.value')" >> "$GITHUB_OUTPUT"
           echo "acr_server=$(echo $OUTPUT | jq -r '.acrLoginServer.value')" >> "$GITHUB_OUTPUT"
+          echo "pg_fqdn=$(echo $OUTPUT | jq -r '.pgServerFqdn.value')" >> "$GITHUB_OUTPUT"
 
       # ─── Build & Push Container Image ─────────────────────────
       - name: Login to ACR
@@ -129,6 +133,7 @@ jobs:
             --parameters \
               secretKey="${{ secrets.SECRET_KEY }}" \
               imageTag="${{ steps.tag.outputs.tag }}" \
+              pgAdminPassword="${{ secrets.POSTGRES_PASSWORD }}" \
               azureOpenaiApiKey="${{ secrets.AZURE_OPENAI_API_KEY }}" \
               azureOpenaiEndpoint="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
               azureOpenaiDeployment="${{ secrets.AZURE_OPENAI_DEPLOYMENT }}" \
@@ -170,3 +175,4 @@ jobs:
           echo "| **Container App** | \`${{ steps.deploy.outputs.app_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Resource Group** | \`${{ env.RESOURCE_GROUP }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| **Registry** | \`${{ steps.deploy.outputs.acr_server }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **PostgreSQL** | \`${{ steps.infra.outputs.pg_fqdn }}\` |" >> "$GITHUB_STEP_SUMMARY"

@@ -1,6 +1,6 @@
 // ─── Azure Container App Infrastructure ─────────────────────────────
-// Deploys: Resource Group resources including ACR, Log Analytics,
-//          Container Apps Environment, and the Container App itself.
+// Deploys: ACR, Log Analytics, PostgreSQL Flexible Server,
+//          Container Apps Environment, and the Container App.
 //
 // Usage:
 //   az deployment group create \
@@ -44,9 +44,6 @@ param maxReplicas int = 2
 @description('Application secret key for session management')
 param secretKey string
 
-@description('Database connection URL')
-param databaseUrl string = 'sqlite:///data/vocabulary.db'
-
 @secure()
 @description('Azure OpenAI API key (optional)')
 param azureOpenaiApiKey string = ''
@@ -60,6 +57,39 @@ param azureOpenaiDeployment string = ''
 @description('Deploy the Container App (set false for infra-only bootstrap)')
 param deployApp bool = true
 
+// ─── PostgreSQL Parameters ──────────────────────────────────────────
+
+@description('PostgreSQL administrator username')
+param pgAdminUser string = 'vocab_admin'
+
+@secure()
+@description('PostgreSQL administrator password (min 8 chars, must include uppercase, lowercase, number)')
+param pgAdminPassword string
+
+@description('PostgreSQL database name')
+param pgDatabaseName string = 'vocabulary'
+
+@description('PostgreSQL SKU tier')
+@allowed(['Burstable', 'GeneralPurpose', 'MemoryOptimized'])
+param pgSkuTier string = 'Burstable'
+
+@description('PostgreSQL SKU name (e.g., Standard_B1ms, Standard_D2s_v3)')
+param pgSkuName string = 'Standard_B1ms'
+
+@description('PostgreSQL storage size in GB')
+@minValue(32)
+@maxValue(16384)
+param pgStorageSizeGB int = 32
+
+@description('PostgreSQL major version')
+@allowed(['14', '15', '16', '17'])
+param pgVersion string = '16'
+
+@description('PostgreSQL backup retention days')
+@minValue(7)
+@maxValue(35)
+param pgBackupRetentionDays int = 7
+
 // ─── Variables ──────────────────────────────────────────────────────
 
 var uniqueSuffix = uniqueString(resourceGroup().id, appName)
@@ -67,7 +97,8 @@ var acrName = replace('acr${appName}${uniqueSuffix}', '-', '')
 var logAnalyticsName = 'log-${appName}-${uniqueSuffix}'
 var containerEnvName = 'cae-${appName}'
 var containerAppName = 'ca-${appName}'
-var storageName = replace('st${appName}${uniqueSuffix}', '-', '')
+var pgServerName = 'pg-${appName}-${uniqueSuffix}'
+var databaseUrl = 'postgresql://${pgAdminUser}:${pgAdminPassword}@${pgServer.properties.fullyQualifiedDomainName}:5432/${pgDatabaseName}?sslmode=require'
 
 // ─── Azure Container Registry ───────────────────────────────────────
 
@@ -96,31 +127,49 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-// ─── Azure Storage Account (for persistent SQLite data) ─────────────
+// ─── Azure Database for PostgreSQL Flexible Server ──────────────────
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  #disable-next-line BCP334
-  name: substring(storageName, 0, min(length(storageName), 24))
+resource pgServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' = {
+  name: pgServerName
   location: location
   sku: {
-    name: 'Standard_LRS'
+    name: pgSkuName
+    tier: pgSkuTier
   }
-  kind: 'StorageV2'
   properties: {
-    minimumTlsVersion: 'TLS1_2'
+    version: pgVersion
+    administratorLogin: pgAdminUser
+    administratorLoginPassword: pgAdminPassword
+    storage: {
+      storageSizeGB: pgStorageSizeGB
+    }
+    backup: {
+      backupRetentionDays: pgBackupRetentionDays
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
   }
 }
 
-resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-01-01' = {
-  parent: storageAccount
-  name: 'default'
+// Allow Azure services (Container Apps) to connect to PostgreSQL
+resource pgFirewallAllowAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2022-12-01' = {
+  parent: pgServer
+  name: 'AllowAllAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
 }
 
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
-  parent: fileService
-  name: 'vocab-data'
+// Create the application database
+resource pgDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2022-12-01' = {
+  parent: pgServer
+  name: pgDatabaseName
   properties: {
-    shareQuota: 1 // 1 GB — plenty for SQLite
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
   }
 }
 
@@ -140,26 +189,15 @@ resource containerEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
-// ─── Storage Mount in Environment ───────────────────────────────────
-
-resource envStorage 'Microsoft.App/managedEnvironments/storages@2024-03-01' = {
-  parent: containerEnv
-  name: 'vocabdata'
-  properties: {
-    azureFile: {
-      accountName: storageAccount.name
-      accountKey: storageAccount.listKeys().keys[0].value
-      shareName: fileShare.name
-      accessMode: 'ReadWrite'
-    }
-  }
-}
-
 // ─── Container App ──────────────────────────────────────────────────
 
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) {
   name: containerAppName
   location: location
+  dependsOn: [
+    pgFirewallAllowAzure
+    pgDatabase
+  ]
   properties: {
     managedEnvironmentId: containerEnv.id
     configuration: {
@@ -187,6 +225,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) 
           value: secretKey
         }
         {
+          name: 'database-url'
+          value: databaseUrl
+        }
+        {
           name: 'azure-openai-api-key'
           value: !empty(azureOpenaiApiKey) ? azureOpenaiApiKey : 'not-configured'
         }
@@ -204,10 +246,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) 
           env: [
             { name: 'APP_ENV', value: 'production' }
             { name: 'SECRET_KEY', secretRef: 'secret-key' }
-            { name: 'DATABASE_URL', value: databaseUrl }
+            { name: 'DATABASE_URL', secretRef: 'database-url' }
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '5001' }
-            { name: 'WORKERS', value: '1' }
+            { name: 'WORKERS', value: '2' }
             { name: 'AZURE_OPENAI_API_KEY', secretRef: 'azure-openai-api-key' }
             { name: 'AZURE_OPENAI_ENDPOINT', value: azureOpenaiEndpoint }
             { name: 'AZURE_OPENAI_DEPLOYMENT', value: azureOpenaiDeployment }
@@ -234,19 +276,6 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = if (deployApp) 
               initialDelaySeconds: 5
             }
           ]
-          volumeMounts: [
-            {
-              volumeName: 'vocab-data'
-              mountPath: '/app/data'
-            }
-          ]
-        }
-      ]
-      volumes: [
-        {
-          name: 'vocab-data'
-          storageType: 'AzureFile'
-          storageName: envStorage.name
         }
       ]
       scale: {
@@ -285,3 +314,9 @@ output containerAppName string = deployApp ? containerApp.name : ''
 
 @description('Resource group name')
 output resourceGroupName string = resourceGroup().name
+
+@description('PostgreSQL server FQDN')
+output pgServerFqdn string = pgServer.properties.fullyQualifiedDomainName
+
+@description('PostgreSQL database name')
+output pgDatabaseName string = pgDatabaseName

@@ -1,6 +1,6 @@
 # Azure Container App Deployment
 
-This directory contains infrastructure-as-code (Bicep) and deployment scripts to host the Kids Vocabulary App on **Azure Container Apps**.
+This directory contains infrastructure-as-code (Bicep) and deployment scripts to host the Kids Vocabulary App on **Azure Container Apps** with **Azure Database for PostgreSQL**.
 
 ## Architecture
 
@@ -19,10 +19,13 @@ This directory contains infrastructure-as-code (Bicep) and deployment scripts to
 │  │ Workspace      │    │            │                      │  │
 │  └────────────────┘    └────────────┼──────────────────────┘  │
 │                                     │                         │
-│  ┌────────────────┐                 │                         │
-│  │ Azure Storage  │◀────────────────┘                         │
-│  │ (File Share)   │  /app/data mount (SQLite persistence)     │
-│  └────────────────┘                                           │
+│  ┌────────────────────────────┐     │                         │
+│  │ Azure Database for         │◀────┘                         │
+│  │ PostgreSQL (Flexible)      │  DATABASE_URL (SSL required)  │
+│  │  - Burstable B1ms          │                               │
+│  │  - 32 GB storage           │                               │
+│  │  - Auto-backup 7 days      │                               │
+│  └────────────────────────────┘                               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -33,7 +36,7 @@ This directory contains infrastructure-as-code (Bicep) and deployment scripts to
 | **Azure Container Registry** | Stores Docker images (Basic tier) |
 | **Container Apps Environment** | Managed Kubernetes-based hosting |
 | **Container App** | The vocabulary app (auto-scales 0–2 replicas) |
-| **Azure Storage (File Share)** | Persistent volume for SQLite database |
+| **Azure Database for PostgreSQL** | Flexible Server (Burstable B1ms) with auto-backup |
 | **Log Analytics Workspace** | Centralized logging and monitoring |
 
 ## Quick Start — Manual Deployment
@@ -50,8 +53,9 @@ This directory contains infrastructure-as-code (Bicep) and deployment scripts to
 # 1. Login to Azure
 az login
 
-# 2. (Optional) Set your secret key — one is auto-generated if omitted
+# 2. (Optional) Set secrets — auto-generated if omitted
 export SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+export POSTGRES_PASSWORD='YourStr0ngP@ssword!'  # auto-generated if omitted
 
 # 3. Deploy everything
 ./infra/deploy.sh
@@ -70,7 +74,7 @@ export LOCATION=australiaeast            # Azure region
 export APP_NAME=kids-vocab               # Base name for resources
 export IMAGE_TAG=v1.0.0                  # Image tag (default: latest)
 export SECRET_KEY=your-secret-key        # App secret (auto-generated if empty)
-export DATABASE_URL=sqlite:///data/vocabulary.db
+export POSTGRES_PASSWORD=your-pg-pass    # PostgreSQL password (auto-generated if empty)
 
 # Optional: Azure OpenAI
 export AZURE_OPENAI_API_KEY=your-key
@@ -104,6 +108,7 @@ Go to **Settings → Secrets and variables → Actions** in your GitHub repo:
 |--------|----------|-------------|
 | `AZURE_CREDENTIALS` | Yes | The full JSON from `az ad sp create-for-rbac --sdk-auth` |
 | `SECRET_KEY` | Yes | App session secret key |
+| `POSTGRES_PASSWORD` | Yes | PostgreSQL administrator password |
 | `AZURE_OPENAI_API_KEY` | No | Azure OpenAI API key |
 | `AZURE_OPENAI_ENDPOINT` | No | Azure OpenAI endpoint |
 | `AZURE_OPENAI_DEPLOYMENT` | No | Azure OpenAI deployment name |
@@ -165,14 +170,14 @@ az group delete --name rg-kids-vocab --yes --no-wait
 
 ## Cost Estimate
 
-With the default configuration (scale-to-zero, Basic ACR, minimal storage):
+With the default configuration (Burstable B1ms PostgreSQL, scale-to-zero Container Apps):
 
 | Resource | Estimated Monthly Cost |
 |----------|----------------------|
 | Container Apps (0-2 replicas, scale-to-zero) | ~$0 idle, ~$5-15 active |
 | Container Registry (Basic) | ~$5 |
-| Storage Account (1 GB file share) | ~$0.05 |
+| PostgreSQL Flexible Server (Burstable B1ms, 32 GB) | ~$13 |
 | Log Analytics (first 5 GB free) | ~$0 |
-| **Total (low traffic)** | **~$5-20/month** |
+| **Total (low traffic)** | **~$18-33/month** |
 
-> Scale-to-zero means you pay nothing when no one is using the app. First request after idle has a ~10-15s cold start.
+> Scale-to-zero means you pay nothing for Container Apps when no one is using the app. First request after idle has a ~10-15s cold start. PostgreSQL runs continuously (~$13/month). You can stop the PostgreSQL server when not in use to save costs.

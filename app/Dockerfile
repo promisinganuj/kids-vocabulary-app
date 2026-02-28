@@ -8,8 +8,8 @@ FROM base AS builder
 
 WORKDIR /build
 
-# Install build-time dependencies (needed for C extensions)
-RUN apk add --no-cache gcc musl-dev libffi-dev
+# Install build-time dependencies (needed for C extensions like psycopg2)
+RUN apk add --no-cache gcc musl-dev libffi-dev postgresql-dev
 
 # Install Python dependencies into a virtual env for clean copy
 RUN python -m venv /opt/venv
@@ -32,6 +32,9 @@ FROM base AS runtime
 
 LABEL maintainer="Anuj Parashar"
 LABEL description="VCE Vocabulary Flashcards - FastAPI Application"
+
+# Install runtime dependency for PostgreSQL client (libpq)
+RUN apk add --no-cache libpq
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \

@@ -10,12 +10,12 @@
 #   ./infra/deploy.sh --update-only      # Update app image only (skip infra)
 #
 # Environment variables (override defaults):
-#   RESOURCE_GROUP   — Azure resource group name  (default: rg-kids-vocab)
-#   LOCATION         — Azure region               (default: australiaeast)
-#   APP_NAME         — Base name for resources     (default: kids-vocab)
-#   IMAGE_TAG        — Container image tag         (default: latest)
-#   SECRET_KEY       — App secret key              (auto-generated if empty)
-#   DATABASE_URL     — Database connection string  (default: sqlite:///data/vocabulary.db)
+#   RESOURCE_GROUP      — Azure resource group name  (default: rg-kids-vocab)
+#   LOCATION            — Azure region               (default: australiaeast)
+#   APP_NAME            — Base name for resources     (default: kids-vocab)
+#   IMAGE_TAG           — Container image tag         (default: latest)
+#   SECRET_KEY          — App secret key              (auto-generated if empty)
+#   POSTGRES_PASSWORD   — PostgreSQL admin password    (auto-generated if empty)
 # ─────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -26,7 +26,6 @@ RESOURCE_GROUP="${RESOURCE_GROUP:-rg-kids-vocab}"
 LOCATION="${LOCATION:-australiaeast}"
 APP_NAME="${APP_NAME:-kids-vocab}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
-DATABASE_URL="${DATABASE_URL:-sqlite:///data/vocabulary.db}"
 UPDATE_ONLY=false
 
 # Parse arguments
@@ -41,12 +40,12 @@ for arg in "$@"; do
             echo "  --help, -h      Show this help message"
             echo ""
             echo "Environment variables:"
-            echo "  RESOURCE_GROUP   Azure resource group name  (default: rg-kids-vocab)"
-            echo "  LOCATION         Azure region               (default: australiaeast)"
-            echo "  APP_NAME         Base name for resources     (default: kids-vocab)"
-            echo "  IMAGE_TAG        Container image tag         (default: latest)"
-            echo "  SECRET_KEY       App secret key              (auto-generated if empty)"
-            echo "  DATABASE_URL     Database connection string  (default: sqlite:///data/vocabulary.db)"
+            echo "  RESOURCE_GROUP      Azure resource group name  (default: rg-kids-vocab)"
+            echo "  LOCATION            Azure region               (default: australiaeast)"
+            echo "  APP_NAME            Base name for resources     (default: kids-vocab)"
+            echo "  IMAGE_TAG           Container image tag         (default: latest)"
+            echo "  SECRET_KEY          App secret key              (auto-generated if empty)"
+            echo "  POSTGRES_PASSWORD   PostgreSQL admin password    (auto-generated if empty)"
             exit 0
             ;;
     esac
@@ -57,6 +56,14 @@ if [[ -z "${SECRET_KEY:-}" ]]; then
     SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))" 2>/dev/null || openssl rand -hex 32)
     echo "Generated SECRET_KEY (save this for future deployments):"
     echo "  export SECRET_KEY=$SECRET_KEY"
+    echo ""
+fi
+
+# Generate a PostgreSQL password if not provided
+if [[ -z "${POSTGRES_PASSWORD:-}" ]]; then
+    POSTGRES_PASSWORD=$(python3 -c "import secrets, string; chars = string.ascii_letters + string.digits; print(''.join(secrets.choice(chars) for _ in range(24)))" 2>/dev/null || openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c24)
+    echo "Generated POSTGRES_PASSWORD (save this for future deployments):"
+    echo "  export POSTGRES_PASSWORD=$POSTGRES_PASSWORD"
     echo ""
 fi
 
@@ -85,7 +92,7 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
 
     # ─── Step 2: Deploy Infrastructure (Bicep) ──────────────────────
 
-    echo "▸ Deploying Azure infrastructure — phase 1: ACR & supporting resources..."
+    echo "▸ Deploying Azure infrastructure — phase 1: ACR, PostgreSQL & supporting resources..."
     INFRA_OUTPUT=$(az deployment group create \
         --resource-group "$RESOURCE_GROUP" \
         --template-file "$SCRIPT_DIR/main.bicep" \
@@ -93,7 +100,7 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
         --parameters \
             secretKey="$SECRET_KEY" \
             imageTag="$IMAGE_TAG" \
-            databaseUrl="$DATABASE_URL" \
+            pgAdminPassword="$POSTGRES_PASSWORD" \
             azureOpenaiApiKey="${AZURE_OPENAI_API_KEY:-}" \
             azureOpenaiEndpoint="${AZURE_OPENAI_ENDPOINT:-}" \
             azureOpenaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-}" \
@@ -103,8 +110,10 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
 
     ACR_NAME=$(echo "$INFRA_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['acrName']['value'])")
     ACR_LOGIN_SERVER=$(echo "$INFRA_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['acrLoginServer']['value'])")
+    PG_FQDN=$(echo "$INFRA_OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['pgServerFqdn']['value'])")
 
     echo "  ACR: $ACR_LOGIN_SERVER"
+    echo "  PostgreSQL: $PG_FQDN"
     echo ""
 
     # ─── Step 3: Build & Push Docker Image ──────────────────────────
@@ -133,7 +142,7 @@ if [[ "$UPDATE_ONLY" == "false" ]]; then
         --parameters \
             secretKey="$SECRET_KEY" \
             imageTag="$IMAGE_TAG" \
-            databaseUrl="$DATABASE_URL" \
+            pgAdminPassword="$POSTGRES_PASSWORD" \
             azureOpenaiApiKey="${AZURE_OPENAI_API_KEY:-}" \
             azureOpenaiEndpoint="${AZURE_OPENAI_ENDPOINT:-}" \
             azureOpenaiDeployment="${AZURE_OPENAI_DEPLOYMENT:-}" \
