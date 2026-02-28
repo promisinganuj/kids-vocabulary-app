@@ -58,6 +58,17 @@ ORDERED_TABLES: list[str] = [
 # Tables to skip during migration
 SKIP_TABLES = {"alembic_version", "sqlite_sequence"}
 
+# Column name mappings: {table: {sqlite_col: pg_col}}
+# Handles cases where SQLite schema uses older/different column names.
+COLUMN_RENAMES: dict[str, dict[str, str]] = {
+    "ai_suggestion_feedback": {
+        "suggested_word": "word",
+        "difficulty_rating": "difficulty",
+        "added_to_vocabulary": "added_to_vocab",
+        "created_at": "feedback_at",
+    },
+}
+
 
 def get_sqlite_tables(sqlite_conn: sqlite3.Connection) -> list[str]:
     """Return list of user tables in the SQLite database."""
@@ -91,27 +102,48 @@ def migrate_table(
         return 0
 
     # Get PostgreSQL column names to find the intersection
-    pg_columns = [c["name"] for c in inspector.get_columns(table)]
-    common_columns = [c for c in columns if c in pg_columns]
-    if not common_columns:
+    pg_col_info = inspector.get_columns(table)
+    pg_columns = [c["name"] for c in pg_col_info]
+    # Detect boolean columns so we can convert SQLite int 0/1 → Python bool
+    boolean_columns = set()
+    for c in pg_col_info:
+        col_type = str(c["type"]).upper()
+        if col_type in ("BOOLEAN", "BOOL"):
+            boolean_columns.add(c["name"])
+    # Apply column renames: map SQLite names → PG names
+    rename_map = COLUMN_RENAMES.get(table, {})
+    mapped_columns = []
+    for c in columns:
+        pg_name = rename_map.get(c, c)  # rename if mapped, else keep original
+        if pg_name in pg_columns:
+            mapped_columns.append((c, pg_name))  # (sqlite_name, pg_name)
+
+    if not mapped_columns:
         print(f"  WARNING: no common columns for '{table}' - skipping")
         return 0
 
-    skipped = set(columns) - set(common_columns)
+    sqlite_col_names = [m[0] for m in mapped_columns]
+    pg_col_names = [m[1] for m in mapped_columns]
+
+    skipped = set(columns) - set(sqlite_col_names)
     if skipped:
         print(f"  NOTE: skipping columns not in PG: {skipped}")
+    renamed = {s: p for s, p in mapped_columns if s != p}
+    if renamed:
+        print(f"  NOTE: renaming columns: {renamed}")
 
-    # Read all rows from SQLite
-    col_list = ", ".join(common_columns)
+    # Read all rows from SQLite (using original SQLite column names)
+    col_list = ", ".join(sqlite_col_names)
     cur = sqlite_conn.execute(f"SELECT {col_list} FROM {table}")
     rows = cur.fetchall()
     if not rows:
         return 0
 
-    # Build INSERT statement with named parameters
-    placeholders = ", ".join(f":{c}" for c in common_columns)
+    # Build INSERT statement with PG column names
+    pg_col_list = ", ".join(pg_col_names)
+    placeholders = ", ".join(f":{c}" for c in pg_col_names)
     insert_sql = text(
-        f'INSERT INTO "{table}" ({col_list}) VALUES ({placeholders})'
+        f'INSERT INTO "{table}" ({pg_col_list}) VALUES ({placeholders})'
     )
 
     # Insert in batches
@@ -119,7 +151,14 @@ def migrate_table(
     with pg_engine.begin() as conn:
         for i in range(0, len(rows), batch_size):
             batch = rows[i : i + batch_size]
-            params = [dict(zip(common_columns, row)) for row in batch]
+            params = []
+            for row in batch:
+                # Map values from SQLite col names to PG col names
+                d = dict(zip(pg_col_names, row))
+                for bc in boolean_columns:
+                    if bc in d and d[bc] is not None:
+                        d[bc] = bool(d[bc])
+                params.append(d)
             conn.execute(insert_sql, params)
             total += len(batch)
 
