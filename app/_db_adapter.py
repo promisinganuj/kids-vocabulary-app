@@ -68,10 +68,28 @@ class CursorAdapter:
         return new_sql, named
 
     # ── dialect adaptation ────────────────────────────────────
+    # Boolean column names across all tables — used to rewrite
+    # SQLite integer comparisons (= 1 / = 0) to PostgreSQL boolean literals.
+    _BOOL_COLUMNS = frozenset({
+        "added_to_vocab", "email_verified", "is_active", "is_admin",
+        "is_completed", "is_correct", "is_favorite", "is_hidden",
+        "is_public", "is_system", "used", "was_correct",
+    })
+
     def _adapt_sql(self, sql: str) -> str:
         """Adapt SQLite-specific SQL for PostgreSQL when running on PG."""
         if self._is_sqlite:
             return sql
+
+        # Rewrite boolean column comparisons: col = 1 → col = TRUE, col = 0 → col = FALSE
+        # This handles SQLite idiom where booleans are stored/compared as integers.
+        for col in self._BOOL_COLUMNS:
+            sql = re.sub(
+                rf"\b{col}\s*=\s*1\b", f"{col} = TRUE", sql
+            )
+            sql = re.sub(
+                rf"\b{col}\s*=\s*0\b", f"{col} = FALSE", sql
+            )
 
         # Strip COLLATE NOCASE (PostgreSQL is case-sensitive by default)
         sql = sql.replace("COLLATE NOCASE", "")
