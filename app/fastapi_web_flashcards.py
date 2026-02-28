@@ -31,9 +31,10 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Union
 import shutil
 from database_manager import DatabaseManager, initialize_multiuser_from_text_file, migrate_date_of_birth_to_year_of_birth, User
+import fastapi_auth
 from fastapi_auth import (
-    init_authentication, get_current_user, require_authentication, require_admin, 
-    get_session_token, auth_manager, user_preferences, RequestState, request_state
+    init_authentication, get_current_user, require_authentication, require_admin,
+    get_session_token, RequestState, request_state
 )
 from pydantic import BaseModel, field_validator
 from settings import settings
@@ -527,8 +528,8 @@ async def set_request_state(request: Request, call_next):
     # Try to get current user
     try:
         token = await get_session_token(request)
-        if token and auth_manager:
-            user = auth_manager.validate_session(token)
+        if token and fastapi_auth.auth_manager:
+            user = fastapi_auth.auth_manager.validate_session(token)
             request_state.current_user = user
             request_state.session_token = token
     except Exception:
@@ -947,11 +948,11 @@ async def login(
     # Authenticate user
     success, message, user = db_manager.authenticate_user(login_identifier.strip().lower(), password)
     
-    if success and user and auth_manager:
+    if success and user and fastapi_auth.auth_manager:
         # Create session
         ip_address = request.client.host if request.client else None
         user_agent = request.headers.get('user-agent')
-        session_token = auth_manager.create_session(user, ip_address, user_agent)
+        session_token = fastapi_auth.auth_manager.create_session(user, ip_address, user_agent)
         
         # Update last login
         # db_manager.update_last_login(user.user_id)  # Method may not exist, commenting out
@@ -980,8 +981,8 @@ async def login(
 @app.post('/api/auth/logout')
 async def logout(request: Request, session_token: Optional[str] = Depends(get_session_token)):
     """API endpoint to logout user."""
-    if session_token and auth_manager:
-        auth_manager.delete_session(session_token)
+    if session_token and fastapi_auth.auth_manager:
+        fastapi_auth.auth_manager.delete_session(session_token)
     
     response = JSONResponse(content={'success': True, 'message': 'Logged out successfully'})
     response.delete_cookie("session_token")
@@ -990,8 +991,8 @@ async def logout(request: Request, session_token: Optional[str] = Depends(get_se
 @app.get('/logout')
 async def logout_redirect(request: Request, session_token: Optional[str] = Depends(get_session_token)):
     """Logout and redirect to login page."""
-    if session_token and auth_manager:
-        auth_manager.delete_session(session_token)
+    if session_token and fastapi_auth.auth_manager:
+        fastapi_auth.auth_manager.delete_session(session_token)
     
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie("session_token")
@@ -1036,14 +1037,14 @@ async def google_callback(request: Request):
         last_name=user_info.get('family_name'),
     )
 
-    if not success or not user or not auth_manager:
+    if not success or not user or not fastapi_auth.auth_manager:
         print(f"Google OAuth user error: {message}")
         return RedirectResponse(url="/login?error=google_auth_failed", status_code=302)
 
     # Create session (same as normal login)
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get('user-agent')
-    session_token = auth_manager.create_session(user, ip_address, user_agent)
+    session_token = fastapi_auth.auth_manager.create_session(user, ip_address, user_agent)
 
     response = RedirectResponse(url="/", status_code=302)
     response.set_cookie(
