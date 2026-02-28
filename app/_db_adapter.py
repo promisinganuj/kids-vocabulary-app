@@ -11,6 +11,7 @@ This adapter automatically:
 """
 
 import re
+from datetime import datetime, date
 from typing import Any, Optional
 
 from sqlalchemy import text
@@ -24,16 +25,31 @@ class RowAdapter:
     def __init__(self, sa_row):
         object.__setattr__(self, "_mapping", sa_row._mapping)
 
+    @staticmethod
+    def _convert(value):
+        """Convert PostgreSQL-native types to SQLite-compatible types.
+        
+        SQLite returns datetime as strings ('2025-08-17 06:22:14'),
+        while PostgreSQL returns datetime objects.  Converting here
+        keeps downstream code (JSON serialization, etc.) working
+        unchanged.
+        """
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%d %H:%M:%S")
+        if isinstance(value, date):
+            return value.isoformat()
+        return value
+
     def __getitem__(self, key):
         if isinstance(key, int):
-            return list(self._mapping.values())[key]
-        return self._mapping[key]
+            return self._convert(list(self._mapping.values())[key])
+        return self._convert(self._mapping[key])
 
     def keys(self):
         return self._mapping.keys()
 
     def __iter__(self):
-        return iter(self._mapping.values())
+        return iter(self._convert(v) for v in self._mapping.values())
 
     def __repr__(self):
         return f"RowAdapter({dict(self._mapping)})"
