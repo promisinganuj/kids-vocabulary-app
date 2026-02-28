@@ -13,7 +13,7 @@ Supports:
 Usage:
     from settings import settings
     print(settings.SECRET_KEY)
-    print(settings.database_url)
+    print(settings.DATABASE_URL)
 """
 
 import os
@@ -22,7 +22,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
-from pydantic import field_validator, model_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -76,9 +76,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = ""  # validated below — required in production
     SESSION_TIMEOUT_HOURS: int = 24
 
-    # ─── Database ───────────────────────────────────────────────
-    DATABASE_URL: str = ""  # validated below — required in production
-    DB_TIMEOUT: int = 30  # SQLite connection timeout in seconds
+    # ─── Database (PostgreSQL) ──────────────────────────────────
+    DATABASE_URL: str = ""  # validated below — required in all environments
 
     # ─── Azure OpenAI (optional) ────────────────────────────────
     AZURE_OPENAI_API_KEY: Optional[str] = None
@@ -124,7 +123,10 @@ class Settings(BaseSettings):
             if not self.SECRET_KEY:
                 self.SECRET_KEY = secrets.token_hex(32)
             if not self.DATABASE_URL:
-                self.DATABASE_URL = "sqlite:///data/vocabulary.db"
+                raise ValueError(
+                    "DATABASE_URL is required. "
+                    "Set DATABASE_URL env var, e.g. postgresql://user:pass@localhost:5432/dbname"
+                )
             if self.RELOAD is False and self.WORKERS == 1:
                 self.RELOAD = True  # auto-reload in dev by default
             self.DEBUG = True
@@ -133,7 +135,10 @@ class Settings(BaseSettings):
             if not self.SECRET_KEY:
                 self.SECRET_KEY = secrets.token_hex(32)
             if not self.DATABASE_URL:
-                self.DATABASE_URL = "sqlite:///data/vocabulary.db"
+                raise ValueError(
+                    "DATABASE_URL is required in staging. "
+                    "Set DATABASE_URL env var or DATABASE_URL_FILE for Docker secrets."
+                )
 
         elif self.APP_ENV == AppEnvironment.PRODUCTION:
             # Production: fail fast on missing required config
@@ -177,20 +182,6 @@ class Settings(BaseSettings):
             and self.AZURE_OPENAI_ENDPOINT
             and self.AZURE_OPENAI_DEPLOYMENT
         )
-
-    @property
-    def db_path(self) -> str:
-        """Extract file path from DATABASE_URL for SQLite.
-
-        Handles both 'sqlite:///path' and plain 'path' formats.
-        """
-        url = self.DATABASE_URL
-        if url.startswith("sqlite:///"):
-            return url[len("sqlite:///"):]
-        if url.startswith("sqlite://"):
-            return url[len("sqlite://"):]
-        # For non-SQLite URLs (future PostgreSQL), return as-is
-        return url
 
 
 # Singleton instance — import this everywhere

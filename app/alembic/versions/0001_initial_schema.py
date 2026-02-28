@@ -4,7 +4,7 @@ Revision ID: 0001
 Revises: 
 Create Date: 2026-02-22
 
-Creates all application tables. For existing SQLite databases that
+Creates all application tables. For existing databases that
 already have these tables, run `alembic stamp head` instead of
 `alembic upgrade head`.
 """

@@ -2,7 +2,7 @@
 """
 Database Manager for Vocabulary Flashcard Application
 
-This module handles all database operations using SQLite with multi-user support.
+This module handles all database operations using SQLAlchemy (PostgreSQL) with multi-user support.
 It manages users, vocabulary words, study sessions, and user preferences.
 
 Author: Vocabulary DB Manager
@@ -15,9 +15,8 @@ import bcrypt
 import secrets
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
-import shutil
 
-from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 
 from _db_adapter import ConnectionAdapter
 from database import SessionLocal, init_tables
@@ -121,103 +120,37 @@ class VocabularyWord:
 class DatabaseManager:
     """Main database manager for vocabulary operations."""
     
-    def __init__(self, db_path: Optional[str] = None, data_dir: Optional[str] = None):
+    def __init__(self):
         """Initialize database manager.
         
-        Args:
-            db_path: Legacy parameter (ignored). DATABASE_URL from settings is used.
-            data_dir: Legacy parameter. For SQLite, the data dir is auto-created.
+        Uses DATABASE_URL from settings (PostgreSQL).
+        Schema is managed by Alembic migrations.
         """
-        self._is_sqlite = settings.DATABASE_URL.startswith("sqlite")
-        self.db_path = settings.DATABASE_URL
-        
-        if self._is_sqlite:
-            # For SQLite, ensure the data directory exists
-            self.data_dir = data_dir or os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), "data"
-            )
-            os.makedirs(self.data_dir, exist_ok=True)
-        else:
-            self.data_dir = None
-        
-        # Skip DB init if already done by entrypoint (avoids SQLite lock race
-        # when multiple gunicorn workers import this module simultaneously).
+        # Skip DB init if already done by entrypoint (avoids race
+        # when multiple uvicorn workers import this module simultaneously).
         if not os.environ.get("_DB_INITIALIZED"):
             self.init_database()
-            # Update schema if needed for existing databases
-            self.update_schema_if_needed()
             os.environ["_DB_INITIALIZED"] = "1"
     
     def get_connection(self) -> ConnectionAdapter:
         """Get a database connection backed by a SQLAlchemy session.
         
-        Returns a ConnectionAdapter that behaves like sqlite3.Connection
-        so existing method code works unchanged.  Supports context-manager.
+        Returns a ConnectionAdapter wrapping a SQLAlchemy session.
+        Supports context-manager pattern (auto commit/rollback).
         """
         session = SessionLocal()
-        return ConnectionAdapter(session, self._is_sqlite)
+        return ConnectionAdapter(session)
     
     def init_database(self) -> None:
         """Initialize the database and create tables.
         
         Uses SQLAlchemy ORM models (models.py) to create all tables.
-        For SQLite, also creates triggers for auto-updating timestamps.
+        Schema changes are managed by Alembic migrations.
         """
-        # Create all tables from ORM models (works for both SQLite and PostgreSQL)
-        # init_tables() has its own retry logic for "database is locked"
+        # Create all tables from ORM models
         init_tables()
         
-        # SQLite: create triggers for auto-updating timestamps
-        # (PostgreSQL handles this via Alembic migrations or application code)
-        if self._is_sqlite:
-            with self.get_connection() as conn:
-                cursor = conn.cursor()
-                
-                cursor.execute("""
-                    CREATE TRIGGER IF NOT EXISTS update_vocabulary_timestamp 
-                    AFTER UPDATE ON vocabulary
-                    BEGIN
-                        UPDATE vocabulary SET updated_at = CURRENT_TIMESTAMP 
-                        WHERE id = NEW.id;
-                    END
-                """)
-                
-                cursor.execute("""
-                    CREATE TRIGGER IF NOT EXISTS update_user_timestamp 
-                    AFTER UPDATE ON users
-                    BEGIN
-                        UPDATE users SET updated_at = CURRENT_TIMESTAMP 
-                        WHERE id = NEW.id;
-                    END
-                """)
-                
-                cursor.execute("""
-                    CREATE TRIGGER IF NOT EXISTS update_list_word_count 
-                    AFTER INSERT ON vocabulary_list_words
-                    BEGIN
-                        UPDATE vocabulary_lists 
-                        SET word_count = (
-                            SELECT COUNT(*) FROM vocabulary_list_words 
-                            WHERE list_id = NEW.list_id
-                        )
-                        WHERE id = NEW.list_id;
-                    END
-                """)
-                
-                cursor.execute("""
-                    CREATE TRIGGER IF NOT EXISTS update_list_word_count_delete 
-                    AFTER DELETE ON vocabulary_list_words
-                    BEGIN
-                        UPDATE vocabulary_lists 
-                        SET word_count = (
-                            SELECT COUNT(*) FROM vocabulary_list_words 
-                            WHERE list_id = OLD.list_id
-                        )
-                        WHERE id = OLD.list_id;
-                    END
-                """)
-                
-                conn.commit()
+
         
         # Log initialization
         try:
@@ -226,129 +159,14 @@ class DatabaseManager:
                 cursor.execute('SELECT COUNT(*) as count FROM base_vocabulary')
                 row = cursor.fetchone()
                 count = row['count'] if row else 0
-            print(f"\u2705 Database initialized: {self.db_path}")
+            print(f"\u2705 Database initialized (PostgreSQL)")
             print(f"\U0001f4ca Database contains {count} base vocabulary words")
         except Exception:
-            print(f"\u2705 Database initialized: {self.db_path}")
+            print(f"\u2705 Database initialized (PostgreSQL)")
 
     def update_schema_if_needed(self):
-        """Update existing database schema to add new columns if they don't exist.
-        
-        For SQLite (dev): runs PRAGMA-based column checks and ALTER TABLE.
-        For PostgreSQL (prod): schema is managed by Alembic migrations.
-        """
-        if not self._is_sqlite:
-            print("\u2705 Schema managed by Alembic (PostgreSQL)")
-            return
-        
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Check if new columns exist and add them if not
-            try:
-                # Check vocabulary table for new columns
-                cursor.execute("PRAGMA table_info(vocabulary)")
-                columns = [row[1] for row in cursor.fetchall()]
-                
-                if 'base_word_id' not in columns:
-                    cursor.execute('ALTER TABLE vocabulary ADD COLUMN base_word_id INTEGER REFERENCES base_vocabulary(id)')
-                    print("✅ Added base_word_id column to vocabulary table")
-                
-                if 'like_count' not in columns:
-                    cursor.execute('ALTER TABLE vocabulary ADD COLUMN like_count INTEGER DEFAULT 0')
-                    print("✅ Added like_count column to vocabulary table")
-                
-                if 'is_hidden' not in columns:
-                    cursor.execute('ALTER TABLE vocabulary ADD COLUMN is_hidden INTEGER DEFAULT 0')
-                    print("✅ Added is_hidden column to vocabulary table")
-                
-                if 'source' not in columns:
-                    cursor.execute('ALTER TABLE vocabulary ADD COLUMN source TEXT DEFAULT "user"')
-                    print("✅ Added source column to vocabulary table")
-                
-                # Check users table for new profile columns
-                cursor.execute("PRAGMA table_info(users)")
-                user_columns = [row[1] for row in cursor.fetchall()]
-                
-                profile_columns = [
-                    ('first_name', 'TEXT'),
-                    ('last_name', 'TEXT'),
-                    ('mobile_number', 'TEXT'),
-                    ('profile_type', 'TEXT DEFAULT "Student"'),
-                    ('class_year', 'INTEGER'),
-                    ('year_of_birth', 'INTEGER'),
-                    ('school_name', 'TEXT'),
-                    ('preferred_study_time', 'TEXT'),
-                    ('learning_goals', 'TEXT'),
-                    ('avatar_color', 'TEXT DEFAULT "#3498db"'),
-                    ('failed_login_count', 'INTEGER DEFAULT 0'),
-                    ('last_failed_login', 'TIMESTAMP'),
-                    ('oauth_provider', 'TEXT'),
-                    ('oauth_id', 'TEXT'),
-                ]
-                
-                for col_name, col_def in profile_columns:
-                    if col_name not in user_columns:
-                        cursor.execute(f'ALTER TABLE users ADD COLUMN {col_name} {col_def}')
-                        print(f"✅ Added {col_name} column to users table")
-                
-                # Create AI learning sessions table if it doesn't exist
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS ai_learning_sessions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        target_words INTEGER NOT NULL DEFAULT 10,
-                        words_completed INTEGER DEFAULT 0,
-                        words_correct INTEGER DEFAULT 0,
-                        current_difficulty TEXT DEFAULT 'medium',
-                        session_started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        session_ended_at TIMESTAMP,
-                        is_completed BOOLEAN DEFAULT 0,
-                        total_time_seconds INTEGER DEFAULT 0,
-                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                    )
-                ''')
-                
-                # Create AI learning session words table if it doesn't exist
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS ai_learning_session_words (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        session_id INTEGER NOT NULL,
-                        word_id INTEGER,
-                        base_word_id INTEGER,
-                        word_text TEXT NOT NULL,
-                        user_response TEXT,
-                        is_correct BOOLEAN,
-                        response_time_ms INTEGER DEFAULT 0,
-                        difficulty_level TEXT DEFAULT 'medium',
-                        word_order INTEGER DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (session_id) REFERENCES ai_learning_sessions (id) ON DELETE CASCADE,
-                        FOREIGN KEY (word_id) REFERENCES vocabulary (id) ON DELETE SET NULL,
-                        FOREIGN KEY (base_word_id) REFERENCES base_vocabulary (id) ON DELETE SET NULL
-                    )
-                ''')
-                
-                # Try to create new indexes that might not exist
-                try:
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_vocab_base_word ON vocabulary(base_word_id)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_base_vocab_word ON base_vocabulary(word)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_word_likes_user ON word_likes(user_id)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_word_likes_word ON word_likes(word_id)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_reset_tokens_token ON password_reset_tokens(token)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_reset_tokens_user ON password_reset_tokens(user_id)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_learning_sessions(user_id)')
-                    cursor.execute('CREATE INDEX IF NOT EXISTS idx_ai_session_words_session ON ai_learning_session_words(session_id)')
-                except OperationalError as e:
-                    # Ignore errors for tables that don't exist yet
-                    if "no such table" not in str(e).lower():
-                        print(f"Warning: Could not create some indexes: {e}")
-                
-                conn.commit()
-                print("✅ Schema update completed")
-                
-            except Exception as e:
-                print(f"⚠️  Schema update warning: {e}")
+        """Schema is managed by Alembic migrations. No-op."""
+        pass
 
     # ─── Account Lockout Helpers ─────────────────────────────────
     MAX_FAILED_LOGINS = 5
@@ -913,7 +731,7 @@ class DatabaseManager:
             cursor.execute('''
                 SELECT * FROM vocabulary 
                 WHERE user_id = ? 
-                ORDER BY word COLLATE NOCASE
+                ORDER BY LOWER(word)
             ''', (user_id,))
             
             words = []
@@ -1060,7 +878,7 @@ class DatabaseManager:
                 SELECT word, word_type, definition, example, total_likes, category
                 FROM base_vocabulary 
                 WHERE is_active = 1 AND total_likes > 0
-                ORDER BY total_likes DESC, word COLLATE NOCASE
+                ORDER BY total_likes DESC, LOWER(word)
                 LIMIT ?
             ''', (limit,))
             
@@ -1563,7 +1381,7 @@ class DatabaseManager:
                     definition LIKE ? OR 
                     example LIKE ?
                 )
-                ORDER BY word COLLATE NOCASE
+                ORDER BY LOWER(word)
             ''', (user_id, search_pattern, search_pattern, search_pattern))
             
             words = []
@@ -2335,12 +2153,12 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute('''
                     SELECT *, 
-                           julianday('now') - julianday(last_reviewed) as days_ago,
+                           EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - last_reviewed)) / 86400.0 as days_ago,
                            ROUND((times_correct * 1.0 / NULLIF(times_reviewed, 0)) * 100, 1) as accuracy_percent
                     FROM vocabulary 
                     WHERE user_id = ? 
                       AND last_reviewed IS NOT NULL 
-                      AND julianday('now') - julianday(last_reviewed) <= ?
+                      AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - last_reviewed)) / 86400.0 <= ?
                     ORDER BY last_reviewed DESC
                     LIMIT 50
                 ''', (user_id, days))
@@ -2384,7 +2202,7 @@ class DatabaseManager:
                            SUM(words_reviewed) as total_reviewed
                     FROM study_sessions 
                     WHERE user_id = ? 
-                      AND start_time >= datetime('now', '-30 days')
+                      AND start_time >= CURRENT_TIMESTAMP - INTERVAL '30 days'
                       AND is_completed = 1
                     GROUP BY DATE(start_time)
                     ORDER BY date DESC
@@ -2421,11 +2239,11 @@ class DatabaseManager:
                 cursor.execute('''
                     SELECT *, 
                            (times_correct * 1.0 / NULLIF(times_reviewed, 0)) as accuracy,
-                           COALESCE(julianday('now') - julianday(last_reviewed), 999) as days_since_review,
+                           COALESCE(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - last_reviewed)) / 86400.0, 999) as days_since_review,
                            CASE 
                                WHEN times_reviewed = 0 THEN 1  -- New words first
                                WHEN (times_correct * 1.0 / NULLIF(times_reviewed, 0)) < 0.6 AND times_reviewed >= 2 THEN 2  -- Struggling words  
-                               WHEN julianday('now') - julianday(last_reviewed) > 7 THEN 3  -- Haven't seen in a week
+                               WHEN EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - last_reviewed)) / 86400.0 > 7 THEN 3  -- Haven't seen in a week
                                WHEN mastery_level < 2 THEN 4  -- Still learning
                                ELSE 5
                            END as priority
@@ -2443,224 +2261,17 @@ class DatabaseManager:
             return []
 
 
-# Migration function to update date_of_birth to year_of_birth
-def migrate_date_of_birth_to_year_of_birth(db_path: str) -> bool:
-    """Migrate date_of_birth column to year_of_birth in users table.
-    
-    DEPRECATED: Use Alembic migrations for PostgreSQL.
-    Kept for legacy SQLite database upgrades.
-    """
-    import sqlite3
-    conn = None
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Check if date_of_birth column exists
-        cursor.execute("PRAGMA table_info(users)")
-        columns = [column[1] for column in cursor.fetchall()]
-        
-        if 'date_of_birth' in columns and 'year_of_birth' not in columns:
-            print("🔄 Migrating date_of_birth to year_of_birth...")
-            
-            # Add year_of_birth column
-            cursor.execute('ALTER TABLE users ADD COLUMN year_of_birth INTEGER')
-            
-            # Extract year from date_of_birth and populate year_of_birth
-            cursor.execute('''
-                UPDATE users 
-                SET year_of_birth = CASE 
-                    WHEN date_of_birth IS NOT NULL AND date_of_birth != '' 
-                    THEN CAST(substr(date_of_birth, 1, 4) AS INTEGER)
-                    ELSE NULL 
-                END
-            ''')
-            
-            # Create a new table without date_of_birth
-            cursor.execute('''
-                CREATE TABLE users_new (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    email TEXT UNIQUE NOT NULL,
-                    username TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    salt TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    last_login TIMESTAMP,
-                    is_active BOOLEAN DEFAULT 1,
-                    first_name TEXT,
-                    last_name TEXT,
-                    mobile_number TEXT,
-                    profile_type TEXT DEFAULT 'Student',
-                    class_year INTEGER,
-                    year_of_birth INTEGER,
-                    school_name TEXT,
-                    preferred_study_time TEXT,
-                    learning_goals TEXT,
-                    avatar_color TEXT DEFAULT '#3498db'
-                )
-            ''')
-            
-            # Copy data to new table (excluding date_of_birth)
-            cursor.execute('''
-                INSERT INTO users_new 
-                SELECT id, email, username, password_hash, salt, created_at, last_login, 
-                       is_active, first_name, last_name, mobile_number, profile_type, 
-                       class_year, year_of_birth, school_name, preferred_study_time, 
-                       learning_goals, avatar_color
-                FROM users
-            ''')
-            
-            # Drop old table and rename new table
-            cursor.execute('DROP TABLE users')
-            cursor.execute('ALTER TABLE users_new RENAME TO users')
-            
-            conn.commit()
-            print("✅ Successfully migrated date_of_birth to year_of_birth")
-            return True
-        else:
-            print("✅ Migration not needed - year_of_birth column already exists or date_of_birth doesn't exist")
-            return True
-            
-    except Exception as e:
-        print(f"❌ Migration failed: {str(e)}")
-        return False
-    finally:
-        if conn:
-            conn.close()
-
-
-# Migration function to move existing data to multi-user schema
-def migrate_single_user_to_multiuser(old_db_path: str, new_db_path: str, default_user_email: str = "admin@vocabulary.app") -> bool:
-    """Migrate existing single-user database to multi-user schema."""
-    try:
-        if not os.path.exists(old_db_path):
-            print(f"❌ Old database not found: {old_db_path}")
-            return False
-        
-        # Create new multi-user database
-        new_db = DatabaseManager(new_db_path)
-        
-        # Create default admin user
-        admin_password = os.getenv('ADMIN_DEFAULT_PASSWORD', 'admin123')  # Fallback to admin123 if not set
-        success, message, user_id = new_db.create_user(
-            email=default_user_email,
-            username="admin",
-            password=admin_password
-        )
-        
-        if not success:
-            print(f"❌ Failed to create default user: {message}")
-            return False
-        
-        print(f"✅ Created default user: {default_user_email} (Password: {admin_password})")
-        
-        # Connect to old database and migrate data
-        import sqlite3
-        old_conn = sqlite3.connect(old_db_path)
-        old_conn.row_factory = sqlite3.Row
-        
-        with old_conn:
-            # Migrate vocabulary words
-            old_cursor = old_conn.cursor()
-            old_cursor.execute('SELECT * FROM tbl_vocab')
-            old_words = old_cursor.fetchall()
-            
-            with new_db.get_connection() as new_conn:
-                new_cursor = new_conn.cursor()
-                
-                migrated_count = 0
-                for word_row in old_words:
-                    new_cursor.execute('''
-                        INSERT INTO vocabulary 
-                        (user_id, word, word_type, definition, example, difficulty, 
-                         times_reviewed, times_correct, last_reviewed, mastery_level, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        user_id,
-                        word_row['word'],
-                        word_row['word_type'],
-                        word_row['definition'],
-                        word_row['example'],
-                        word_row['difficulty'] if 'difficulty' in word_row.keys() else 'medium',
-                        word_row['times_reviewed'] if 'times_reviewed' in word_row.keys() else 0,
-                        word_row['times_correct'] if 'times_correct' in word_row.keys() else 0,
-                        word_row['last_reviewed'] if 'last_reviewed' in word_row.keys() else None,
-                        word_row['mastery_level'] if 'mastery_level' in word_row.keys() else 0,
-                        word_row['created_at'] if 'created_at' in word_row.keys() else None
-                    ))
-                    migrated_count += 1
-                
-                new_conn.commit()
-                print(f"✅ Migrated {migrated_count} vocabulary words")
-                
-                # Migrate study sessions if they exist
-                try:
-                    old_cursor.execute('SELECT * FROM tbl_study_sessions')
-                    old_sessions = old_cursor.fetchall()
-                    
-                    session_count = 0
-                    for session_row in old_sessions:
-                        new_cursor.execute('''
-                            INSERT INTO study_sessions 
-                            (user_id, session_type, start_time, end_time, words_reviewed, 
-                             words_correct, duration_seconds)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                        ''', (
-                            user_id,
-                            session_row['session_type'] if 'session_type' in session_row.keys() else 'review',
-                            session_row['start_time'],
-                            session_row['end_time'] if 'end_time' in session_row.keys() else None,
-                            session_row['words_reviewed'] if 'words_reviewed' in session_row.keys() else 0,
-                            session_row['words_correct'] if 'words_correct' in session_row.keys() else 0,
-                            session_row['duration_seconds'] if 'duration_seconds' in session_row.keys() else 0
-                        ))
-                        session_count += 1
-                    
-                    new_conn.commit()
-                    print(f"✅ Migrated {session_count} study sessions")
-                    
-                except OperationalError:
-                    print("ℹ️  No study sessions table found in old database")
-        
-        old_conn.close()
-        
-        # Create backup of old database
-        backup_path = f"{old_db_path}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        shutil.copy2(old_db_path, backup_path)
-        print(f"💾 Created backup of old database: {backup_path}")
-        
-        print("✅ Migration completed successfully!")
-        print(f"🔑 Default login credentials:")
-        print(f"   Email: {default_user_email}")
-        print(f"   Password: admin123")
-        print(f"   ⚠️  Please change the password immediately after first login!")
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ Migration failed: {str(e)}")
-        return False
-
-
-def initialize_multiuser_from_text_file(text_file: str, user_id: int, db_manager: 'DatabaseManager') -> int:
-    """Initialize database from text file for a specific user."""
-    return db_manager.load_vocabulary_from_text_file(text_file, user_id)
-
-
-# Add the new methods to DatabaseManager class - these go before the end of the class
-# Note: These methods should be added inside the DatabaseManager class, after analyze_user_learning_patterns method
-
 
 if __name__ == '__main__':
     # Test the database
-    db_manager = DatabaseManager('data/vocabulary_test.db')
+    db_manager = DatabaseManager()
     
     # Create a test user
-    success, message, user_id = db_manager.create_user("test@example.com", "testuser", "password123")
+    success, message, user_id = db_manager.create_user("test@example.com", "testuser", "Password123")
     print(f"User creation: {message} (ID: {user_id})")
     
     # Test authentication
-    success, message, user = db_manager.authenticate_user("test@example.com", "password123")
+    success, message, user = db_manager.authenticate_user("test@example.com", "Password123")
     print(f"Authentication: {message}")
     if user:
         print(f"Authenticated user: {user.to_dict()}")

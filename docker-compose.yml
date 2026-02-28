@@ -1,13 +1,10 @@
 # Docker Compose for Kids Vocabulary App
 #
 # Usage:
-#   Development (SQLite):   docker compose up vocab-app
-#   Production (PostgreSQL): docker compose --profile postgres up
+#   docker compose up
 #
 # Required env vars (set in .env or export):
-#   SECRET_KEY - session encryption key (required in production)
-#
-# For PostgreSQL, also set:
+#   SECRET_KEY        - session encryption key
 #   POSTGRES_PASSWORD - database password
 
 services:
@@ -15,7 +12,6 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: vocab-postgres
-    profiles: ["postgres"]
     restart: unless-stopped
     environment:
       POSTGRES_DB: vocabulary
@@ -41,16 +37,10 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-5001}:5001"
-    volumes:
-      # Persist SQLite database across container restarts (dev/standalone mode)
-      - vocab-data:/app/data
     environment:
       - APP_ENV=${APP_ENV:-production}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
-      # Default: SQLite for standalone mode
-      # Override with PostgreSQL URL for production:
-      #   DATABASE_URL=postgresql://vocab_app:password@postgres:5432/vocabulary
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/vocabulary.db}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://vocab_app:${POSTGRES_PASSWORD}@postgres:5432/vocabulary}
       - HOST=0.0.0.0
       - PORT=5001
       - WORKERS=${WORKERS:-2}
@@ -61,7 +51,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        required: false
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
       interval: 30s
@@ -70,7 +59,5 @@ services:
       start_period: 10s
 
 volumes:
-  vocab-data:
-    driver: local
   postgres-data:
     driver: local

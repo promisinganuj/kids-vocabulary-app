@@ -30,7 +30,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union
 import shutil
-from database_manager import DatabaseManager, initialize_multiuser_from_text_file, migrate_date_of_birth_to_year_of_birth, User
+from database_manager import DatabaseManager, User
 import fastapi_auth
 from fastapi_auth import (
     init_authentication, get_current_user, require_authentication, require_admin,

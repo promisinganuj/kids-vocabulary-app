@@ -24,15 +24,8 @@ def upgrade() -> None:
     op.add_column('users', sa.Column('oauth_id', sa.String(255), nullable=True))
 
     # Make password_hash and salt nullable so OAuth-only users can exist
-    # For SQLite this requires a batch operation; for Postgres it's a simple ALTER
-    bind = op.get_bind()
-    if bind.dialect.name == 'sqlite':
-        with op.batch_alter_table('users') as batch_op:
-            batch_op.alter_column('password_hash', existing_type=sa.Text(), nullable=True)
-            batch_op.alter_column('salt', existing_type=sa.Text(), nullable=True)
-    else:
-        op.alter_column('users', 'password_hash', existing_type=sa.Text(), nullable=True)
-        op.alter_column('users', 'salt', existing_type=sa.Text(), nullable=True)
+    op.alter_column('users', 'password_hash', existing_type=sa.Text(), nullable=True)
+    op.alter_column('users', 'salt', existing_type=sa.Text(), nullable=True)
 
 
 def downgrade() -> None:
@@ -44,13 +37,8 @@ def downgrade() -> None:
         "WHERE password_hash IS NULL"
     ))
 
-    if bind.dialect.name == 'sqlite':
-        with op.batch_alter_table('users') as batch_op:
-            batch_op.alter_column('password_hash', existing_type=sa.Text(), nullable=False)
-            batch_op.alter_column('salt', existing_type=sa.Text(), nullable=False)
-    else:
-        op.alter_column('users', 'password_hash', existing_type=sa.Text(), nullable=False)
-        op.alter_column('users', 'salt', existing_type=sa.Text(), nullable=False)
+    op.alter_column('users', 'password_hash', existing_type=sa.Text(), nullable=False)
+    op.alter_column('users', 'salt', existing_type=sa.Text(), nullable=False)
 
     op.drop_column('users', 'oauth_id')
     op.drop_column('users', 'oauth_provider')

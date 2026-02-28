@@ -1,12 +1,12 @@
 """
-SQLAlchemy <-> sqlite3 Adapter Layer
+SQLAlchemy Adapter Layer (PostgreSQL)
 
-Provides a sqlite3-compatible interface over SQLAlchemy sessions so that
-existing DatabaseManager method bodies require minimal changes.
+Provides a cursor/connection-style interface over SQLAlchemy sessions so that
+DatabaseManager method bodies use a familiar execute/fetch pattern.
 
-This adapter automatically:
+This adapter:
 - Converts ? positional placeholders to :named parameters
-- Adapts SQLite-specific SQL for PostgreSQL (julianday, COLLATE NOCASE, etc.)
+- Adapts legacy SQLite-style SQL for PostgreSQL (julianday, COLLATE NOCASE, etc.)
 - Wraps SQLAlchemy Row objects with dict-like access (row['column'])
 """
 
@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 
 class RowAdapter:
-    """Wraps a SQLAlchemy Row to provide sqlite3.Row-like dict/index access."""
+    """Wraps a SQLAlchemy Row to provide dict/index access."""
     __slots__ = ("_mapping",)
 
     def __init__(self, sa_row):
@@ -27,12 +27,10 @@ class RowAdapter:
 
     @staticmethod
     def _convert(value):
-        """Convert PostgreSQL-native types to SQLite-compatible types.
-        
-        SQLite returns datetime as strings ('2025-08-17 06:22:14'),
-        while PostgreSQL returns datetime objects.  Converting here
-        keeps downstream code (JSON serialization, etc.) working
-        unchanged.
+        """Convert PostgreSQL-native types to string-compatible types.
+
+        PostgreSQL returns datetime objects; converting here keeps
+        downstream code (JSON serialization, etc.) working unchanged.
         """
         if isinstance(value, datetime):
             return value.strftime("%Y-%m-%d %H:%M:%S")
@@ -56,11 +54,10 @@ class RowAdapter:
 
 
 class CursorAdapter:
-    """Wraps a SQLAlchemy session to behave like sqlite3.Cursor."""
+    """Wraps a SQLAlchemy session to behave like a database cursor."""
 
-    def __init__(self, session: Session, is_sqlite: bool):
+    def __init__(self, session: Session):
         self._session = session
-        self._is_sqlite = is_sqlite
         self._result = None
         self.lastrowid: Optional[int] = None
         self.rowcount: int = 0
@@ -83,9 +80,7 @@ class CursorAdapter:
             named[f"_p{i}"] = val
         return new_sql, named
 
-    # ── dialect adaptation ────────────────────────────────────
-    # Boolean column names across all tables — used to rewrite
-    # SQLite integer comparisons (= 1 / = 0) to PostgreSQL boolean literals.
+    # ── SQL adaptation (legacy SQLite-isms → PostgreSQL) ──────
     _BOOL_COLUMNS = frozenset({
         "added_to_vocab", "email_verified", "is_active", "is_admin",
         "is_completed", "is_correct", "is_favorite", "is_hidden",
@@ -93,21 +88,18 @@ class CursorAdapter:
     })
 
     def _adapt_sql(self, sql: str) -> str:
-        """Adapt SQLite-specific SQL for PostgreSQL when running on PG."""
-        if self._is_sqlite:
-            return sql
+        """Adapt legacy SQLite-style SQL for PostgreSQL.
 
-        # Rewrite boolean column comparisons: col = 1 → col = TRUE, col = 0 → col = FALSE
-        # This handles SQLite idiom where booleans are stored/compared as integers.
+        Many queries still use SQLite conventions (boolean-as-integer,
+        julianday, COLLATE NOCASE, etc.).  This method rewrites them
+        to PostgreSQL equivalents so the queries work unchanged.
+        """
+        # Rewrite boolean column comparisons: col = 1 → col = TRUE
         for col in self._BOOL_COLUMNS:
-            sql = re.sub(
-                rf"\b{col}\s*=\s*1\b", f"{col} = TRUE", sql
-            )
-            sql = re.sub(
-                rf"\b{col}\s*=\s*0\b", f"{col} = FALSE", sql
-            )
+            sql = re.sub(rf"\b{col}\s*=\s*1\b", f"{col} = TRUE", sql)
+            sql = re.sub(rf"\b{col}\s*=\s*0\b", f"{col} = FALSE", sql)
 
-        # Strip COLLATE NOCASE (PostgreSQL is case-sensitive by default)
+        # Strip COLLATE NOCASE (PostgreSQL uses ILIKE or citext instead)
         sql = sql.replace("COLLATE NOCASE", "")
 
         # julianday('now') - julianday(col) → EXTRACT(EPOCH FROM ...) / 86400
@@ -136,12 +128,11 @@ class CursorAdapter:
     def execute(self, sql: str, params=None):
         stripped = sql.strip().upper()
 
-        # Skip SQLite-only statements on PostgreSQL
-        if not self._is_sqlite:
-            if stripped.startswith("PRAGMA"):
-                return self
-            if stripped.startswith("CREATE TRIGGER"):
-                return self
+        # Skip SQLite-only statements that may linger in legacy code
+        if stripped.startswith("PRAGMA"):
+            return self
+        if stripped.startswith("CREATE TRIGGER"):
+            return self
 
         sql, named = self._positional_to_named(sql, params)
         sql = self._adapt_sql(sql)
@@ -168,7 +159,7 @@ class CursorAdapter:
 
 
 class ConnectionAdapter:
-    """Wraps a SQLAlchemy session to behave like sqlite3.Connection.
+    """Wraps a SQLAlchemy session to behave like a database connection.
 
     Supports the ``with`` context-manager pattern:
     - On normal exit: commits the transaction
@@ -176,12 +167,11 @@ class ConnectionAdapter:
     - Always closes the session on exit
     """
 
-    def __init__(self, session: Session, is_sqlite: bool):
+    def __init__(self, session: Session):
         self._session = session
-        self._is_sqlite = is_sqlite
 
     def cursor(self) -> CursorAdapter:
-        return CursorAdapter(self._session, self._is_sqlite)
+        return CursorAdapter(self._session)
 
     def execute(self, sql: str, params=None) -> CursorAdapter:
         c = self.cursor()

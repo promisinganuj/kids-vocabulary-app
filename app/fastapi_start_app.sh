@@ -18,18 +18,21 @@ fi
 # Go back to app directory
 cd app || exit 1
 
-# Check if multi-user database exists, if not initialize it
-if [ ! -f "data/vocabulary.db" ]; then
-    echo "🔧 Initializing database..."
-    python -c "from database_manager import DatabaseManager; import os; DatabaseManager(os.path.join('data', 'vocabulary.db'))"
+# Load environment from .env if present
+if [ -f ".env" ]; then
+    echo "🔧 Loading .env configuration..."
+    set -a
+    source .env
+    set +a
 fi
 
-# Display database stats
-echo "📊 Database status:"
-echo "   Users: $(sqlite3 data/vocabulary.db 'SELECT COUNT(*) FROM users;')"
-echo "   Total words: $(sqlite3 data/vocabulary.db 'SELECT COUNT(*) FROM vocabulary;')"
-echo "   Base vocabulary: $(sqlite3 data/vocabulary.db 'SELECT COUNT(*) FROM base_vocabulary;')"
+# Verify DATABASE_URL is set
+if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL is not set. Please set it in .env or environment."
+    exit 1
+fi
+
 echo "🌐 Starting FastAPI server on http://localhost:5001..."
 
 # Start FastAPI application with uvicorn
-python fastapi_web_flashcards.py
+python -m uvicorn fastapi_web_flashcards:app --host 0.0.0.0 --port 5001 --reload

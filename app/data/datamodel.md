@@ -1,10 +1,10 @@
 # Vocabulary App Database Documentation
 
 ## Overview
-This document describes the database schema for the Kids Vocabulary Flashcard Application. The application uses SQLite as its database engine and supports multi-user functionality with comprehensive vocabulary management, study tracking, and AI-powered learning features.
+This document describes the database schema for the Kids Vocabulary Flashcard Application. The application uses PostgreSQL as its database engine and supports multi-user functionality with comprehensive vocabulary management, study tracking, and AI-powered learning features.
 
-**Database File**: `vocabulary.db`  
-**Engine**: SQLite  
+**Database**: PostgreSQL  
+**Engine**: PostgreSQL  
 **Current Tables**: 12 tables (cleaned up on Sep 16, 2025)  
 **Database Size**: Active with 3 users, 11,245 user vocabulary words, 3,738 base vocabulary words
 
